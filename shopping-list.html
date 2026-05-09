@@ -196,6 +196,25 @@
     .icon-btn:hover { background: var(--color-surface-offset); color: var(--color-text); }
     .icon-btn:active { background: var(--color-surface-dynamic); }
 
+    /* ── SYNC STATUS ────────────────────────────────────── */
+    .sync-status {
+      display: flex; align-items: center; gap: var(--space-2);
+      font-size: var(--text-xs); color: var(--color-text-faint);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      transition: all var(--transition-interactive);
+    }
+    .sync-dot {
+      width: 7px; height: 7px; border-radius: var(--radius-full);
+      background: var(--color-text-faint); flex-shrink: 0;
+      transition: background var(--transition-interactive);
+    }
+    .sync-status.synced .sync-dot  { background: var(--color-success); }
+    .sync-status.syncing .sync-dot { background: var(--color-warning); animation: pulse 1s ease-in-out infinite; }
+    .sync-status.error   .sync-dot { background: var(--color-error); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
     /* ── MAIN CONTENT ───────────────────────────────────── */
     .main {
       flex: 1; max-width: var(--content-default); width: 100%;
@@ -314,7 +333,6 @@
       background: color-mix(in oklch, var(--color-primary) 20%, transparent);
       color: var(--color-primary);
     }
-    /* Private/public indicator dot on tab */
     .tab-vis-dot {
       width: 6px; height: 6px;
       border-radius: var(--radius-full);
@@ -498,6 +516,14 @@
     .modal-body { display: flex; flex-direction: column; gap: var(--space-4); }
     .modal-footer { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); flex-wrap: wrap; }
 
+    /* Firebase config modal */
+    .config-note {
+      font-size: var(--text-xs); color: var(--color-text-faint);
+      display: flex; align-items: flex-start; gap: var(--space-2);
+      background: var(--color-surface-offset); border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+
     /* Share link box inside modal */
     .share-link-box {
       display: flex; align-items: center; gap: var(--space-2);
@@ -571,6 +597,14 @@
           <span class="brand-name">Shopping List</span>
         </div>
         <div class="topbar-actions">
+          <!-- Sync status indicator -->
+          <div class="sync-status" id="sync-status" title="Firebase sync status" aria-live="polite" aria-label="Sync status: disconnected">
+            <span class="sync-dot"></span>
+            <span id="sync-label">Offline</span>
+          </div>
+          <button class="icon-btn" id="firebase-config-btn" aria-label="Configure Firebase">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/></svg>
+          </button>
           <button class="icon-btn" id="new-list-btn" aria-label="Create new list">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           </button>
@@ -680,6 +714,41 @@
     </main>
   </div>
 
+  <!-- FIREBASE CONFIG MODAL -->
+  <div class="modal-backdrop" id="firebase-config-modal" role="dialog" aria-modal="true" aria-labelledby="firebase-config-modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="firebase-config-modal-title">Firebase Setup</h2>
+        <button class="icon-btn" id="close-firebase-config-modal" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);">Paste your Firebase project config below to enable real-time sync and sharing.</p>
+        <div class="form-group">
+          <label class="form-label" for="fb-api-key">API Key</label>
+          <input class="form-input" id="fb-api-key" type="text" placeholder="AIzaSy...">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fb-project-id">Project ID</label>
+          <input class="form-input" id="fb-project-id" type="text" placeholder="my-project-12345">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fb-app-id">App ID</label>
+          <input class="form-input" id="fb-app-id" type="text" placeholder="1:123456789:web:abc123">
+        </div>
+        <div class="config-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Get these values from the Firebase Console → Project Settings → Your apps. Make sure Firestore is enabled and your security rules allow read/write.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancel-firebase-config">Cancel</button>
+        <button class="btn btn-primary" id="confirm-firebase-config">Connect</button>
+      </div>
+    </div>
+  </div>
+
   <!-- NEW LIST MODAL -->
   <div class="modal-backdrop" id="new-list-modal" role="dialog" aria-modal="true" aria-labelledby="new-list-modal-title">
     <div class="modal">
@@ -784,7 +853,7 @@
         </div>
         <p class="share-note">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Shared links will be fully live once Firebase sync is connected. Right now the link is generated and copied for future use.
+          Shared links require Firebase to be connected. Connect Firebase via the settings icon in the top bar.
         </p>
       </div>
       <div class="modal-footer">
@@ -797,493 +866,653 @@
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <script>
-  (function() {
-    'use strict';
+  <!-- Firebase SDK (modular, loaded dynamically after config is provided) -->
+  <script type="module">
+  // ── FIREBASE LOADER ──────────────────────────────────────────────────────
+  // Firebase is initialized lazily after the user provides their config.
+  // All Firestore calls go through the `db` object and the helper functions below.
 
-    // ── STATE ─────────────────────────────────────────────
-    let state = {
-      lists: [
-        { id: uid(), name: 'My List', items: [], isPublic: false }
-      ],
-      activeListId: null,
-      filter: 'all',
-      search: ''
-    };
-    state.activeListId = state.lists[0].id;
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import {
+    getFirestore, collection, doc,
+    onSnapshot, setDoc, updateDoc, deleteDoc,
+    query, orderBy, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-    // ── UTILS ─────────────────────────────────────────────
-    function uid() {
-      return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-    }
-    function getList(id) {
-      return state.lists.find(l => l.id === (id || state.activeListId));
-    }
-    function getActiveList() {
-      return getList(state.activeListId);
-    }
-    function saveState() {
-      // No localStorage in sandbox; state is in-memory only
-    }
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let db = null;           // Firestore instance (null until configured)
+  let unsubscribers = [];  // Active Firestore listeners
 
-    // Generate a share URL stub (will be real Firebase URL later)
-    function getShareUrl(list) {
-      return 'https://yourapp.web.app/list/' + list.id;
-    }
+  let state = {
+    lists: [
+      { id: uid(), name: 'My List', items: [], isPublic: false }
+    ],
+    activeListId: null,
+    filter: 'all',
+    search: ''
+  };
+  state.activeListId = state.lists[0].id;
 
-    // ── THEME TOGGLE ──────────────────────────────────────
-    const root = document.documentElement;
-    let theme = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
-    root.setAttribute('data-theme', theme);
-    function updateThemeBtn() {
-      document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
-        btn.innerHTML = theme === 'dark'
-          ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
-          : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-        btn.setAttribute('aria-label', 'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' mode');
-      });
+  // ── UTILS ─────────────────────────────────────────────────────────────────
+  function uid() {
+    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  }
+  function getList(id) {
+    return state.lists.find(l => l.id === (id || state.activeListId));
+  }
+  function getActiveList() {
+    return getList(state.activeListId);
+  }
+
+  function getShareUrl(list) {
+    const projectId = document.getElementById('fb-project-id').value.trim();
+    const base = projectId ? `https://${projectId}.web.app` : 'https://yourapp.web.app';
+    return `${base}/list/${list.id}`;
+  }
+
+  // ── SYNC STATUS ───────────────────────────────────────────────────────────
+  function setSyncStatus(status, label) {
+    const el = document.getElementById('sync-status');
+    const lbl = document.getElementById('sync-label');
+    el.className = 'sync-status ' + status;
+    el.setAttribute('aria-label', 'Sync status: ' + label);
+    lbl.textContent = label;
+  }
+
+  // ── FIREBASE INIT ─────────────────────────────────────────────────────────
+  function initFirebase(apiKey, projectId, appId) {
+    try {
+      const firebaseConfig = {
+        apiKey,
+        authDomain: `${projectId}.firebaseapp.com`,
+        projectId,
+        storageBucket: `${projectId}.appspot.com`,
+        appId
+      };
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      setSyncStatus('syncing', 'Connecting…');
+      subscribeToLists();
+      showToast('🔥 Firebase connected!');
+    } catch (err) {
+      setSyncStatus('error', 'Error');
+      showToast('Firebase error: ' + err.message, 4000);
+      console.error(err);
     }
-    updateThemeBtn();
-    document.addEventListener('click', e => {
-      if (e.target.closest('[data-theme-toggle]')) {
-        theme = theme === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-theme', theme);
-        updateThemeBtn();
+  }
+
+  // ── FIRESTORE LISTENERS ───────────────────────────────────────────────────
+  function subscribeToLists() {
+    if (!db) return;
+    // Unsubscribe any existing listeners
+    unsubscribers.forEach(unsub => unsub());
+    unsubscribers = [];
+
+    const listsRef = collection(db, 'lists');
+    const q = query(listsRef, orderBy('createdAt'));
+
+    const unsub = onSnapshot(q,
+      (snapshot) => {
+        if (snapshot.empty) {
+          // No lists in Firestore yet — push the local default list up
+          const local = state.lists[0];
+          saveListToFirestore(local);
+          return;
+        }
+        const firestoreLists = [];
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          firestoreLists.push({
+            id: docSnap.id,
+            name: d.name || 'List',
+            isPublic: d.isPublic || false,
+            items: d.items || []
+          });
+        });
+        state.lists = firestoreLists;
+        if (!state.lists.find(l => l.id === state.activeListId)) {
+          state.activeListId = state.lists[0].id;
+        }
+        setSyncStatus('synced', 'Synced');
+        render();
+      },
+      (err) => {
+        setSyncStatus('error', 'Sync error');
+        console.error('Firestore error:', err);
+        showToast('Sync error: ' + err.message, 4000);
       }
+    );
+    unsubscribers.push(unsub);
+  }
+
+  // ── FIRESTORE WRITE HELPERS ───────────────────────────────────────────────
+  async function saveListToFirestore(list) {
+    if (!db) return;
+    setSyncStatus('syncing', 'Saving…');
+    try {
+      await setDoc(doc(db, 'lists', list.id), {
+        name: list.name,
+        isPublic: list.isPublic,
+        items: list.items,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      setSyncStatus('error', 'Save error');
+      showToast('Save error: ' + err.message, 4000);
+      console.error(err);
+    }
+  }
+
+  async function updateListInFirestore(list) {
+    if (!db) return;
+    setSyncStatus('syncing', 'Saving…');
+    try {
+      await updateDoc(doc(db, 'lists', list.id), {
+        name: list.name,
+        isPublic: list.isPublic,
+        items: list.items,
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      setSyncStatus('error', 'Save error');
+      showToast('Save error: ' + err.message, 4000);
+      console.error(err);
+    }
+  }
+
+  async function deleteListFromFirestore(listId) {
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, 'lists', listId));
+    } catch (err) {
+      showToast('Delete error: ' + err.message, 4000);
+      console.error(err);
+    }
+  }
+
+  // saveState: writes to Firestore if connected, otherwise is a no-op
+  // (state is always in-memory; Firestore is the durable layer)
+  function saveState(list) {
+    const l = list || getActiveList();
+    if (db) {
+      updateListInFirestore(l);
+    }
+    // No localStorage (blocked in sandbox iframes)
+  }
+
+  // ── THEME TOGGLE ──────────────────────────────────────────────────────────
+  const root = document.documentElement;
+  let theme = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  root.setAttribute('data-theme', theme);
+  function updateThemeBtn() {
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+      btn.innerHTML = theme === 'dark'
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+      btn.setAttribute('aria-label', 'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' mode');
+    });
+  }
+  updateThemeBtn();
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-theme-toggle]')) {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', theme);
+      updateThemeBtn();
+    }
+  });
+
+  // ── TOAST ─────────────────────────────────────────────────────────────────
+  function showToast(msg, duration = 2400) {
+    const tc = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(() => {
+      t.classList.add('out');
+      setTimeout(() => t.remove(), 220);
+    }, duration);
+  }
+
+  // ── CONFETTI ──────────────────────────────────────────────────────────────
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const colors = ['#01696f','#437a22','#d19900','#964219','#4f98a3'];
+    const pieces = Array.from({length: 80}, () => ({
+      x: Math.random() * canvas.width, y: -10,
+      r: Math.random() * 6 + 3,
+      c: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4, vy: Math.random() * 3 + 2,
+      a: Math.random() * Math.PI * 2, va: (Math.random() - 0.5) * 0.2
+    }));
+    let t = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+        ctx.fillStyle = p.c; ctx.globalAlpha = Math.max(0, 1 - t / 90);
+        ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); ctx.restore();
+        p.x += p.vx; p.y += p.vy; p.a += p.va;
+      });
+      t++;
+      if (t < 100) requestAnimationFrame(draw);
+      else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    draw();
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  function render() {
+    renderTabs();
+    renderVisibility();
+    renderItems();
+    renderProgress();
+    renderBulkBar();
+  }
+
+  function renderTabs() {
+    const wrap = document.getElementById('list-tabs');
+    wrap.innerHTML = '';
+    state.lists.forEach(list => {
+      const activeCount = list.items.filter(i => !i.checked).length;
+      const btn = document.createElement('button');
+      btn.className = 'list-tab' + (list.id === state.activeListId ? ' active' : '');
+      btn.setAttribute('aria-pressed', list.id === state.activeListId ? 'true' : 'false');
+      btn.setAttribute('aria-label', list.name + ', ' + activeCount + ' items remaining' + (list.isPublic ? ', public' : ', private'));
+      btn.dataset.listId = list.id;
+      btn.dataset.public = list.isPublic ? 'true' : 'false';
+      btn.innerHTML = `<span class="tab-vis-dot" title="${list.isPublic ? 'Public' : 'Private'}"></span>${escHtml(list.name)}<span class="tab-count">${activeCount}</span>`;
+      wrap.appendChild(btn);
+    });
+    document.getElementById('current-list-title').textContent = getActiveList().name;
+  }
+
+  function renderVisibility() {
+    const list = getActiveList();
+    const toggle = document.getElementById('visibility-toggle');
+    const label  = document.getElementById('visibility-label');
+    const shareBtn = document.getElementById('share-btn');
+
+    toggle.dataset.public = list.isPublic ? 'true' : 'false';
+    toggle.setAttribute('aria-pressed', list.isPublic ? 'true' : 'false');
+    toggle.setAttribute('aria-label', list.isPublic ? 'List is public — click to make private' : 'List is private — click to make public');
+    label.textContent = list.isPublic ? 'Public' : 'Private';
+
+    if (list.isPublic) {
+      shareBtn.classList.add('visible');
+    } else {
+      shareBtn.classList.remove('visible');
+    }
+  }
+
+  function renderItems() {
+    const list = getActiveList();
+    const container = document.getElementById('items-container');
+    container.innerHTML = '';
+
+    let items = list.items.slice();
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
+    }
+    if (state.filter === 'active') items = items.filter(i => !i.checked);
+    if (state.filter === 'done')   items = items.filter(i => i.checked);
+
+    if (items.length === 0) {
+      const emptyMsg = list.items.length === 0
+        ? { icon: cartIcon(), title: 'Your list is empty', desc: 'Add your first item above to get started.' }
+        : { icon: searchIcon(), title: 'No items match', desc: 'Try a different search or filter.' };
+      container.innerHTML = `<div class="empty-state" role="status"><div class="empty-icon">${emptyMsg.icon}</div><h2 class="empty-title">${emptyMsg.title}</h2><p class="empty-desc">${emptyMsg.desc}</p></div>`;
+      return;
+    }
+
+    const cats = {};
+    items.forEach(item => {
+      if (!cats[item.category]) cats[item.category] = [];
+      cats[item.category].push(item);
     });
 
-    // ── TOAST ─────────────────────────────────────────────
-    function showToast(msg, duration = 2400) {
-      const tc = document.getElementById('toast-container');
-      const t = document.createElement('div');
-      t.className = 'toast';
-      t.textContent = msg;
-      tc.appendChild(t);
-      setTimeout(() => {
-        t.classList.add('out');
-        setTimeout(() => t.remove(), 220);
-      }, duration);
-    }
+    const sortedCats = Object.keys(cats).sort((a, b) => {
+      const aChecked = cats[a].every(i => i.checked);
+      const bChecked = cats[b].every(i => i.checked);
+      if (aChecked !== bChecked) return aChecked ? 1 : -1;
+      return a.localeCompare(b);
+    });
 
-    // ── CONFETTI ──────────────────────────────────────────
-    function launchConfetti() {
-      const canvas = document.getElementById('confetti-canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      const colors = ['#01696f','#437a22','#d19900','#964219','#4f98a3'];
-      const pieces = Array.from({length: 80}, () => ({
-        x: Math.random() * canvas.width, y: -10,
-        r: Math.random() * 6 + 3,
-        c: colors[Math.floor(Math.random() * colors.length)],
-        vx: (Math.random() - 0.5) * 4, vy: Math.random() * 3 + 2,
-        a: Math.random() * Math.PI * 2, va: (Math.random() - 0.5) * 0.2
-      }));
-      let t = 0;
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(p => {
-          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
-          ctx.fillStyle = p.c; ctx.globalAlpha = Math.max(0, 1 - t / 90);
-          ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); ctx.restore();
-          p.x += p.vx; p.y += p.vy; p.a += p.va;
-        });
-        t++;
-        if (t < 100) requestAnimationFrame(draw);
-        else ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-      draw();
-    }
+    sortedCats.forEach(cat => {
+      const section = document.createElement('div');
+      section.className = 'items-section';
+      section.innerHTML = `<div class="items-section-header"><span class="items-section-title">${escHtml(cat)}</span><span class="items-section-line" aria-hidden="true"></span></div>`;
 
-    // ── RENDER ────────────────────────────────────────────
-    function render() {
-      renderTabs();
-      renderVisibility();
-      renderItems();
-      renderProgress();
-      renderBulkBar();
-    }
+      const ul = document.createElement('ul');
+      ul.className = 'items-list';
+      ul.setAttribute('aria-label', cat + ' items');
 
-    function renderTabs() {
-      const wrap = document.getElementById('list-tabs');
-      wrap.innerHTML = '';
-      state.lists.forEach(list => {
-        const activeCount = list.items.filter(i => !i.checked).length;
-        const btn = document.createElement('button');
-        btn.className = 'list-tab' + (list.id === state.activeListId ? ' active' : '');
-        btn.setAttribute('aria-pressed', list.id === state.activeListId ? 'true' : 'false');
-        btn.setAttribute('aria-label', list.name + ', ' + activeCount + ' items remaining' + (list.isPublic ? ', public' : ', private'));
-        btn.dataset.listId = list.id;
-        btn.dataset.public = list.isPublic ? 'true' : 'false';
-        btn.innerHTML = `<span class="tab-vis-dot" title="${list.isPublic ? 'Public' : 'Private'}"></span>${escHtml(list.name)}<span class="tab-count">${activeCount}</span>`;
-        wrap.appendChild(btn);
-      });
-      document.getElementById('current-list-title').textContent = getActiveList().name;
-    }
-
-    function renderVisibility() {
-      const list = getActiveList();
-      const toggle = document.getElementById('visibility-toggle');
-      const label  = document.getElementById('visibility-label');
-      const shareBtn = document.getElementById('share-btn');
-
-      toggle.dataset.public = list.isPublic ? 'true' : 'false';
-      toggle.setAttribute('aria-pressed', list.isPublic ? 'true' : 'false');
-      toggle.setAttribute('aria-label', list.isPublic ? 'List is public — click to make private' : 'List is private — click to make public');
-      label.textContent = list.isPublic ? 'Public' : 'Private';
-
-      if (list.isPublic) {
-        shareBtn.classList.add('visible');
-      } else {
-        shareBtn.classList.remove('visible');
-      }
-    }
-
-    function renderItems() {
-      const list = getActiveList();
-      const container = document.getElementById('items-container');
-      container.innerHTML = '';
-
-      let items = list.items.slice();
-      if (state.search) {
-        const q = state.search.toLowerCase();
-        items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
-      }
-      if (state.filter === 'active') items = items.filter(i => !i.checked);
-      if (state.filter === 'done')   items = items.filter(i => i.checked);
-
-      if (items.length === 0) {
-        const emptyMsg = list.items.length === 0
-          ? { icon: cartIcon(), title: 'Your list is empty', desc: 'Add your first item above to get started.' }
-          : { icon: searchIcon(), title: 'No items match', desc: 'Try a different search or filter.' };
-        container.innerHTML = `<div class="empty-state" role="status"><div class="empty-icon">${emptyMsg.icon}</div><h2 class="empty-title">${emptyMsg.title}</h2><p class="empty-desc">${emptyMsg.desc}</p></div>`;
-        return;
-      }
-
-      const cats = {};
-      items.forEach(item => {
-        if (!cats[item.category]) cats[item.category] = [];
-        cats[item.category].push(item);
+      const sorted = cats[cat].slice().sort((a, b) => {
+        if (a.checked !== b.checked) return a.checked ? 1 : -1;
+        return a.name.localeCompare(b.name);
       });
 
-      const sortedCats = Object.keys(cats).sort((a, b) => {
-        const aChecked = cats[a].every(i => i.checked);
-        const bChecked = cats[b].every(i => i.checked);
-        if (aChecked !== bChecked) return aChecked ? 1 : -1;
-        return a.localeCompare(b);
+      sorted.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = itemCardHTML(item);
+        ul.appendChild(li);
       });
 
-      sortedCats.forEach(cat => {
-        const section = document.createElement('div');
-        section.className = 'items-section';
-        section.innerHTML = `<div class="items-section-header"><span class="items-section-title">${escHtml(cat)}</span><span class="items-section-line" aria-hidden="true"></span></div>`;
+      section.appendChild(ul);
+      container.appendChild(section);
+    });
+  }
 
-        const ul = document.createElement('ul');
-        ul.className = 'items-list';
-        ul.setAttribute('aria-label', cat + ' items');
-
-        const sorted = cats[cat].slice().sort((a, b) => {
-          if (a.checked !== b.checked) return a.checked ? 1 : -1;
-          return a.name.localeCompare(b.name);
-        });
-
-        sorted.forEach(item => {
-          const li = document.createElement('li');
-          li.innerHTML = itemCardHTML(item);
-          ul.appendChild(li);
-        });
-
-        section.appendChild(ul);
-        container.appendChild(section);
-      });
-    }
-
-    function itemCardHTML(item) {
-      return `
-        <div class="item-card${item.checked ? ' checked' : ''}" data-id="${item.id}" role="listitem">
-          <button class="item-check${item.checked ? ' checked' : ''}" data-action="toggle" data-id="${item.id}"
-            aria-label="${item.checked ? 'Uncheck' : 'Check'} ${escHtml(item.name)}" aria-pressed="${item.checked}">
-            <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6l3 3 5-5"/></svg>
+  function itemCardHTML(item) {
+    return `
+      <div class="item-card${item.checked ? ' checked' : ''}" data-id="${item.id}" role="listitem">
+        <button class="item-check${item.checked ? ' checked' : ''}" data-action="toggle" data-id="${item.id}"
+          aria-label="${item.checked ? 'Uncheck' : 'Check'} ${escHtml(item.name)}" aria-pressed="${item.checked}">
+          <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6l3 3 5-5"/></svg>
+        </button>
+        <div class="item-info">
+          <div class="item-name">${escHtml(item.name)}</div>
+          <div class="item-meta">
+            <span class="item-cat-badge">${escHtml(item.category)}</span>
+            ${item.note ? `<span class="item-note">${escHtml(item.note)}</span>` : ''}
+          </div>
+        </div>
+        <span class="item-qty" aria-label="Quantity: ${item.qty}">×${item.qty}</span>
+        <div class="item-actions">
+          <button class="item-action-btn" data-action="edit" data-id="${item.id}" aria-label="Edit ${escHtml(item.name)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <div class="item-info">
-            <div class="item-name">${escHtml(item.name)}</div>
-            <div class="item-meta">
-              <span class="item-cat-badge">${escHtml(item.category)}</span>
-              ${item.note ? `<span class="item-note">${escHtml(item.note)}</span>` : ''}
-            </div>
-          </div>
-          <span class="item-qty" aria-label="Quantity: ${item.qty}">×${item.qty}</span>
-          <div class="item-actions">
-            <button class="item-action-btn" data-action="edit" data-id="${item.id}" aria-label="Edit ${escHtml(item.name)}">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="item-action-btn delete" data-action="delete" data-id="${item.id}" aria-label="Delete ${escHtml(item.name)}">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
-          </div>
-        </div>`;
+          <button class="item-action-btn delete" data-action="delete" data-id="${item.id}" aria-label="Delete ${escHtml(item.name)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function renderProgress() {
+    const list = getActiveList();
+    const total = list.items.length;
+    const done  = list.items.filter(i => i.checked).length;
+    const pct   = total === 0 ? 0 : Math.round((done / total) * 100);
+    document.getElementById('progress-count').textContent = `${done} of ${total}`;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    const track = document.getElementById('progress-bar-track');
+    track.setAttribute('aria-valuenow', pct);
+    track.setAttribute('aria-valuetext', `${done} of ${total} items collected`);
+  }
+
+  function renderBulkBar() {
+    const list = getActiveList();
+    const done = list.items.filter(i => i.checked).length;
+    const bar = document.getElementById('bulk-bar');
+    bar.style.display = done > 0 ? 'flex' : 'none';
+    document.getElementById('checked-count').textContent = done;
+  }
+
+  // ── ICON HELPERS ──────────────────────────────────────────────────────────
+  function cartIcon() {
+    return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`;
+  }
+  function searchIcon() {
+    return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
+  }
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── FIREBASE CONFIG MODAL ─────────────────────────────────────────────────
+  document.getElementById('firebase-config-btn').addEventListener('click', () => openModal('firebase-config-modal'));
+  document.getElementById('close-firebase-config-modal').addEventListener('click', () => closeModal('firebase-config-modal'));
+  document.getElementById('cancel-firebase-config').addEventListener('click', () => closeModal('firebase-config-modal'));
+  document.getElementById('confirm-firebase-config').addEventListener('click', () => {
+    const apiKey    = document.getElementById('fb-api-key').value.trim();
+    const projectId = document.getElementById('fb-project-id').value.trim();
+    const appId     = document.getElementById('fb-app-id').value.trim();
+    if (!apiKey || !projectId || !appId) {
+      showToast('Please fill in all Firebase fields', 3000);
+      return;
     }
+    closeModal('firebase-config-modal');
+    initFirebase(apiKey, projectId, appId);
+  });
 
-    function renderProgress() {
-      const list = getActiveList();
-      const total = list.items.length;
-      const done  = list.items.filter(i => i.checked).length;
-      const pct   = total === 0 ? 0 : Math.round((done / total) * 100);
-      document.getElementById('progress-count').textContent = `${done} of ${total}`;
-      document.getElementById('progress-fill').style.width = pct + '%';
-      const track = document.getElementById('progress-bar-track');
-      track.setAttribute('aria-valuenow', pct);
-      track.setAttribute('aria-valuetext', `${done} of ${total} items collected`);
+  // ── VISIBILITY TOGGLE ─────────────────────────────────────────────────────
+  document.getElementById('visibility-toggle').addEventListener('click', () => {
+    const list = getActiveList();
+    list.isPublic = !list.isPublic;
+    saveState(list);
+    renderVisibility();
+    renderTabs();
+    showToast(list.isPublic ? '🌐 List is now public' : '🔒 List is now private');
+  });
+
+  // ── SHARE BUTTON ──────────────────────────────────────────────────────────
+  document.getElementById('share-btn').addEventListener('click', () => {
+    const list = getActiveList();
+    document.getElementById('share-modal-list-name').textContent = list.name;
+    document.getElementById('share-link-url').textContent = getShareUrl(list);
+    openModal('share-list-modal');
+  });
+
+  document.getElementById('close-share-modal').addEventListener('click', () => closeModal('share-list-modal'));
+  document.getElementById('close-share-modal-ok').addEventListener('click', () => closeModal('share-list-modal'));
+
+  document.getElementById('copy-link-btn').addEventListener('click', () => {
+    const url = document.getElementById('share-link-url').textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied to clipboard!'));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast('🔗 Link copied!');
     }
+  });
 
-    function renderBulkBar() {
-      const list = getActiveList();
-      const done = list.items.filter(i => i.checked).length;
-      const bar = document.getElementById('bulk-bar');
-      bar.style.display = done > 0 ? 'flex' : 'none';
-      document.getElementById('checked-count').textContent = done;
-    }
+  document.getElementById('make-private-btn').addEventListener('click', () => {
+    const list = getActiveList();
+    list.isPublic = false;
+    saveState(list);
+    closeModal('share-list-modal');
+    renderVisibility();
+    renderTabs();
+    showToast('🔒 List is now private');
+  });
 
-    // ── ICON HELPERS ──────────────────────────────────────
-    function cartIcon() {
-      return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`;
-    }
-    function searchIcon() {
-      return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
-    }
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // ── VISIBILITY TOGGLE ─────────────────────────────────
-    document.getElementById('visibility-toggle').addEventListener('click', () => {
-      const list = getActiveList();
-      list.isPublic = !list.isPublic;
-      saveState();
-      renderVisibility();
-      renderTabs();
-      showToast(list.isPublic ? '🌐 List is now public' : '🔒 List is now private');
-    });
-
-    // ── SHARE BUTTON ──────────────────────────────────────
-    document.getElementById('share-btn').addEventListener('click', () => {
-      const list = getActiveList();
-      document.getElementById('share-modal-list-name').textContent = list.name;
-      document.getElementById('share-link-url').textContent = getShareUrl(list);
-      openModal('share-list-modal');
-    });
-
-    document.getElementById('close-share-modal').addEventListener('click', () => closeModal('share-list-modal'));
-    document.getElementById('close-share-modal-ok').addEventListener('click', () => closeModal('share-list-modal'));
-
-    document.getElementById('copy-link-btn').addEventListener('click', () => {
-      const url = document.getElementById('share-link-url').textContent;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied to clipboard!'));
-      } else {
-        // Fallback
-        const ta = document.createElement('textarea');
-        ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-        showToast('🔗 Link copied!');
-      }
-    });
-
-    document.getElementById('make-private-btn').addEventListener('click', () => {
-      const list = getActiveList();
-      list.isPublic = false;
-      saveState();
-      closeModal('share-list-modal');
-      renderVisibility();
-      renderTabs();
-      showToast('🔒 List is now private');
-    });
-
-    // ── EVENT DELEGATION ──────────────────────────────────
-    document.getElementById('list-tabs').addEventListener('click', e => {
-      const tab = e.target.closest('.list-tab');
-      if (tab) {
-        state.activeListId = tab.dataset.listId;
-        state.filter = 'all'; state.search = '';
-        document.getElementById('search-input').value = '';
-        document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
-        render();
-      }
-    });
-
-    document.getElementById('items-container').addEventListener('click', e => {
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      const id = btn.dataset.id, action = btn.dataset.action;
-      const list = getActiveList();
-      const item = list.items.find(i => i.id === id);
-      if (!item) return;
-
-      if (action === 'toggle') {
-        item.checked = !item.checked;
-        saveState();
-        if (list.items.length > 0 && list.items.every(i => i.checked)) {
-          launchConfetti(); showToast('🎉 All done! Great shopping!');
-        }
-        render();
-      }
-      if (action === 'delete') {
-        const card = document.querySelector(`.item-card[data-id="${id}"]`);
-        if (card) card.classList.add('removing');
-        setTimeout(() => {
-          list.items = list.items.filter(i => i.id !== id);
-          saveState(); render(); showToast('Item removed');
-        }, 180);
-      }
-      if (action === 'edit') { openEditModal(item); }
-    });
-
-    document.getElementById('add-form').addEventListener('submit', e => {
-      e.preventDefault();
-      const name = document.getElementById('item-name-input').value.trim();
-      if (!name) return;
-      const qty  = Math.max(1, parseInt(document.getElementById('item-qty-input').value, 10) || 1);
-      const cat  = document.getElementById('item-cat-select').value;
-      const list = getActiveList();
-      const dupe = list.items.find(i => i.name.toLowerCase() === name.toLowerCase() && i.category === cat && !i.checked);
-      if (dupe) {
-        dupe.qty += qty;
-        showToast(`Updated quantity: ${dupe.name} ×${dupe.qty}`);
-      } else {
-        list.items.push({ id: uid(), name, qty, category: cat, note: '', checked: false });
-        showToast(`Added: ${name}`);
-      }
-      saveState();
-      document.getElementById('item-name-input').value = '';
-      document.getElementById('item-qty-input').value = '1';
+  // ── EVENT DELEGATION ──────────────────────────────────────────────────────
+  document.getElementById('list-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.list-tab');
+    if (tab) {
+      state.activeListId = tab.dataset.listId;
+      state.filter = 'all'; state.search = '';
+      document.getElementById('search-input').value = '';
+      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
       render();
-      document.getElementById('item-name-input').focus();
-    });
-
-    document.getElementById('search-input').addEventListener('input', e => { state.search = e.target.value.trim(); renderItems(); });
-
-    document.getElementById('filter-chips').addEventListener('click', e => {
-      const chip = e.target.closest('.chip');
-      if (!chip) return;
-      state.filter = chip.dataset.filter;
-      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
-      renderItems();
-    });
-
-    document.getElementById('uncheck-all-btn').addEventListener('click', () => {
-      getActiveList().items.forEach(i => i.checked = false); saveState(); render(); showToast('All items unchecked');
-    });
-    document.getElementById('clear-done-btn').addEventListener('click', () => {
-      const list = getActiveList();
-      const removed = list.items.filter(i => i.checked).length;
-      list.items = list.items.filter(i => !i.checked);
-      saveState(); render(); showToast(`Removed ${removed} checked item${removed !== 1 ? 's' : ''}`);
-    });
-
-    // New list
-    document.getElementById('new-list-btn').addEventListener('click', () => openModal('new-list-modal'));
-    document.getElementById('close-new-list-modal').addEventListener('click', () => closeModal('new-list-modal'));
-    document.getElementById('cancel-new-list').addEventListener('click', () => closeModal('new-list-modal'));
-    document.getElementById('confirm-new-list').addEventListener('click', () => {
-      const name = document.getElementById('new-list-name').value.trim() || 'New List';
-      const list = { id: uid(), name, items: [], isPublic: false };
-      state.lists.push(list);
-      state.activeListId = list.id;
-      saveState(); closeModal('new-list-modal');
-      document.getElementById('new-list-name').value = '';
-      render(); showToast(`Created: ${name}`);
-    });
-
-    // Rename
-    document.getElementById('rename-list-btn').addEventListener('click', () => {
-      document.getElementById('rename-list-input').value = getActiveList().name;
-      openModal('rename-list-modal');
-    });
-    document.getElementById('close-rename-modal').addEventListener('click', () => closeModal('rename-list-modal'));
-    document.getElementById('cancel-rename').addEventListener('click', () => closeModal('rename-list-modal'));
-    document.getElementById('confirm-rename').addEventListener('click', () => {
-      const name = document.getElementById('rename-list-input').value.trim();
-      if (name) { getActiveList().name = name; saveState(); }
-      closeModal('rename-list-modal'); render();
-    });
-
-    // Delete list
-    document.getElementById('delete-list-btn').addEventListener('click', () => {
-      if (state.lists.length === 1) { showToast('You must have at least one list'); return; }
-      const name = getActiveList().name;
-      state.lists = state.lists.filter(l => l.id !== state.activeListId);
-      state.activeListId = state.lists[0].id;
-      saveState(); render(); showToast(`Deleted: ${name}`);
-    });
-
-    // Edit item
-    let editingItemId = null;
-    function openEditModal(item) {
-      editingItemId = item.id;
-      document.getElementById('edit-item-name').value = item.name;
-      document.getElementById('edit-item-qty').value = item.qty;
-      document.getElementById('edit-item-cat').value = item.category;
-      document.getElementById('edit-item-note').value = item.note || '';
-      openModal('edit-item-modal');
     }
-    document.getElementById('close-edit-modal').addEventListener('click', () => closeModal('edit-item-modal'));
-    document.getElementById('cancel-edit').addEventListener('click', () => closeModal('edit-item-modal'));
-    document.getElementById('confirm-edit').addEventListener('click', () => {
-      const list = getActiveList();
-      const item = list.items.find(i => i.id === editingItemId);
-      if (item) {
-        item.name     = document.getElementById('edit-item-name').value.trim() || item.name;
-        item.qty      = Math.max(1, parseInt(document.getElementById('edit-item-qty').value, 10) || 1);
-        item.category = document.getElementById('edit-item-cat').value;
-        item.note     = document.getElementById('edit-item-note').value.trim();
-        saveState(); render();
+  });
+
+  document.getElementById('items-container').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id, action = btn.dataset.action;
+    const list = getActiveList();
+    const item = list.items.find(i => i.id === id);
+    if (!item) return;
+
+    if (action === 'toggle') {
+      item.checked = !item.checked;
+      saveState(list);
+      if (list.items.length > 0 && list.items.every(i => i.checked)) {
+        launchConfetti(); showToast('🎉 All done! Great shopping!');
       }
-      closeModal('edit-item-modal'); showToast('Item updated');
-    });
-
-    // Modal helpers
-    function openModal(id) {
-      const m = document.getElementById(id);
-      m.classList.add('open');
-      const first = m.querySelector('input, button:not(.icon-btn)');
-      if (first) setTimeout(() => first.focus(), 50);
+      render();
     }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-      backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(backdrop.id); });
-    });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m => closeModal(m.id));
-    });
-    ['new-list-name','rename-list-input'].forEach(id => {
-      document.getElementById(id).addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          if (id === 'new-list-name') document.getElementById('confirm-new-list').click();
-          if (id === 'rename-list-input') document.getElementById('confirm-rename').click();
-        }
-      });
-    });
-
-    // ── SEED DATA ─────────────────────────────────────────
-    function seedData() {
-      const list = getActiveList();
-      [
-        { name: 'Whole milk',       qty: 2, category: 'Dairy',     note: '2% fat',      checked: false },
-        { name: 'Sourdough bread',  qty: 1, category: 'Bakery',    note: '',            checked: false },
-        { name: 'Organic spinach',  qty: 1, category: 'Produce',   note: 'baby spinach',checked: false },
-        { name: 'Free-range eggs',  qty: 1, category: 'Dairy',     note: 'dozen',       checked: false },
-        { name: 'Olive oil',        qty: 1, category: 'General',   note: 'extra virgin',checked: true  },
-        { name: 'Cherry tomatoes',  qty: 2, category: 'Produce',   note: '',            checked: false },
-        { name: 'Sparkling water',  qty: 3, category: 'Beverages', note: 'lime flavor', checked: false },
-      ].forEach(i => list.items.push({ id: uid(), ...i }));
+    if (action === 'delete') {
+      const card = document.querySelector(`.item-card[data-id="${id}"]`);
+      if (card) card.classList.add('removing');
+      setTimeout(() => {
+        list.items = list.items.filter(i => i.id !== id);
+        saveState(list); render(); showToast('Item removed');
+      }, 180);
     }
-    seedData();
+    if (action === 'edit') { openEditModal(item); }
+  });
 
-    // ── INITIAL RENDER ────────────────────────────────────
+  document.getElementById('add-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('item-name-input').value.trim();
+    if (!name) return;
+    const qty  = Math.max(1, parseInt(document.getElementById('item-qty-input').value, 10) || 1);
+    const cat  = document.getElementById('item-cat-select').value;
+    const list = getActiveList();
+    const dupe = list.items.find(i => i.name.toLowerCase() === name.toLowerCase() && i.category === cat && !i.checked);
+    if (dupe) {
+      dupe.qty += qty;
+      showToast(`Updated quantity: ${dupe.name} ×${dupe.qty}`);
+    } else {
+      list.items.push({ id: uid(), name, qty, category: cat, note: '', checked: false });
+      showToast(`Added: ${name}`);
+    }
+    saveState(list);
+    document.getElementById('item-name-input').value = '';
+    document.getElementById('item-qty-input').value = '1';
     render();
+    document.getElementById('item-name-input').focus();
+  });
 
-  })();
+  document.getElementById('search-input').addEventListener('input', e => { state.search = e.target.value.trim(); renderItems(); });
+
+  document.getElementById('filter-chips').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    state.filter = chip.dataset.filter;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
+    renderItems();
+  });
+
+  document.getElementById('uncheck-all-btn').addEventListener('click', () => {
+    const list = getActiveList();
+    list.items.forEach(i => i.checked = false);
+    saveState(list); render(); showToast('All items unchecked');
+  });
+  document.getElementById('clear-done-btn').addEventListener('click', () => {
+    const list = getActiveList();
+    const removed = list.items.filter(i => i.checked).length;
+    list.items = list.items.filter(i => !i.checked);
+    saveState(list); render(); showToast(`Removed ${removed} checked item${removed !== 1 ? 's' : ''}`);
+  });
+
+  // New list
+  document.getElementById('new-list-btn').addEventListener('click', () => openModal('new-list-modal'));
+  document.getElementById('close-new-list-modal').addEventListener('click', () => closeModal('new-list-modal'));
+  document.getElementById('cancel-new-list').addEventListener('click', () => closeModal('new-list-modal'));
+  document.getElementById('confirm-new-list').addEventListener('click', () => {
+    const name = document.getElementById('new-list-name').value.trim() || 'New List';
+    const list = { id: uid(), name, items: [], isPublic: false };
+    state.lists.push(list);
+    state.activeListId = list.id;
+    if (db) saveListToFirestore(list);
+    closeModal('new-list-modal');
+    document.getElementById('new-list-name').value = '';
+    render(); showToast(`Created: ${name}`);
+  });
+
+  // Rename
+  document.getElementById('rename-list-btn').addEventListener('click', () => {
+    document.getElementById('rename-list-input').value = getActiveList().name;
+    openModal('rename-list-modal');
+  });
+  document.getElementById('close-rename-modal').addEventListener('click', () => closeModal('rename-list-modal'));
+  document.getElementById('cancel-rename').addEventListener('click', () => closeModal('rename-list-modal'));
+  document.getElementById('confirm-rename').addEventListener('click', () => {
+    const name = document.getElementById('rename-list-input').value.trim();
+    if (name) { getActiveList().name = name; saveState(); }
+    closeModal('rename-list-modal'); render();
+  });
+
+  // Delete list
+  document.getElementById('delete-list-btn').addEventListener('click', () => {
+    if (state.lists.length === 1) { showToast('You must have at least one list'); return; }
+    const listId = state.activeListId;
+    const name = getActiveList().name;
+    state.lists = state.lists.filter(l => l.id !== listId);
+    state.activeListId = state.lists[0].id;
+    deleteListFromFirestore(listId);
+    render(); showToast(`Deleted: ${name}`);
+  });
+
+  // Edit item
+  let editingItemId = null;
+  function openEditModal(item) {
+    editingItemId = item.id;
+    document.getElementById('edit-item-name').value = item.name;
+    document.getElementById('edit-item-qty').value = item.qty;
+    document.getElementById('edit-item-cat').value = item.category;
+    document.getElementById('edit-item-note').value = item.note || '';
+    openModal('edit-item-modal');
+  }
+  document.getElementById('close-edit-modal').addEventListener('click', () => closeModal('edit-item-modal'));
+  document.getElementById('cancel-edit').addEventListener('click', () => closeModal('edit-item-modal'));
+  document.getElementById('confirm-edit').addEventListener('click', () => {
+    const list = getActiveList();
+    const item = list.items.find(i => i.id === editingItemId);
+    if (item) {
+      item.name     = document.getElementById('edit-item-name').value.trim() || item.name;
+      item.qty      = Math.max(1, parseInt(document.getElementById('edit-item-qty').value, 10) || 1);
+      item.category = document.getElementById('edit-item-cat').value;
+      item.note     = document.getElementById('edit-item-note').value.trim();
+      saveState(list); render();
+    }
+    closeModal('edit-item-modal'); showToast('Item updated');
+  });
+
+  // Modal helpers
+  function openModal(id) {
+    const m = document.getElementById(id);
+    m.classList.add('open');
+    const first = m.querySelector('input, button:not(.icon-btn)');
+    if (first) setTimeout(() => first.focus(), 50);
+  }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(backdrop.id); });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m => closeModal(m.id));
+  });
+  ['new-list-name','rename-list-input'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (id === 'new-list-name') document.getElementById('confirm-new-list').click();
+        if (id === 'rename-list-input') document.getElementById('confirm-rename').click();
+      }
+    });
+  });
+
+  // ── SEED DATA ─────────────────────────────────────────────────────────────
+  function seedData() {
+    const list = getActiveList();
+    [
+      { name: 'Whole milk',       qty: 2, category: 'Dairy',     note: '2% fat',      checked: false },
+      { name: 'Sourdough bread',  qty: 1, category: 'Bakery',    note: '',            checked: false },
+      { name: 'Organic spinach',  qty: 1, category: 'Produce',   note: 'baby spinach',checked: false },
+      { name: 'Free-range eggs',  qty: 1, category: 'Dairy',     note: 'dozen',       checked: false },
+      { name: 'Olive oil',        qty: 1, category: 'General',   note: 'extra virgin',checked: true  },
+      { name: 'Cherry tomatoes',  qty: 2, category: 'Produce',   note: '',            checked: false },
+      { name: 'Sparkling water',  qty: 3, category: 'Beverages', note: 'lime flavor', checked: false },
+    ].forEach(i => list.items.push({ id: uid(), ...i }));
+  }
+  seedData();
+
+  // ── INITIAL RENDER ────────────────────────────────────────────────────────
+  render();
+
   </script>
 </body>
 </html>
