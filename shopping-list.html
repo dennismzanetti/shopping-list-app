@@ -170,8 +170,76 @@
     }
     .skip-link:focus { transform: translateY(0); }
 
+    /* ── AUTH SCREEN ────────────────────────────────────── */
+    #auth-screen {
+      min-height: 100dvh;
+      display: flex; align-items: center; justify-content: center;
+      padding: var(--space-6) var(--space-4);
+      background: var(--color-bg);
+    }
+    .auth-card {
+      width: 100%; max-width: 400px;
+      background: var(--color-surface-2);
+      border: 1px solid oklch(from var(--color-text) l c h / 0.08);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-lg);
+    }
+    .auth-logo {
+      display: flex; align-items: center; gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .auth-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      color: var(--color-text);
+    }
+    .auth-subtitle {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-6);
+    }
+    .auth-divider {
+      display: flex; align-items: center; gap: var(--space-3);
+      margin: var(--space-5) 0;
+      color: var(--color-text-faint);
+      font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--color-divider);
+    }
+    .auth-form { display: flex; flex-direction: column; gap: var(--space-4); }
+    .auth-error {
+      font-size: var(--text-xs); color: var(--color-error);
+      background: var(--color-error-highlight);
+      border-radius: var(--radius-md); padding: var(--space-3);
+      display: none;
+    }
+    .auth-error.visible { display: block; }
+    .auth-toggle {
+      text-align: center; font-size: var(--text-sm);
+      color: var(--color-text-muted); margin-top: var(--space-4);
+    }
+    .auth-toggle button {
+      color: var(--color-primary); font-weight: 600; text-decoration: underline;
+      background: none; border: none; cursor: pointer; padding: 0;
+    }
+    .auth-toggle button:hover { color: var(--color-primary-hover); }
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: var(--space-3);
+      width: 100%; padding: var(--space-3) var(--space-5);
+      background: var(--color-surface); color: var(--color-text);
+      border: 1px solid oklch(from var(--color-text) l c h / 0.14);
+      border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 500;
+      cursor: pointer; font-family: var(--font-body);
+    }
+    .btn-google:hover { background: var(--color-surface-offset); }
+    .btn-google:active { background: var(--color-surface-dynamic); }
+    .btn-loading { opacity: 0.65; pointer-events: none; }
+
     /* ── APP SHELL ──────────────────────────────────────── */
-    .app { display: flex; flex-direction: column; min-height: 100dvh; }
+    #app-shell { display: none; flex-direction: column; min-height: 100dvh; }
+    #app-shell.visible { display: flex; }
 
     /* ── TOPBAR ─────────────────────────────────────────── */
     .topbar {
@@ -195,6 +263,43 @@
     }
     .icon-btn:hover { background: var(--color-surface-offset); color: var(--color-text); }
     .icon-btn:active { background: var(--color-surface-dynamic); }
+
+    /* User avatar in topbar */
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: var(--radius-full);
+      background: var(--color-primary-highlight);
+      border: 2px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-xs); font-weight: 700; color: var(--color-primary);
+      overflow: hidden; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-menu-wrap { position: relative; }
+    .user-menu {
+      position: absolute; top: calc(100% + var(--space-2)); right: 0;
+      background: var(--color-surface-2);
+      border: 1px solid oklch(from var(--color-text) l c h / 0.08);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+      min-width: 200px; z-index: 200;
+      overflow: hidden;
+      opacity: 0; transform: translateY(-6px); pointer-events: none;
+      transition: opacity var(--transition-interactive), transform var(--transition-interactive);
+    }
+    .user-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .user-menu-header {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-divider);
+    }
+    .user-menu-name { font-weight: 600; font-size: var(--text-sm); color: var(--color-text); }
+    .user-menu-email { font-size: var(--text-xs); color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-menu-item {
+      display: flex; align-items: center; gap: var(--space-3);
+      width: 100%; padding: var(--space-3) var(--space-4);
+      font-size: var(--text-sm); color: var(--color-text-muted); text-align: left;
+    }
+    .user-menu-item:hover { background: var(--color-surface-offset); color: var(--color-text); }
+    .user-menu-item.danger:hover { background: var(--color-error-highlight); color: var(--color-error); }
 
     /* ── SYNC STATUS ────────────────────────────────────── */
     .sync-status {
@@ -234,7 +339,6 @@
       margin-bottom: var(--space-5); flex-wrap: wrap;
     }
 
-    /* Visibility pill toggle */
     .visibility-toggle {
       display: inline-flex; align-items: center; gap: var(--space-2);
       padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
@@ -242,9 +346,7 @@
       border: 1px solid var(--color-border);
       background: var(--color-surface);
       cursor: pointer;
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--color-text-muted);
+      font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted);
       user-select: none;
       transition: background var(--transition-interactive), border-color var(--transition-interactive), color var(--transition-interactive);
     }
@@ -255,15 +357,12 @@
       color: var(--color-primary);
     }
     .visibility-dot {
-      width: 8px; height: 8px;
-      border-radius: var(--radius-full);
-      background: var(--color-text-faint);
-      flex-shrink: 0;
+      width: 8px; height: 8px; border-radius: var(--radius-full);
+      background: var(--color-text-faint); flex-shrink: 0;
       transition: background var(--transition-interactive);
     }
     .visibility-toggle[data-public="true"] .visibility-dot { background: var(--color-primary); }
 
-    /* Share button — only visible when list is public */
     .share-btn {
       display: inline-flex; align-items: center; gap: var(--space-2);
       padding: var(--space-1) var(--space-3);
@@ -271,13 +370,9 @@
       border: 1px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
       background: var(--color-primary-highlight);
       color: var(--color-primary);
-      font-size: var(--text-xs);
-      font-weight: 600;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(-4px);
-      transition: opacity var(--transition-interactive), transform var(--transition-interactive),
-                  background var(--transition-interactive);
+      font-size: var(--text-xs); font-weight: 600;
+      opacity: 0; pointer-events: none; transform: translateX(-4px);
+      transition: opacity var(--transition-interactive), transform var(--transition-interactive), background var(--transition-interactive);
     }
     .share-btn.visible { opacity: 1; pointer-events: auto; transform: translateX(0); }
     .share-btn:hover { background: color-mix(in oklch, var(--color-primary) 20%, var(--color-surface)); }
@@ -304,6 +399,7 @@
     .btn-ghost { background: transparent; color: var(--color-primary); }
     .btn-ghost:hover { background: var(--color-primary-highlight); }
     .btn-sm { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+    .btn-full { width: 100%; }
 
     /* ── LIST TABS ──────────────────────────────────────── */
     .list-tabs-wrap {
@@ -334,10 +430,8 @@
       color: var(--color-primary);
     }
     .tab-vis-dot {
-      width: 6px; height: 6px;
-      border-radius: var(--radius-full);
-      background: var(--color-text-faint);
-      flex-shrink: 0;
+      width: 6px; height: 6px; border-radius: var(--radius-full);
+      background: var(--color-text-faint); flex-shrink: 0;
     }
     .list-tab[data-public="true"] .tab-vis-dot { background: var(--color-primary); }
 
@@ -516,15 +610,6 @@
     .modal-body { display: flex; flex-direction: column; gap: var(--space-4); }
     .modal-footer { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); flex-wrap: wrap; }
 
-    /* Firebase config modal */
-    .config-note {
-      font-size: var(--text-xs); color: var(--color-text-faint);
-      display: flex; align-items: flex-start; gap: var(--space-2);
-      background: var(--color-surface-offset); border-radius: var(--radius-md);
-      padding: var(--space-3);
-    }
-
-    /* Share link box inside modal */
     .share-link-box {
       display: flex; align-items: center; gap: var(--space-2);
       background: var(--color-bg); border: 1px solid var(--color-border);
@@ -581,12 +666,62 @@
   <a href="#main" class="skip-link">Skip to content</a>
   <canvas id="confetti-canvas"></canvas>
 
-  <div class="app">
-    <!-- TOPBAR -->
+  <!-- ── AUTH SCREEN ───────────────────────────────────────── -->
+  <div id="auth-screen" role="main" aria-label="Sign in">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="var(--color-primary)"/>
+          <rect x="9" y="9" width="14" height="2" rx="1" fill="var(--color-text-inverse)"/>
+          <rect x="9" y="15" width="10" height="2" rx="1" fill="var(--color-text-inverse)"/>
+          <rect x="9" y="21" width="7" height="2" rx="1" fill="var(--color-text-inverse)"/>
+          <circle cx="23" cy="22" r="4" fill="var(--color-text-inverse)" opacity="0.95"/>
+          <path d="M21 22l1.5 1.5 2.5-2.5" stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="auth-title">Shopping List</span>
+      </div>
+      <p class="auth-subtitle" id="auth-subtitle">Sign in to sync your lists across devices.</p>
+
+      <!-- Google sign-in -->
+      <button class="btn-google" id="google-signin-btn" aria-label="Sign in with Google">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-divider">or</div>
+
+      <!-- Email/password form -->
+      <form class="auth-form" id="auth-form" novalidate>
+        <div class="auth-error" id="auth-error" role="alert"></div>
+        <div class="form-group">
+          <label class="form-label" for="auth-email">Email</label>
+          <input class="form-input" id="auth-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="auth-password">Password</label>
+          <input class="form-input" id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="auth-submit-btn">Sign in</button>
+      </form>
+
+      <div class="auth-toggle">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button id="auth-mode-toggle" aria-label="Switch to sign up">Sign up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── APP SHELL ─────────────────────────────────────────── -->
+  <div id="app-shell">
     <header class="topbar" role="banner">
       <div class="topbar-inner">
         <div class="brand" role="img" aria-label="Shopping List home">
-          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
             <rect width="32" height="32" rx="8" fill="var(--color-primary)"/>
             <rect x="9" y="9" width="14" height="2" rx="1" fill="var(--color-text-inverse)"/>
             <rect x="9" y="15" width="10" height="2" rx="1" fill="var(--color-text-inverse)"/>
@@ -597,28 +732,37 @@
           <span class="brand-name">Shopping List</span>
         </div>
         <div class="topbar-actions">
-          <!-- Sync status indicator -->
-          <div class="sync-status" id="sync-status" title="Firebase sync status" aria-live="polite" aria-label="Sync status: disconnected">
+          <div class="sync-status" id="sync-status" aria-live="polite" aria-label="Sync status: connecting">
             <span class="sync-dot"></span>
-            <span id="sync-label">Offline</span>
+            <span id="sync-label">Connecting</span>
           </div>
-          <button class="icon-btn" id="firebase-config-btn" aria-label="Configure Firebase">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/></svg>
-          </button>
           <button class="icon-btn" id="new-list-btn" aria-label="Create new list">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           </button>
           <button class="icon-btn" data-theme-toggle aria-label="Switch to dark mode">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </button>
+          <!-- User avatar + dropdown -->
+          <div class="user-menu-wrap">
+            <button class="user-avatar" id="user-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+              <span id="user-avatar-initials">?</span>
+            </button>
+            <div class="user-menu" id="user-menu" role="menu" aria-label="Account options">
+              <div class="user-menu-header">
+                <div class="user-menu-name" id="user-menu-name">—</div>
+                <div class="user-menu-email" id="user-menu-email">—</div>
+              </div>
+              <button class="user-menu-item danger" id="signout-btn" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign out
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- MAIN -->
     <main class="main" id="main">
-
-      <!-- Lists header -->
       <div class="lists-header">
         <h1 class="lists-title" id="current-list-title">My List</h1>
         <div style="display:flex;gap:var(--space-2);">
@@ -627,10 +771,8 @@
         </div>
       </div>
 
-      <!-- List tabs -->
       <nav class="list-tabs-wrap" aria-label="Your lists" id="list-tabs"></nav>
 
-      <!-- List meta row: visibility toggle + share button -->
       <div class="list-meta-row" id="list-meta-row">
         <button class="visibility-toggle" id="visibility-toggle" data-public="false" aria-pressed="false" aria-label="List is private — click to make public">
           <span class="visibility-dot"></span>
@@ -642,7 +784,6 @@
         </button>
       </div>
 
-      <!-- Add item form -->
       <form class="add-form" id="add-form" aria-label="Add item to list">
         <div class="add-form-row">
           <div class="form-group">
@@ -675,7 +816,6 @@
         </div>
       </form>
 
-      <!-- Filter bar -->
       <div class="filter-bar" role="search">
         <div class="search-wrap">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -688,7 +828,6 @@
         </div>
       </div>
 
-      <!-- Progress bar -->
       <div class="progress-wrap" id="progress-wrap" aria-label="List progress">
         <div class="progress-meta">
           <span class="progress-label">Progress</span>
@@ -699,7 +838,6 @@
         </div>
       </div>
 
-      <!-- Bulk actions -->
       <div class="bulk-bar" id="bulk-bar" style="display:none;">
         <span class="bulk-info"><strong id="checked-count">0</strong> items checked off</span>
         <div class="bulk-actions">
@@ -708,45 +846,8 @@
         </div>
       </div>
 
-      <!-- Item list -->
       <div id="items-container" aria-live="polite" aria-label="Shopping items"></div>
-
     </main>
-  </div>
-
-  <!-- FIREBASE CONFIG MODAL -->
-  <div class="modal-backdrop" id="firebase-config-modal" role="dialog" aria-modal="true" aria-labelledby="firebase-config-modal-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 class="modal-title" id="firebase-config-modal-title">Firebase Setup</h2>
-        <button class="icon-btn" id="close-firebase-config-modal" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p style="font-size:var(--text-sm);color:var(--color-text-muted);">Paste your Firebase project config below to enable real-time sync and sharing.</p>
-        <div class="form-group">
-          <label class="form-label" for="fb-api-key">API Key</label>
-          <input class="form-input" id="fb-api-key" type="text" placeholder="AIzaSy...">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fb-project-id">Project ID</label>
-          <input class="form-input" id="fb-project-id" type="text" placeholder="my-project-12345">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fb-app-id">App ID</label>
-          <input class="form-input" id="fb-app-id" type="text" placeholder="1:123456789:web:abc123">
-        </div>
-        <div class="config-note">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span>Get these values from the Firebase Console → Project Settings → Your apps. Make sure Firestore is enabled and your security rules allow read/write.</span>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancel-firebase-config">Cancel</button>
-        <button class="btn btn-primary" id="confirm-firebase-config">Connect</button>
-      </div>
-    </div>
   </div>
 
   <!-- NEW LIST MODAL -->
@@ -754,9 +855,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="new-list-modal-title">New List</h2>
-        <button class="icon-btn" id="close-new-list-modal" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        <button class="icon-btn" id="close-new-list-modal" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -776,9 +875,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="rename-list-modal-title">Rename List</h2>
-        <button class="icon-btn" id="close-rename-modal" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        <button class="icon-btn" id="close-rename-modal" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -798,9 +895,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="edit-item-modal-title">Edit Item</h2>
-        <button class="icon-btn" id="close-edit-modal" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        <button class="icon-btn" id="close-edit-modal" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -839,9 +934,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="share-list-modal-title">Share List</h2>
-        <button class="icon-btn" id="close-share-modal" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        <button class="icon-btn" id="close-share-modal" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="modal-body">
         <p style="font-size:var(--text-sm);color:var(--color-text-muted);">
@@ -853,7 +946,7 @@
         </div>
         <p class="share-note">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Shared links require Firebase to be connected. Connect Firebase via the settings icon in the top bar.
+          Only signed-in users with this link can view the list.
         </p>
       </div>
       <div class="modal-footer">
@@ -863,185 +956,55 @@
     </div>
   </div>
 
-  <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Firebase SDK (modular, loaded dynamically after config is provided) -->
+  <!-- ── FIREBASE + APP SCRIPT ─────────────────────────────── -->
   <script type="module">
-  // ── FIREBASE LOADER ──────────────────────────────────────────────────────
-  // Firebase is initialized lazily after the user provides their config.
-  // All Firestore calls go through the `db` object and the helper functions below.
-
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import {
+    getAuth, onAuthStateChanged,
+    signInWithPopup, GoogleAuthProvider,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, updateProfile
+  } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
   import {
     getFirestore, collection, doc,
     onSnapshot, setDoc, updateDoc, deleteDoc,
     query, orderBy, serverTimestamp
   } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  // ── STATE ─────────────────────────────────────────────────────────────────
-  let db = null;           // Firestore instance (null until configured)
-  let unsubscribers = [];  // Active Firestore listeners
-
-  let state = {
-    lists: [
-      { id: uid(), name: 'My List', items: [], isPublic: false }
-    ],
-    activeListId: null,
-    filter: 'all',
-    search: ''
+  // ── FIREBASE CONFIG ──────────────────────────────────────────────────────
+  // Replace these values with your own Firebase project config.
+  const firebaseConfig = {
+    apiKey:            "REPLACE_WITH_YOUR_API_KEY",
+    authDomain:        "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+    projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
+    storageBucket:     "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
+    appId:             "REPLACE_WITH_YOUR_APP_ID"
   };
-  state.activeListId = state.lists[0].id;
 
-  // ── UTILS ─────────────────────────────────────────────────────────────────
-  function uid() {
-    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  }
-  function getList(id) {
-    return state.lists.find(l => l.id === (id || state.activeListId));
-  }
-  function getActiveList() {
-    return getList(state.activeListId);
-  }
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
+  // ── STATE ────────────────────────────────────────────────────────────────
+  let currentUser = null;
+  let unsubscribers = [];
+  let state = { lists: [], activeListId: null, filter: 'all', search: '' };
+  let authMode = 'signin'; // 'signin' | 'signup'
+
+  // ── UTILS ────────────────────────────────────────────────────────────────
+  function uid() { return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+  function getActiveList() { return state.lists.find(l => l.id === state.activeListId); }
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
   function getShareUrl(list) {
-    const projectId = document.getElementById('fb-project-id').value.trim();
-    const base = projectId ? `https://${projectId}.web.app` : 'https://yourapp.web.app';
-    return `${base}/list/${list.id}`;
+    return `${location.origin}${location.pathname}#list/${list.id}`;
   }
 
-  // ── SYNC STATUS ───────────────────────────────────────────────────────────
-  function setSyncStatus(status, label) {
-    const el = document.getElementById('sync-status');
-    const lbl = document.getElementById('sync-label');
-    el.className = 'sync-status ' + status;
-    el.setAttribute('aria-label', 'Sync status: ' + label);
-    lbl.textContent = label;
-  }
-
-  // ── FIREBASE INIT ─────────────────────────────────────────────────────────
-  function initFirebase(apiKey, projectId, appId) {
-    try {
-      const firebaseConfig = {
-        apiKey,
-        authDomain: `${projectId}.firebaseapp.com`,
-        projectId,
-        storageBucket: `${projectId}.appspot.com`,
-        appId
-      };
-      const app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      setSyncStatus('syncing', 'Connecting…');
-      subscribeToLists();
-      showToast('🔥 Firebase connected!');
-    } catch (err) {
-      setSyncStatus('error', 'Error');
-      showToast('Firebase error: ' + err.message, 4000);
-      console.error(err);
-    }
-  }
-
-  // ── FIRESTORE LISTENERS ───────────────────────────────────────────────────
-  function subscribeToLists() {
-    if (!db) return;
-    // Unsubscribe any existing listeners
-    unsubscribers.forEach(unsub => unsub());
-    unsubscribers = [];
-
-    const listsRef = collection(db, 'lists');
-    const q = query(listsRef, orderBy('createdAt'));
-
-    const unsub = onSnapshot(q,
-      (snapshot) => {
-        if (snapshot.empty) {
-          // No lists in Firestore yet — push the local default list up
-          const local = state.lists[0];
-          saveListToFirestore(local);
-          return;
-        }
-        const firestoreLists = [];
-        snapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          firestoreLists.push({
-            id: docSnap.id,
-            name: d.name || 'List',
-            isPublic: d.isPublic || false,
-            items: d.items || []
-          });
-        });
-        state.lists = firestoreLists;
-        if (!state.lists.find(l => l.id === state.activeListId)) {
-          state.activeListId = state.lists[0].id;
-        }
-        setSyncStatus('synced', 'Synced');
-        render();
-      },
-      (err) => {
-        setSyncStatus('error', 'Sync error');
-        console.error('Firestore error:', err);
-        showToast('Sync error: ' + err.message, 4000);
-      }
-    );
-    unsubscribers.push(unsub);
-  }
-
-  // ── FIRESTORE WRITE HELPERS ───────────────────────────────────────────────
-  async function saveListToFirestore(list) {
-    if (!db) return;
-    setSyncStatus('syncing', 'Saving…');
-    try {
-      await setDoc(doc(db, 'lists', list.id), {
-        name: list.name,
-        isPublic: list.isPublic,
-        items: list.items,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-    } catch (err) {
-      setSyncStatus('error', 'Save error');
-      showToast('Save error: ' + err.message, 4000);
-      console.error(err);
-    }
-  }
-
-  async function updateListInFirestore(list) {
-    if (!db) return;
-    setSyncStatus('syncing', 'Saving…');
-    try {
-      await updateDoc(doc(db, 'lists', list.id), {
-        name: list.name,
-        isPublic: list.isPublic,
-        items: list.items,
-        updatedAt: serverTimestamp()
-      });
-    } catch (err) {
-      setSyncStatus('error', 'Save error');
-      showToast('Save error: ' + err.message, 4000);
-      console.error(err);
-    }
-  }
-
-  async function deleteListFromFirestore(listId) {
-    if (!db) return;
-    try {
-      await deleteDoc(doc(db, 'lists', listId));
-    } catch (err) {
-      showToast('Delete error: ' + err.message, 4000);
-      console.error(err);
-    }
-  }
-
-  // saveState: writes to Firestore if connected, otherwise is a no-op
-  // (state is always in-memory; Firestore is the durable layer)
-  function saveState(list) {
-    const l = list || getActiveList();
-    if (db) {
-      updateListInFirestore(l);
-    }
-    // No localStorage (blocked in sandbox iframes)
-  }
-
-  // ── THEME TOGGLE ──────────────────────────────────────────────────────────
+  // ── THEME TOGGLE ─────────────────────────────────────────────────────────
   const root = document.documentElement;
   let theme = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
   root.setAttribute('data-theme', theme);
@@ -1062,185 +1025,364 @@
     }
   });
 
-  // ── TOAST ─────────────────────────────────────────────────────────────────
+  // ── TOAST ────────────────────────────────────────────────────────────────
   function showToast(msg, duration = 2400) {
     const tc = document.getElementById('toast-container');
     const t = document.createElement('div');
-    t.className = 'toast';
-    t.textContent = msg;
+    t.className = 'toast'; t.textContent = msg;
     tc.appendChild(t);
-    setTimeout(() => {
-      t.classList.add('out');
-      setTimeout(() => t.remove(), 220);
-    }, duration);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 220); }, duration);
+  }
+
+  // ── SYNC STATUS ──────────────────────────────────────────────────────────
+  function setSyncStatus(status, label) {
+    const el  = document.getElementById('sync-status');
+    const lbl = document.getElementById('sync-label');
+    el.className = 'sync-status ' + status;
+    el.setAttribute('aria-label', 'Sync status: ' + label);
+    lbl.textContent = label;
+  }
+
+  // ── AUTH SCREEN ──────────────────────────────────────────────────────────
+  function showAuthScreen() {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-shell').classList.remove('visible');
+  }
+  function showAppShell() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-shell').classList.add('visible');
+  }
+
+  // Auth mode toggle (sign in ↔ sign up)
+  document.getElementById('auth-mode-toggle').addEventListener('click', () => {
+    authMode = authMode === 'signin' ? 'signup' : 'signin';
+    const isSU = authMode === 'signup';
+    document.getElementById('auth-submit-btn').textContent = isSU ? 'Create account' : 'Sign in';
+    document.getElementById('auth-toggle-text').textContent = isSU ? 'Already have an account?' : "Don't have an account?";
+    document.getElementById('auth-mode-toggle').textContent = isSU ? 'Sign in' : 'Sign up';
+    document.getElementById('auth-subtitle').textContent = isSU
+      ? 'Create an account to get started.'
+      : 'Sign in to sync your lists across devices.';
+    document.getElementById('auth-error').classList.remove('visible');
+  });
+
+  function setAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+  function clearAuthError() {
+    document.getElementById('auth-error').classList.remove('visible');
+  }
+
+  // Google sign-in
+  document.getElementById('google-signin-btn').addEventListener('click', async () => {
+    clearAuthError();
+    const btn = document.getElementById('google-signin-btn');
+    btn.classList.add('btn-loading');
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      setAuthError(friendlyAuthError(err.code));
+      btn.classList.remove('btn-loading');
+    }
+  });
+
+  // Email/password form
+  document.getElementById('auth-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    clearAuthError();
+    const email    = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const btn      = document.getElementById('auth-submit-btn');
+    btn.classList.add('btn-loading');
+    try {
+      if (authMode === 'signup') {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+    } catch (err) {
+      setAuthError(friendlyAuthError(err.code));
+      btn.classList.remove('btn-loading');
+    }
+  });
+
+  function friendlyAuthError(code) {
+    const map = {
+      'auth/invalid-email':            'Please enter a valid email address.',
+      'auth/user-not-found':           'No account found with that email.',
+      'auth/wrong-password':           'Incorrect password. Please try again.',
+      'auth/email-already-in-use':     'An account with that email already exists.',
+      'auth/weak-password':            'Password must be at least 6 characters.',
+      'auth/popup-closed-by-user':     'Sign-in popup was closed. Please try again.',
+      'auth/cancelled-popup-request':  'Sign-in was cancelled.',
+      'auth/network-request-failed':   'Network error. Check your connection.',
+      'auth/too-many-requests':        'Too many attempts. Please wait and try again.',
+      'auth/invalid-credential':       'Incorrect email or password.',
+    };
+    return map[code] || 'Sign-in failed. Please try again.';
+  }
+
+  // Sign out
+  document.getElementById('signout-btn').addEventListener('click', async () => {
+    closeUserMenu();
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+    await signOut(auth);
+    state = { lists: [], activeListId: null, filter: 'all', search: '' };
+    showToast('Signed out');
+  });
+
+  // ── USER MENU ────────────────────────────────────────────────────────────
+  document.getElementById('user-avatar-btn').addEventListener('click', () => {
+    const menu = document.getElementById('user-menu');
+    const open = menu.classList.toggle('open');
+    document.getElementById('user-avatar-btn').setAttribute('aria-expanded', open);
+  });
+  function closeUserMenu() {
+    document.getElementById('user-menu').classList.remove('open');
+    document.getElementById('user-avatar-btn').setAttribute('aria-expanded', 'false');
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.user-menu-wrap')) closeUserMenu();
+  });
+
+  function updateUserUI(user) {
+    const initials = user.displayName
+      ? user.displayName.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()
+      : (user.email ? user.email[0].toUpperCase() : '?');
+    document.getElementById('user-avatar-initials').textContent = initials;
+    document.getElementById('user-menu-name').textContent  = user.displayName || 'User';
+    document.getElementById('user-menu-email').textContent = user.email || '';
+    if (user.photoURL) {
+      document.getElementById('user-avatar-initials').innerHTML =
+        `<img src="${escHtml(user.photoURL)}" alt="${escHtml(user.displayName || 'User avatar')}" width="32" height="32">`;
+    }
+  }
+
+  // ── AUTH STATE OBSERVER ───────────────────────────────────────────────────
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUser = user;
+      updateUserUI(user);
+      showAppShell();
+      setSyncStatus('syncing', 'Connecting…');
+      subscribeToLists();
+    } else {
+      currentUser = null;
+      unsubscribers.forEach(u => u());
+      unsubscribers = [];
+      showAuthScreen();
+      setSyncStatus('', 'Offline');
+    }
+  });
+
+  // ── FIRESTORE — USER-SCOPED ───────────────────────────────────────────────
+  function userListsRef() {
+    return collection(db, 'users', currentUser.uid, 'lists');
+  }
+
+  function subscribeToLists() {
+    if (!currentUser) return;
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+
+    const q = query(userListsRef(), orderBy('createdAt'));
+    const unsub = onSnapshot(q,
+      snapshot => {
+        if (snapshot.empty) {
+          const defaultList = { id: uid(), name: 'My List', items: [], isPublic: false };
+          saveNewList(defaultList);
+          return;
+        }
+        const lists = [];
+        snapshot.forEach(d => {
+          const data = d.data();
+          lists.push({ id: d.id, name: data.name || 'List', isPublic: data.isPublic || false, items: data.items || [] });
+        });
+        state.lists = lists;
+        if (!state.lists.find(l => l.id === state.activeListId)) {
+          state.activeListId = state.lists[0].id;
+        }
+        setSyncStatus('synced', 'Synced');
+        render();
+      },
+      err => {
+        setSyncStatus('error', 'Sync error');
+        showToast('Sync error: ' + err.message, 4000);
+        console.error(err);
+      }
+    );
+    unsubscribers.push(unsub);
+  }
+
+  async function saveNewList(list) {
+    if (!currentUser) return;
+    await setDoc(doc(userListsRef(), list.id), {
+      name: list.name, isPublic: list.isPublic, items: list.items,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+  }
+
+  async function updateList(list) {
+    if (!currentUser) return;
+    setSyncStatus('syncing', 'Saving…');
+    try {
+      await updateDoc(doc(userListsRef(), list.id), {
+        name: list.name, isPublic: list.isPublic, items: list.items,
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      setSyncStatus('error', 'Save error');
+      showToast('Save error: ' + err.message, 4000);
+    }
+  }
+
+  async function deleteList(listId) {
+    if (!currentUser) return;
+    await deleteDoc(doc(userListsRef(), listId));
+  }
+
+  function saveState(list) {
+    updateList(list || getActiveList());
   }
 
   // ── CONFETTI ──────────────────────────────────────────────────────────────
   function launchConfetti() {
     const canvas = document.getElementById('confetti-canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = innerWidth; canvas.height = innerHeight;
     const colors = ['#01696f','#437a22','#d19900','#964219','#4f98a3'];
-    const pieces = Array.from({length: 80}, () => ({
-      x: Math.random() * canvas.width, y: -10,
-      r: Math.random() * 6 + 3,
-      c: colors[Math.floor(Math.random() * colors.length)],
-      vx: (Math.random() - 0.5) * 4, vy: Math.random() * 3 + 2,
-      a: Math.random() * Math.PI * 2, va: (Math.random() - 0.5) * 0.2
+    const pieces = Array.from({length:80}, () => ({
+      x: Math.random()*canvas.width, y: -10,
+      r: Math.random()*6+3,
+      c: colors[Math.floor(Math.random()*colors.length)],
+      vx: (Math.random()-.5)*4, vy: Math.random()*3+2,
+      a: Math.random()*Math.PI*2, va: (Math.random()-.5)*0.2
     }));
     let t = 0;
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    (function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
       pieces.forEach(p => {
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
-        ctx.fillStyle = p.c; ctx.globalAlpha = Math.max(0, 1 - t / 90);
-        ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); ctx.restore();
-        p.x += p.vx; p.y += p.vy; p.a += p.va;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
+        ctx.fillStyle=p.c; ctx.globalAlpha=Math.max(0,1-t/90);
+        ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore();
+        p.x+=p.vx; p.y+=p.vy; p.a+=p.va;
       });
       t++;
-      if (t < 100) requestAnimationFrame(draw);
-      else ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    draw();
+      if (t<100) requestAnimationFrame(draw);
+      else ctx.clearRect(0,0,canvas.width,canvas.height);
+    })();
   }
 
   // ── RENDER ────────────────────────────────────────────────────────────────
-  function render() {
-    renderTabs();
-    renderVisibility();
-    renderItems();
-    renderProgress();
-    renderBulkBar();
-  }
+  function render() { renderTabs(); renderVisibility(); renderItems(); renderProgress(); renderBulkBar(); }
 
   function renderTabs() {
     const wrap = document.getElementById('list-tabs');
     wrap.innerHTML = '';
     state.lists.forEach(list => {
-      const activeCount = list.items.filter(i => !i.checked).length;
+      const active = list.items.filter(i => !i.checked).length;
       const btn = document.createElement('button');
       btn.className = 'list-tab' + (list.id === state.activeListId ? ' active' : '');
       btn.setAttribute('aria-pressed', list.id === state.activeListId ? 'true' : 'false');
-      btn.setAttribute('aria-label', list.name + ', ' + activeCount + ' items remaining' + (list.isPublic ? ', public' : ', private'));
       btn.dataset.listId = list.id;
       btn.dataset.public = list.isPublic ? 'true' : 'false';
-      btn.innerHTML = `<span class="tab-vis-dot" title="${list.isPublic ? 'Public' : 'Private'}"></span>${escHtml(list.name)}<span class="tab-count">${activeCount}</span>`;
+      btn.innerHTML = `<span class="tab-vis-dot" title="${list.isPublic?'Public':'Private'}"></span>${escHtml(list.name)}<span class="tab-count">${active}</span>`;
       wrap.appendChild(btn);
     });
-    document.getElementById('current-list-title').textContent = getActiveList().name;
+    const al = getActiveList();
+    document.getElementById('current-list-title').textContent = al ? al.name : '';
   }
 
   function renderVisibility() {
     const list = getActiveList();
+    if (!list) return;
     const toggle = document.getElementById('visibility-toggle');
     const label  = document.getElementById('visibility-label');
     const shareBtn = document.getElementById('share-btn');
-
     toggle.dataset.public = list.isPublic ? 'true' : 'false';
     toggle.setAttribute('aria-pressed', list.isPublic ? 'true' : 'false');
     toggle.setAttribute('aria-label', list.isPublic ? 'List is public — click to make private' : 'List is private — click to make public');
     label.textContent = list.isPublic ? 'Public' : 'Private';
-
-    if (list.isPublic) {
-      shareBtn.classList.add('visible');
-    } else {
-      shareBtn.classList.remove('visible');
-    }
+    shareBtn.classList.toggle('visible', list.isPublic);
   }
 
   function renderItems() {
     const list = getActiveList();
     const container = document.getElementById('items-container');
     container.innerHTML = '';
+    if (!list) return;
 
     let items = list.items.slice();
-    if (state.search) {
-      const q = state.search.toLowerCase();
-      items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
-    }
+    if (state.search) { const q = state.search.toLowerCase(); items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)); }
     if (state.filter === 'active') items = items.filter(i => !i.checked);
     if (state.filter === 'done')   items = items.filter(i => i.checked);
 
     if (items.length === 0) {
-      const emptyMsg = list.items.length === 0
+      const m = list.items.length === 0
         ? { icon: cartIcon(), title: 'Your list is empty', desc: 'Add your first item above to get started.' }
         : { icon: searchIcon(), title: 'No items match', desc: 'Try a different search or filter.' };
-      container.innerHTML = `<div class="empty-state" role="status"><div class="empty-icon">${emptyMsg.icon}</div><h2 class="empty-title">${emptyMsg.title}</h2><p class="empty-desc">${emptyMsg.desc}</p></div>`;
+      container.innerHTML = `<div class="empty-state" role="status"><div class="empty-icon">${m.icon}</div><h2 class="empty-title">${m.title}</h2><p class="empty-desc">${m.desc}</p></div>`;
       return;
     }
 
     const cats = {};
-    items.forEach(item => {
-      if (!cats[item.category]) cats[item.category] = [];
-      cats[item.category].push(item);
-    });
-
-    const sortedCats = Object.keys(cats).sort((a, b) => {
-      const aChecked = cats[a].every(i => i.checked);
-      const bChecked = cats[b].every(i => i.checked);
-      if (aChecked !== bChecked) return aChecked ? 1 : -1;
+    items.forEach(item => { if (!cats[item.category]) cats[item.category]=[]; cats[item.category].push(item); });
+    Object.keys(cats).sort((a,b) => {
+      const ac=cats[a].every(i=>i.checked), bc=cats[b].every(i=>i.checked);
+      if (ac!==bc) return ac?1:-1;
       return a.localeCompare(b);
-    });
-
-    sortedCats.forEach(cat => {
+    }).forEach(cat => {
       const section = document.createElement('div');
       section.className = 'items-section';
       section.innerHTML = `<div class="items-section-header"><span class="items-section-title">${escHtml(cat)}</span><span class="items-section-line" aria-hidden="true"></span></div>`;
-
       const ul = document.createElement('ul');
-      ul.className = 'items-list';
-      ul.setAttribute('aria-label', cat + ' items');
-
-      const sorted = cats[cat].slice().sort((a, b) => {
-        if (a.checked !== b.checked) return a.checked ? 1 : -1;
-        return a.name.localeCompare(b.name);
-      });
-
-      sorted.forEach(item => {
+      ul.className = 'items-list'; ul.setAttribute('aria-label', cat + ' items');
+      cats[cat].slice().sort((a,b) => a.checked!==b.checked ? (a.checked?1:-1) : a.name.localeCompare(b.name)).forEach(item => {
         const li = document.createElement('li');
         li.innerHTML = itemCardHTML(item);
         ul.appendChild(li);
       });
-
       section.appendChild(ul);
       container.appendChild(section);
     });
   }
 
   function itemCardHTML(item) {
-    return `
-      <div class="item-card${item.checked ? ' checked' : ''}" data-id="${item.id}" role="listitem">
-        <button class="item-check${item.checked ? ' checked' : ''}" data-action="toggle" data-id="${item.id}"
-          aria-label="${item.checked ? 'Uncheck' : 'Check'} ${escHtml(item.name)}" aria-pressed="${item.checked}">
-          <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6l3 3 5-5"/></svg>
+    return `<div class="item-card${item.checked?' checked':''}" data-id="${item.id}" role="listitem">
+      <button class="item-check${item.checked?' checked':''}" data-action="toggle" data-id="${item.id}"
+        aria-label="${item.checked?'Uncheck':'Check'} ${escHtml(item.name)}" aria-pressed="${item.checked}">
+        <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6l3 3 5-5"/></svg>
+      </button>
+      <div class="item-info">
+        <div class="item-name">${escHtml(item.name)}</div>
+        <div class="item-meta">
+          <span class="item-cat-badge">${escHtml(item.category)}</span>
+          ${item.note?`<span class="item-note">${escHtml(item.note)}</span>`:''}
+        </div>
+      </div>
+      <span class="item-qty" aria-label="Quantity: ${item.qty}">×${item.qty}</span>
+      <div class="item-actions">
+        <button class="item-action-btn" data-action="edit" data-id="${item.id}" aria-label="Edit ${escHtml(item.name)}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <div class="item-info">
-          <div class="item-name">${escHtml(item.name)}</div>
-          <div class="item-meta">
-            <span class="item-cat-badge">${escHtml(item.category)}</span>
-            ${item.note ? `<span class="item-note">${escHtml(item.note)}</span>` : ''}
-          </div>
-        </div>
-        <span class="item-qty" aria-label="Quantity: ${item.qty}">×${item.qty}</span>
-        <div class="item-actions">
-          <button class="item-action-btn" data-action="edit" data-id="${item.id}" aria-label="Edit ${escHtml(item.name)}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="item-action-btn delete" data-action="delete" data-id="${item.id}" aria-label="Delete ${escHtml(item.name)}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>
-      </div>`;
+        <button class="item-action-btn delete" data-action="delete" data-id="${item.id}" aria-label="Delete ${escHtml(item.name)}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>`;
   }
 
   function renderProgress() {
     const list = getActiveList();
-    const total = list.items.length;
-    const done  = list.items.filter(i => i.checked).length;
-    const pct   = total === 0 ? 0 : Math.round((done / total) * 100);
+    if (!list) return;
+    const total = list.items.length, done = list.items.filter(i=>i.checked).length;
+    const pct = total===0?0:Math.round((done/total)*100);
     document.getElementById('progress-count').textContent = `${done} of ${total}`;
-    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-fill').style.width = pct+'%';
     const track = document.getElementById('progress-bar-track');
     track.setAttribute('aria-valuenow', pct);
     track.setAttribute('aria-valuetext', `${done} of ${total} items collected`);
@@ -1248,91 +1390,23 @@
 
   function renderBulkBar() {
     const list = getActiveList();
-    const done = list.items.filter(i => i.checked).length;
+    const done = list ? list.items.filter(i=>i.checked).length : 0;
     const bar = document.getElementById('bulk-bar');
-    bar.style.display = done > 0 ? 'flex' : 'none';
+    bar.style.display = done>0?'flex':'none';
     document.getElementById('checked-count').textContent = done;
   }
 
-  // ── ICON HELPERS ──────────────────────────────────────────────────────────
-  function cartIcon() {
-    return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`;
-  }
-  function searchIcon() {
-    return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
-  }
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function cartIcon()   { return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`; }
+  function searchIcon() { return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`; }
 
-  // ── FIREBASE CONFIG MODAL ─────────────────────────────────────────────────
-  document.getElementById('firebase-config-btn').addEventListener('click', () => openModal('firebase-config-modal'));
-  document.getElementById('close-firebase-config-modal').addEventListener('click', () => closeModal('firebase-config-modal'));
-  document.getElementById('cancel-firebase-config').addEventListener('click', () => closeModal('firebase-config-modal'));
-  document.getElementById('confirm-firebase-config').addEventListener('click', () => {
-    const apiKey    = document.getElementById('fb-api-key').value.trim();
-    const projectId = document.getElementById('fb-project-id').value.trim();
-    const appId     = document.getElementById('fb-app-id').value.trim();
-    if (!apiKey || !projectId || !appId) {
-      showToast('Please fill in all Firebase fields', 3000);
-      return;
-    }
-    closeModal('firebase-config-modal');
-    initFirebase(apiKey, projectId, appId);
-  });
-
-  // ── VISIBILITY TOGGLE ─────────────────────────────────────────────────────
-  document.getElementById('visibility-toggle').addEventListener('click', () => {
-    const list = getActiveList();
-    list.isPublic = !list.isPublic;
-    saveState(list);
-    renderVisibility();
-    renderTabs();
-    showToast(list.isPublic ? '🌐 List is now public' : '🔒 List is now private');
-  });
-
-  // ── SHARE BUTTON ──────────────────────────────────────────────────────────
-  document.getElementById('share-btn').addEventListener('click', () => {
-    const list = getActiveList();
-    document.getElementById('share-modal-list-name').textContent = list.name;
-    document.getElementById('share-link-url').textContent = getShareUrl(list);
-    openModal('share-list-modal');
-  });
-
-  document.getElementById('close-share-modal').addEventListener('click', () => closeModal('share-list-modal'));
-  document.getElementById('close-share-modal-ok').addEventListener('click', () => closeModal('share-list-modal'));
-
-  document.getElementById('copy-link-btn').addEventListener('click', () => {
-    const url = document.getElementById('share-link-url').textContent;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied to clipboard!'));
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      document.execCommand('copy'); document.body.removeChild(ta);
-      showToast('🔗 Link copied!');
-    }
-  });
-
-  document.getElementById('make-private-btn').addEventListener('click', () => {
-    const list = getActiveList();
-    list.isPublic = false;
-    saveState(list);
-    closeModal('share-list-modal');
-    renderVisibility();
-    renderTabs();
-    showToast('🔒 List is now private');
-  });
-
-  // ── EVENT DELEGATION ──────────────────────────────────────────────────────
+  // ── EVENT WIRING ──────────────────────────────────────────────────────────
   document.getElementById('list-tabs').addEventListener('click', e => {
     const tab = e.target.closest('.list-tab');
     if (tab) {
       state.activeListId = tab.dataset.listId;
-      state.filter = 'all'; state.search = '';
-      document.getElementById('search-input').value = '';
-      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+      state.filter='all'; state.search='';
+      document.getElementById('search-input').value='';
+      document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.filter==='all'));
       render();
     }
   });
@@ -1340,133 +1414,131 @@
   document.getElementById('items-container').addEventListener('click', e => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
-    const id = btn.dataset.id, action = btn.dataset.action;
-    const list = getActiveList();
-    const item = list.items.find(i => i.id === id);
+    const id=btn.dataset.id, action=btn.dataset.action;
+    const list=getActiveList(), item=list&&list.items.find(i=>i.id===id);
     if (!item) return;
-
-    if (action === 'toggle') {
-      item.checked = !item.checked;
-      saveState(list);
-      if (list.items.length > 0 && list.items.every(i => i.checked)) {
-        launchConfetti(); showToast('🎉 All done! Great shopping!');
-      }
+    if (action==='toggle') {
+      item.checked=!item.checked; saveState(list);
+      if (list.items.length>0&&list.items.every(i=>i.checked)) { launchConfetti(); showToast('🎉 All done! Great shopping!'); }
       render();
     }
-    if (action === 'delete') {
-      const card = document.querySelector(`.item-card[data-id="${id}"]`);
+    if (action==='delete') {
+      const card=document.querySelector(`.item-card[data-id="${id}"]`);
       if (card) card.classList.add('removing');
-      setTimeout(() => {
-        list.items = list.items.filter(i => i.id !== id);
-        saveState(list); render(); showToast('Item removed');
-      }, 180);
+      setTimeout(()=>{ list.items=list.items.filter(i=>i.id!==id); saveState(list); render(); showToast('Item removed'); },180);
     }
-    if (action === 'edit') { openEditModal(item); }
+    if (action==='edit') { openEditModal(item); }
   });
 
   document.getElementById('add-form').addEventListener('submit', e => {
     e.preventDefault();
-    const name = document.getElementById('item-name-input').value.trim();
+    const name=document.getElementById('item-name-input').value.trim();
     if (!name) return;
-    const qty  = Math.max(1, parseInt(document.getElementById('item-qty-input').value, 10) || 1);
-    const cat  = document.getElementById('item-cat-select').value;
-    const list = getActiveList();
-    const dupe = list.items.find(i => i.name.toLowerCase() === name.toLowerCase() && i.category === cat && !i.checked);
-    if (dupe) {
-      dupe.qty += qty;
-      showToast(`Updated quantity: ${dupe.name} ×${dupe.qty}`);
-    } else {
-      list.items.push({ id: uid(), name, qty, category: cat, note: '', checked: false });
-      showToast(`Added: ${name}`);
-    }
+    const qty=Math.max(1,parseInt(document.getElementById('item-qty-input').value,10)||1);
+    const cat=document.getElementById('item-cat-select').value;
+    const list=getActiveList();
+    const dupe=list.items.find(i=>i.name.toLowerCase()===name.toLowerCase()&&i.category===cat&&!i.checked);
+    if (dupe) { dupe.qty+=qty; showToast(`Updated quantity: ${dupe.name} ×${dupe.qty}`); }
+    else { list.items.push({id:uid(),name,qty,category:cat,note:'',checked:false}); showToast(`Added: ${name}`); }
     saveState(list);
-    document.getElementById('item-name-input').value = '';
-    document.getElementById('item-qty-input').value = '1';
+    document.getElementById('item-name-input').value='';
+    document.getElementById('item-qty-input').value='1';
     render();
     document.getElementById('item-name-input').focus();
   });
 
-  document.getElementById('search-input').addEventListener('input', e => { state.search = e.target.value.trim(); renderItems(); });
+  document.getElementById('search-input').addEventListener('input', e => { state.search=e.target.value.trim(); renderItems(); });
 
   document.getElementById('filter-chips').addEventListener('click', e => {
-    const chip = e.target.closest('.chip');
+    const chip=e.target.closest('.chip');
     if (!chip) return;
-    state.filter = chip.dataset.filter;
-    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
+    state.filter=chip.dataset.filter;
+    document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c===chip));
     renderItems();
   });
 
   document.getElementById('uncheck-all-btn').addEventListener('click', () => {
-    const list = getActiveList();
-    list.items.forEach(i => i.checked = false);
-    saveState(list); render(); showToast('All items unchecked');
+    const list=getActiveList(); list.items.forEach(i=>i.checked=false); saveState(list); render(); showToast('All items unchecked');
   });
   document.getElementById('clear-done-btn').addEventListener('click', () => {
-    const list = getActiveList();
-    const removed = list.items.filter(i => i.checked).length;
-    list.items = list.items.filter(i => !i.checked);
-    saveState(list); render(); showToast(`Removed ${removed} checked item${removed !== 1 ? 's' : ''}`);
+    const list=getActiveList(), n=list.items.filter(i=>i.checked).length;
+    list.items=list.items.filter(i=>!i.checked); saveState(list); render(); showToast(`Removed ${n} checked item${n!==1?'s':''}`);
+  });
+
+  document.getElementById('visibility-toggle').addEventListener('click', () => {
+    const list=getActiveList(); list.isPublic=!list.isPublic; saveState(list); renderVisibility(); renderTabs();
+    showToast(list.isPublic?'🌐 List is now public':'🔒 List is now private');
+  });
+
+  document.getElementById('share-btn').addEventListener('click', () => {
+    const list=getActiveList();
+    document.getElementById('share-modal-list-name').textContent=list.name;
+    document.getElementById('share-link-url').textContent=getShareUrl(list);
+    openModal('share-list-modal');
+  });
+  document.getElementById('close-share-modal').addEventListener('click',()=>closeModal('share-list-modal'));
+  document.getElementById('close-share-modal-ok').addEventListener('click',()=>closeModal('share-list-modal'));
+  document.getElementById('copy-link-btn').addEventListener('click',()=>{
+    const url=document.getElementById('share-link-url').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(()=>showToast('🔗 Link copied!'));
+    else { const ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('🔗 Link copied!'); }
+  });
+  document.getElementById('make-private-btn').addEventListener('click',()=>{
+    const list=getActiveList(); list.isPublic=false; saveState(list);
+    closeModal('share-list-modal'); renderVisibility(); renderTabs(); showToast('🔒 List is now private');
   });
 
   // New list
-  document.getElementById('new-list-btn').addEventListener('click', () => openModal('new-list-modal'));
-  document.getElementById('close-new-list-modal').addEventListener('click', () => closeModal('new-list-modal'));
-  document.getElementById('cancel-new-list').addEventListener('click', () => closeModal('new-list-modal'));
-  document.getElementById('confirm-new-list').addEventListener('click', () => {
-    const name = document.getElementById('new-list-name').value.trim() || 'New List';
-    const list = { id: uid(), name, items: [], isPublic: false };
-    state.lists.push(list);
-    state.activeListId = list.id;
-    if (db) saveListToFirestore(list);
-    closeModal('new-list-modal');
-    document.getElementById('new-list-name').value = '';
+  document.getElementById('new-list-btn').addEventListener('click',()=>openModal('new-list-modal'));
+  document.getElementById('close-new-list-modal').addEventListener('click',()=>closeModal('new-list-modal'));
+  document.getElementById('cancel-new-list').addEventListener('click',()=>closeModal('new-list-modal'));
+  document.getElementById('confirm-new-list').addEventListener('click',()=>{
+    const name=document.getElementById('new-list-name').value.trim()||'New List';
+    const list={id:uid(),name,items:[],isPublic:false};
+    state.lists.push(list); state.activeListId=list.id;
+    saveNewList(list); closeModal('new-list-modal');
+    document.getElementById('new-list-name').value='';
     render(); showToast(`Created: ${name}`);
   });
 
   // Rename
-  document.getElementById('rename-list-btn').addEventListener('click', () => {
-    document.getElementById('rename-list-input').value = getActiveList().name;
-    openModal('rename-list-modal');
-  });
-  document.getElementById('close-rename-modal').addEventListener('click', () => closeModal('rename-list-modal'));
-  document.getElementById('cancel-rename').addEventListener('click', () => closeModal('rename-list-modal'));
-  document.getElementById('confirm-rename').addEventListener('click', () => {
-    const name = document.getElementById('rename-list-input').value.trim();
-    if (name) { getActiveList().name = name; saveState(); }
+  document.getElementById('rename-list-btn').addEventListener('click',()=>{ document.getElementById('rename-list-input').value=getActiveList().name; openModal('rename-list-modal'); });
+  document.getElementById('close-rename-modal').addEventListener('click',()=>closeModal('rename-list-modal'));
+  document.getElementById('cancel-rename').addEventListener('click',()=>closeModal('rename-list-modal'));
+  document.getElementById('confirm-rename').addEventListener('click',()=>{
+    const name=document.getElementById('rename-list-input').value.trim();
+    if (name) { getActiveList().name=name; saveState(); }
     closeModal('rename-list-modal'); render();
   });
 
   // Delete list
-  document.getElementById('delete-list-btn').addEventListener('click', () => {
-    if (state.lists.length === 1) { showToast('You must have at least one list'); return; }
-    const listId = state.activeListId;
-    const name = getActiveList().name;
-    state.lists = state.lists.filter(l => l.id !== listId);
-    state.activeListId = state.lists[0].id;
-    deleteListFromFirestore(listId);
-    render(); showToast(`Deleted: ${name}`);
+  document.getElementById('delete-list-btn').addEventListener('click',()=>{
+    if (state.lists.length===1) { showToast('You must have at least one list'); return; }
+    const listId=state.activeListId, name=getActiveList().name;
+    state.lists=state.lists.filter(l=>l.id!==listId);
+    state.activeListId=state.lists[0].id;
+    deleteList(listId); render(); showToast(`Deleted: ${name}`);
   });
 
   // Edit item
-  let editingItemId = null;
+  let editingItemId=null;
   function openEditModal(item) {
-    editingItemId = item.id;
-    document.getElementById('edit-item-name').value = item.name;
-    document.getElementById('edit-item-qty').value = item.qty;
-    document.getElementById('edit-item-cat').value = item.category;
-    document.getElementById('edit-item-note').value = item.note || '';
+    editingItemId=item.id;
+    document.getElementById('edit-item-name').value=item.name;
+    document.getElementById('edit-item-qty').value=item.qty;
+    document.getElementById('edit-item-cat').value=item.category;
+    document.getElementById('edit-item-note').value=item.note||'';
     openModal('edit-item-modal');
   }
-  document.getElementById('close-edit-modal').addEventListener('click', () => closeModal('edit-item-modal'));
-  document.getElementById('cancel-edit').addEventListener('click', () => closeModal('edit-item-modal'));
-  document.getElementById('confirm-edit').addEventListener('click', () => {
-    const list = getActiveList();
-    const item = list.items.find(i => i.id === editingItemId);
+  document.getElementById('close-edit-modal').addEventListener('click',()=>closeModal('edit-item-modal'));
+  document.getElementById('cancel-edit').addEventListener('click',()=>closeModal('edit-item-modal'));
+  document.getElementById('confirm-edit').addEventListener('click',()=>{
+    const list=getActiveList(), item=list&&list.items.find(i=>i.id===editingItemId);
     if (item) {
-      item.name     = document.getElementById('edit-item-name').value.trim() || item.name;
-      item.qty      = Math.max(1, parseInt(document.getElementById('edit-item-qty').value, 10) || 1);
-      item.category = document.getElementById('edit-item-cat').value;
-      item.note     = document.getElementById('edit-item-note').value.trim();
+      item.name=document.getElementById('edit-item-name').value.trim()||item.name;
+      item.qty=Math.max(1,parseInt(document.getElementById('edit-item-qty').value,10)||1);
+      item.category=document.getElementById('edit-item-cat').value;
+      item.note=document.getElementById('edit-item-note').value.trim();
       saveState(list); render();
     }
     closeModal('edit-item-modal'); showToast('Item updated');
@@ -1474,44 +1546,22 @@
 
   // Modal helpers
   function openModal(id) {
-    const m = document.getElementById(id);
-    m.classList.add('open');
-    const first = m.querySelector('input, button:not(.icon-btn)');
-    if (first) setTimeout(() => first.focus(), 50);
+    const m=document.getElementById(id); m.classList.add('open');
+    const first=m.querySelector('input,button:not(.icon-btn)');
+    if (first) setTimeout(()=>first.focus(),50);
   }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-    backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(backdrop.id); });
+  document.querySelectorAll('.modal-backdrop').forEach(b => {
+    b.addEventListener('click',e=>{ if(e.target===b) closeModal(b.id); });
   });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m => closeModal(m.id));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m=>closeModal(m.id));
   });
-  ['new-list-name','rename-list-input'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        if (id === 'new-list-name') document.getElementById('confirm-new-list').click();
-        if (id === 'rename-list-input') document.getElementById('confirm-rename').click();
-      }
+  ['new-list-name','rename-list-input'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{
+      if(e.key==='Enter') { if(id==='new-list-name') document.getElementById('confirm-new-list').click(); else document.getElementById('confirm-rename').click(); }
     });
   });
-
-  // ── SEED DATA ─────────────────────────────────────────────────────────────
-  function seedData() {
-    const list = getActiveList();
-    [
-      { name: 'Whole milk',       qty: 2, category: 'Dairy',     note: '2% fat',      checked: false },
-      { name: 'Sourdough bread',  qty: 1, category: 'Bakery',    note: '',            checked: false },
-      { name: 'Organic spinach',  qty: 1, category: 'Produce',   note: 'baby spinach',checked: false },
-      { name: 'Free-range eggs',  qty: 1, category: 'Dairy',     note: 'dozen',       checked: false },
-      { name: 'Olive oil',        qty: 1, category: 'General',   note: 'extra virgin',checked: true  },
-      { name: 'Cherry tomatoes',  qty: 2, category: 'Produce',   note: '',            checked: false },
-      { name: 'Sparkling water',  qty: 3, category: 'Beverages', note: 'lime flavor', checked: false },
-    ].forEach(i => list.items.push({ id: uid(), ...i }));
-  }
-  seedData();
-
-  // ── INITIAL RENDER ────────────────────────────────────────────────────────
-  render();
 
   </script>
 </body>
