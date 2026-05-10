@@ -251,7 +251,7 @@
         <span class="header-title" id="header-title">My Lists</span>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" id="theme-toggle" data-theme-toggle aria-label="Toggle theme"><i data-lucide="sun"></i></button>
+        <button class="icon-btn" id="theme-toggle" data-theme-toggle aria-label="Toggle theme"><i data-lucide="moon"></i></button>
         <button class="icon-btn" id="header-add-btn" aria-label="Add new"><i data-lucide="plus"></i></button>
       </div>
     </header>
@@ -380,7 +380,9 @@
 <script>
   lucide.createIcons();
   const html = document.documentElement;
-  let currentTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  // Light mode is the default — system preference is ignored
+  let currentTheme = 'light';
   html.setAttribute('data-theme', currentTheme);
   syncThemeUI();
 
