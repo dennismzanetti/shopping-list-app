@@ -175,6 +175,11 @@
     .toggle input:checked+.toggle-slider::before{transform:translateX(16px)}
     .sidebar-backdrop{display:none;position:fixed;inset:0;background:oklch(.1 0 0/.4);z-index:40}
     .sidebar-backdrop.open{display:block}
+    /* Build footer */
+    .build-footer{padding:var(--space-3) var(--space-6);border-top:1px solid var(--color-divider);text-align:center}
+    .build-footer small{font-size:var(--text-xs);color:var(--color-text-faint)}
+    .build-footer a{color:var(--color-text-faint);text-decoration:none;border-bottom:1px solid transparent;transition:color var(--transition-interactive),border-color var(--transition-interactive)}
+    .build-footer a:hover{color:var(--color-primary);border-bottom-color:var(--color-primary)}
   </style>
 </head>
 <body>
@@ -232,6 +237,11 @@
           </div>
           <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;"></i>
         </div>
+        <footer class="build-footer" id="build-footer">
+          <small id="build-meta">
+            <a href="https://github.com/dennismzanetti/shopping-list-app" target="_blank" rel="noopener noreferrer">View source</a>
+          </small>
+        </footer>
       </div>
     </aside>
 
@@ -391,6 +401,27 @@
 
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('dark-mode-toggle').addEventListener('change', toggleTheme);
+
+  // Load build metadata from version.json written by GitHub Actions
+  async function loadBuildMeta() {
+    const el = document.getElementById('build-meta');
+    const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
+    try {
+      const res = await fetch('./version.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('no version file');
+      const v = await res.json();
+      const shortSha = (v.sha || '').slice(0, 7);
+      const buildLabel = v.buildNumber ? `#${v.buildNumber}` : '';
+      const shaLink = shortSha
+        ? ` &middot; <a href="${v.commitUrl}" target="_blank" rel="noopener noreferrer" title="View commit">${shortSha}</a>`
+        : '';
+      const repoLink = `<a href="${v.repo || repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`;
+      el.innerHTML = `Build ${buildLabel}${shaLink} &middot; ${repoLink}`;
+    } catch {
+      el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`;
+    }
+  }
+  loadBuildMeta();
 
   let currentUser = null;
 
