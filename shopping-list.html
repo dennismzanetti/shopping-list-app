@@ -652,6 +652,28 @@
     /* ── CONFETTI CANVAS ────────────────────────────────── */
     #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 400; }
 
+    /* ── APP FOOTER ─────────────────────────────────────── */
+    .app-footer {
+      padding: var(--space-4) var(--space-4);
+      text-align: center;
+      border-top: 1px solid var(--color-divider);
+      background: var(--color-surface);
+    }
+    .app-footer-inner {
+      max-width: var(--content-default);
+      margin-inline: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+    .build-version {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+    }
+
     /* ── RESPONSIVE ─────────────────────────────────────── */
     @media (max-width: 480px) {
       .add-form-row { flex-direction: column; }
@@ -848,6 +870,13 @@
 
       <div id="items-container" aria-live="polite" aria-label="Shopping items"></div>
     </main>
+
+    <!-- ── APP FOOTER ──────────────────────────────────────── -->
+    <footer class="app-footer" role="contentinfo">
+      <div class="app-footer-inner">
+        <span class="build-version" id="build-version-label"></span>
+      </div>
+    </footer>
   </div>
 
   <!-- NEW LIST MODAL -->
@@ -960,6 +989,10 @@
 
   <!-- ── FIREBASE + APP SCRIPT ─────────────────────────────── -->
   <script type="module">
+  // ── BUILD VERSION ────────────────────────────────────────────────────────
+  const BUILD_VERSION = '1.0.0';
+  document.getElementById('build-version-label').textContent = `v${BUILD_VERSION}`;
+
   import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import {
     getAuth, onAuthStateChanged,
@@ -1180,389 +1213,435 @@
   });
 
   // ── FIRESTORE — USER-SCOPED ───────────────────────────────────────────────
-  function userListsRef() {
-    return collection(db, 'users', currentUser.uid, 'lists');
-  }
+  function listsCol() { return collection(db, 'users', currentUser.uid, 'lists'); }
+  function itemsCol(listId) { return collection(db, 'users', currentUser.uid, 'lists', listId, 'items'); }
 
   function subscribeToLists() {
-    if (!currentUser) return;
-    unsubscribers.forEach(u => u());
-    unsubscribers = [];
-
-    const q = query(userListsRef(), orderBy('createdAt'));
-    const unsub = onSnapshot(q,
-      snapshot => {
-        if (snapshot.empty) {
-          const defaultList = { id: uid(), name: 'My List', items: [], isPublic: false };
-          saveNewList(defaultList);
-          return;
-        }
-        const lists = [];
-        snapshot.forEach(d => {
-          const data = d.data();
-          lists.push({ id: d.id, name: data.name || 'List', isPublic: data.isPublic || false, items: data.items || [] });
-        });
-        state.lists = lists;
-        if (!state.lists.find(l => l.id === state.activeListId)) {
-          state.activeListId = state.lists[0].id;
-        }
-        setSyncStatus('synced', 'Synced');
-        render();
-      },
-      err => {
-        setSyncStatus('error', 'Sync error');
-        showToast('Sync error: ' + err.message, 4000);
-        console.error(err);
+    const q = query(listsCol(), orderBy('createdAt'));
+    const unsub = onSnapshot(q, snap => {
+      const prev = state.lists.map(l => l.id);
+      state.lists = snap.docs.map(d => ({ id: d.id, ...d.data(), items: (state.lists.find(l=>l.id===d.id)||{}).items || [] }));
+      setSyncStatus('synced', 'Synced');
+      if (!state.activeListId || !state.lists.find(l => l.id === state.activeListId)) {
+        state.activeListId = state.lists[0]?.id || null;
       }
-    );
+      renderTabs();
+      if (state.activeListId) subscribeToItems(state.activeListId);
+      else renderItems();
+    }, () => setSyncStatus('error', 'Error'));
     unsubscribers.push(unsub);
   }
 
-  async function saveNewList(list) {
-    if (!currentUser) return;
-    await setDoc(doc(userListsRef(), list.id), {
-      name: list.name, isPublic: list.isPublic, items: list.items,
-      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  let itemUnsub = null;
+  function subscribeToItems(listId) {
+    if (itemUnsub) { itemUnsub(); itemUnsub = null; }
+    if (!listId) { renderItems(); return; }
+    const q = query(itemsCol(listId), orderBy('createdAt'));
+    itemUnsub = onSnapshot(q, snap => {
+      const list = state.lists.find(l => l.id === listId);
+      if (list) list.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderItems();
     });
+    unsubscribers.push(() => { if (itemUnsub) itemUnsub(); });
   }
 
-  async function updateList(list) {
-    if (!currentUser) return;
-    setSyncStatus('syncing', 'Saving...');
-    try {
-      await updateDoc(doc(userListsRef(), list.id), {
-        name: list.name, isPublic: list.isPublic, items: list.items,
-        updatedAt: serverTimestamp()
-      });
-    } catch (err) {
-      setSyncStatus('error', 'Save error');
-      showToast('Save error: ' + err.message, 4000);
-    }
+  // ── LISTS CRUD ────────────────────────────────────────────────────────────
+  async function createList(name) {
+    const id = uid();
+    await setDoc(doc(listsCol(), id), { name, isPublic: false, createdAt: serverTimestamp() });
+    return id;
   }
-
+  async function renameList(listId, name) {
+    await updateDoc(doc(listsCol(), listId), { name });
+  }
   async function deleteList(listId) {
-    if (!currentUser) return;
-    await deleteDoc(doc(userListsRef(), listId));
+    await deleteDoc(doc(listsCol(), listId));
+  }
+  async function setListVisibility(listId, isPublic) {
+    await updateDoc(doc(listsCol(), listId), { isPublic });
   }
 
-  function saveState(list) {
-    updateList(list || getActiveList());
+  // ── ITEMS CRUD ────────────────────────────────────────────────────────────
+  async function addItem(listId, { name, qty, category }) {
+    const id = uid();
+    await setDoc(doc(itemsCol(listId), id), {
+      name, qty: parseInt(qty)||1, category: category||'General',
+      checked: false, note: '', createdAt: serverTimestamp()
+    });
+    return id;
   }
-
-  // ── CONFETTI ──────────────────────────────────────────────────────────────
-  function launchConfetti() {
-    const canvas = document.getElementById('confetti-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = innerWidth; canvas.height = innerHeight;
-    const colors = ['#01696f','#437a22','#d19900','#964219','#4f98a3'];
-    const pieces = Array.from({length:80}, () => ({
-      x: Math.random()*canvas.width, y: -10,
-      r: Math.random()*6+3,
-      c: colors[Math.floor(Math.random()*colors.length)],
-      vx: (Math.random()-.5)*4, vy: Math.random()*3+2,
-      a: Math.random()*Math.PI*2, va: (Math.random()-.5)*0.2
-    }));
-    let t = 0;
-    (function draw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      pieces.forEach(p => {
-        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
-        ctx.fillStyle=p.c; ctx.globalAlpha=Math.max(0,1-t/90);
-        ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore();
-        p.x+=p.vx; p.y+=p.vy; p.a+=p.va;
-      });
-      t++;
-      if (t<100) requestAnimationFrame(draw);
-      else ctx.clearRect(0,0,canvas.width,canvas.height);
-    })();
+  async function toggleItem(listId, itemId, checked) {
+    await updateDoc(doc(itemsCol(listId), itemId), { checked });
+  }
+  async function updateItem(listId, itemId, fields) {
+    await updateDoc(doc(itemsCol(listId), itemId), fields);
+  }
+  async function deleteItem(listId, itemId) {
+    await deleteDoc(doc(itemsCol(listId), itemId));
   }
 
   // ── RENDER ────────────────────────────────────────────────────────────────
-  function render() { renderTabs(); renderVisibility(); renderItems(); renderProgress(); renderBulkBar(); }
-
   function renderTabs() {
-    const wrap = document.getElementById('list-tabs');
-    wrap.innerHTML = '';
-    state.lists.forEach(list => {
-      const active = list.items.filter(i => !i.checked).length;
-      const btn = document.createElement('button');
-      btn.className = 'list-tab' + (list.id === state.activeListId ? ' active' : '');
-      btn.setAttribute('aria-pressed', list.id === state.activeListId ? 'true' : 'false');
-      btn.dataset.listId = list.id;
-      btn.dataset.public = list.isPublic ? 'true' : 'false';
-      btn.innerHTML = `<span class="tab-vis-dot" title="${list.isPublic?'Public':'Private'}"></span>${escHtml(list.name)}<span class="tab-count">${active}</span>`;
-      wrap.appendChild(btn);
+    const tabs = document.getElementById('list-tabs');
+    if (!state.lists.length) {
+      tabs.innerHTML = '';
+      document.getElementById('current-list-title').textContent = 'No lists yet';
+      return;
+    }
+    tabs.innerHTML = state.lists.map(l => {
+      const count = (l.items||[]).filter(i=>!i.checked).length;
+      const active = l.id === state.activeListId ? ' active' : '';
+      return `<button class="list-tab${active}" data-list-id="${escHtml(l.id)}" data-public="${!!l.isPublic}" aria-pressed="${l.id===state.activeListId}">
+        <span class="tab-vis-dot"></span>
+        ${escHtml(l.name)}
+        ${count > 0 ? `<span class="tab-count">${count}</span>` : ''}
+      </button>`;
+    }).join('');
+    tabs.querySelectorAll('.list-tab').forEach(btn => {
+      btn.addEventListener('click', () => switchList(btn.dataset.listId));
     });
-    const al = getActiveList();
-    document.getElementById('current-list-title').textContent = al ? al.name : '';
+    const active = getActiveList();
+    document.getElementById('current-list-title').textContent = active?.name || '';
+    updateVisibilityUI(active);
   }
 
-  function renderVisibility() {
-    const list = getActiveList();
+  function updateVisibilityUI(list) {
     if (!list) return;
-    const toggle = document.getElementById('visibility-toggle');
-    const label  = document.getElementById('visibility-label');
-    const shareBtn = document.getElementById('share-btn');
-    toggle.dataset.public = list.isPublic ? 'true' : 'false';
-    toggle.setAttribute('aria-pressed', list.isPublic ? 'true' : 'false');
-    toggle.setAttribute('aria-label', list.isPublic ? 'List is public — click to make private' : 'List is private — click to make public');
-    label.textContent = list.isPublic ? 'Public' : 'Private';
-    shareBtn.classList.toggle('visible', list.isPublic);
+    const vt = document.getElementById('visibility-toggle');
+    const vl = document.getElementById('visibility-label');
+    const sb = document.getElementById('share-btn');
+    vt.dataset.public = list.isPublic ? 'true' : 'false';
+    vt.setAttribute('aria-pressed', !!list.isPublic);
+    vt.setAttribute('aria-label', list.isPublic ? 'List is public — click to make private' : 'List is private — click to make public');
+    vl.textContent = list.isPublic ? 'Public' : 'Private';
+    if (list.isPublic) sb.classList.add('visible'); else sb.classList.remove('visible');
+  }
+
+  function switchList(listId) {
+    state.activeListId = listId;
+    state.filter = 'all';
+    state.search = '';
+    document.getElementById('search-input').value = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter==='all'));
+    renderTabs();
+    subscribeToItems(listId);
   }
 
   function renderItems() {
     const list = getActiveList();
     const container = document.getElementById('items-container');
-    container.innerHTML = '';
-    if (!list) return;
-
-    let items = list.items.slice();
-    if (state.search) { const q = state.search.toLowerCase(); items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)); }
-    if (state.filter === 'active') items = items.filter(i => !i.checked);
-    if (state.filter === 'done')   items = items.filter(i => i.checked);
-
-    if (items.length === 0) {
-      const m = list.items.length === 0
-        ? { icon: cartIcon(), title: 'Your list is empty', desc: 'Add your first item above to get started.' }
-        : { icon: searchIcon(), title: 'No items match', desc: 'Try a different search or filter.' };
-      container.innerHTML = `<div class="empty-state" role="status"><div class="empty-icon">${m.icon}</div><h2 class="empty-title">${m.title}</h2><p class="empty-desc">${m.desc}</p></div>`;
+    if (!list) {
+      container.innerHTML = `<div class="empty-state">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/></svg>
+        <h2 class="empty-title">No lists yet</h2>
+        <p class="empty-desc">Create your first list to get started.</p>
+        <button class="btn btn-primary" id="empty-create-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          New list
+        </button>
+      </div>`;
+      document.getElementById('empty-create-btn')?.addEventListener('click', openNewListModal);
+      updateProgress(0, 0);
+      document.getElementById('bulk-bar').style.display = 'none';
       return;
     }
 
-    const cats = {};
-    items.forEach(item => { if (!cats[item.category]) cats[item.category]=[]; cats[item.category].push(item); });
-    Object.keys(cats).sort((a,b) => {
-      const ac=cats[a].every(i=>i.checked), bc=cats[b].every(i=>i.checked);
-      if (ac!==bc) return ac?1:-1;
-      return a.localeCompare(b);
-    }).forEach(cat => {
-      const section = document.createElement('div');
-      section.className = 'items-section';
-      section.innerHTML = `<div class="items-section-header"><span class="items-section-title">${escHtml(cat)}</span><span class="items-section-line" aria-hidden="true"></span></div>`;
-      const ul = document.createElement('ul');
-      ul.className = 'items-list'; ul.setAttribute('aria-label', cat + ' items');
-      cats[cat].slice().sort((a,b) => a.checked!==b.checked ? (a.checked?1:-1) : a.name.localeCompare(b.name)).forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = itemCardHTML(item);
-        ul.appendChild(li);
+    let items = list.items || [];
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      items = items.filter(i => i.name.toLowerCase().includes(q) || (i.note||'').toLowerCase().includes(q));
+    }
+    if (state.filter === 'active') items = items.filter(i => !i.checked);
+    if (state.filter === 'done')   items = items.filter(i => i.checked);
+
+    const allItems = list.items || [];
+    const checkedCount = allItems.filter(i => i.checked).length;
+    updateProgress(checkedCount, allItems.length);
+
+    const bulk = document.getElementById('bulk-bar');
+    if (checkedCount > 0) {
+      bulk.style.display = '';
+      document.getElementById('checked-count').textContent = checkedCount;
+    } else {
+      bulk.style.display = 'none';
+    }
+
+    if (!items.length) {
+      const msg = state.filter === 'done' ? 'Nothing checked off yet.' :
+                  state.filter === 'active' ? 'Everything is checked off!' :
+                  state.search ? 'No items match your search.' : 'Add your first item above.';
+      container.innerHTML = `<div class="empty-state">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/></svg>
+        <h2 class="empty-title">Nothing here</h2>
+        <p class="empty-desc">${escHtml(msg)}</p>
+      </div>`;
+      return;
+    }
+
+    const active  = items.filter(i => !i.checked);
+    const checked = items.filter(i => i.checked);
+    let html = '';
+    if (active.length)  html += renderSection('Remaining', active);
+    if (checked.length) html += renderSection('Got it', checked);
+    container.innerHTML = html;
+
+    container.querySelectorAll('.item-check').forEach(el => {
+      el.addEventListener('click', async () => {
+        const card = el.closest('.item-card');
+        const itemId = card.dataset.itemId;
+        const nowChecked = !el.classList.contains('checked');
+        await toggleItem(state.activeListId, itemId, nowChecked);
+        if (nowChecked && (list.items||[]).filter(i=>!i.checked).length === 1) triggerConfetti();
       });
-      section.appendChild(ul);
-      container.appendChild(section);
+    });
+    container.querySelectorAll('.item-action-btn.edit').forEach(el => {
+      el.addEventListener('click', () => {
+        const card = el.closest('.item-card');
+        openEditModal(card.dataset.itemId);
+      });
+    });
+    container.querySelectorAll('.item-action-btn.delete').forEach(el => {
+      el.addEventListener('click', async () => {
+        const card = el.closest('.item-card');
+        card.classList.add('removing');
+        setTimeout(() => deleteItem(state.activeListId, card.dataset.itemId), 200);
+      });
     });
   }
 
-  function itemCardHTML(item) {
-    return `<div class="item-card${item.checked?' checked':''}" data-id="${item.id}" role="listitem">
-      <button class="item-check${item.checked?' checked':''}" data-action="toggle" data-id="${item.id}"
-        aria-label="${item.checked?'Uncheck':'Check'} ${escHtml(item.name)}" aria-pressed="${item.checked}">
-        <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6l3 3 5-5"/></svg>
+  function renderSection(title, items) {
+    return `<div class="items-section">
+      <div class="items-section-header">
+        <span class="items-section-title">${escHtml(title)}</span>
+        <span class="items-section-line" aria-hidden="true"></span>
+      </div>
+      <ul class="items-list" role="list">
+        ${items.map(item => renderItem(item)).join('')}
+      </ul>
+    </div>`;
+  }
+
+  function renderItem(item) {
+    const checked = item.checked ? ' checked' : '';
+    return `<li class="item-card${checked}" data-item-id="${escHtml(item.id)}" role="listitem">
+      <button class="item-check${checked}" aria-label="${item.checked ? 'Uncheck' : 'Check'} ${escHtml(item.name)}" aria-pressed="${!!item.checked}">
+        <svg class="check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
       </button>
       <div class="item-info">
         <div class="item-name">${escHtml(item.name)}</div>
         <div class="item-meta">
-          <span class="item-cat-badge">${escHtml(item.category)}</span>
-          ${item.note?`<span class="item-note">${escHtml(item.note)}</span>`:''}
+          <span class="item-cat-badge">${escHtml(item.category||'General')}</span>
+          ${item.note ? `<span class="item-note">${escHtml(item.note)}</span>` : ''}
         </div>
       </div>
-      <span class="item-qty" aria-label="Quantity: ${item.qty}">x${item.qty}</span>
+      <span class="item-qty" aria-label="Quantity: ${item.qty||1}">${item.qty||1}</span>
       <div class="item-actions">
-        <button class="item-action-btn" data-action="edit" data-id="${item.id}" aria-label="Edit ${escHtml(item.name)}">
+        <button class="item-action-btn edit" aria-label="Edit ${escHtml(item.name)}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <button class="item-action-btn delete" data-action="delete" data-id="${item.id}" aria-label="Delete ${escHtml(item.name)}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        <button class="item-action-btn delete" aria-label="Delete ${escHtml(item.name)}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </button>
       </div>
-    </div>`;
+    </li>`;
   }
 
-  function renderProgress() {
+  function updateProgress(done, total) {
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-count').textContent = `${done} of ${total}`;
+    document.getElementById('progress-bar-track').setAttribute('aria-valuenow', pct);
+  }
+
+  // ── NEW LIST MODAL ────────────────────────────────────────────────────────
+  function openNewListModal() {
+    document.getElementById('new-list-name').value = '';
+    document.getElementById('new-list-modal').classList.add('open');
+    setTimeout(() => document.getElementById('new-list-name').focus(), 80);
+  }
+  function closeNewListModal() { document.getElementById('new-list-modal').classList.remove('open'); }
+  document.getElementById('new-list-btn').addEventListener('click', openNewListModal);
+  document.getElementById('close-new-list-modal').addEventListener('click', closeNewListModal);
+  document.getElementById('cancel-new-list').addEventListener('click', closeNewListModal);
+  document.getElementById('confirm-new-list').addEventListener('click', async () => {
+    const name = document.getElementById('new-list-name').value.trim();
+    if (!name) return;
+    closeNewListModal();
+    const id = await createList(name);
+    state.activeListId = id;
+    subscribeToItems(id);
+  });
+  document.getElementById('new-list-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('new-list-modal')) closeNewListModal();
+  });
+
+  // ── RENAME LIST MODAL ─────────────────────────────────────────────────────
+  document.getElementById('rename-list-btn').addEventListener('click', () => {
     const list = getActiveList();
     if (!list) return;
-    const total = list.items.length, done = list.items.filter(i=>i.checked).length;
-    const pct = total===0?0:Math.round((done/total)*100);
-    document.getElementById('progress-count').textContent = `${done} of ${total}`;
-    document.getElementById('progress-fill').style.width = pct+'%';
-    const track = document.getElementById('progress-bar-track');
-    track.setAttribute('aria-valuenow', pct);
-    track.setAttribute('aria-valuetext', `${done} of ${total} items collected`);
-  }
+    document.getElementById('rename-list-input').value = list.name;
+    document.getElementById('rename-list-modal').classList.add('open');
+    setTimeout(() => document.getElementById('rename-list-input').focus(), 80);
+  });
+  document.getElementById('close-rename-modal').addEventListener('click', () => document.getElementById('rename-list-modal').classList.remove('open'));
+  document.getElementById('cancel-rename').addEventListener('click', () => document.getElementById('rename-list-modal').classList.remove('open'));
+  document.getElementById('confirm-rename').addEventListener('click', async () => {
+    const name = document.getElementById('rename-list-input').value.trim();
+    if (!name || !state.activeListId) return;
+    document.getElementById('rename-list-modal').classList.remove('open');
+    await renameList(state.activeListId, name);
+    showToast('List renamed');
+  });
 
-  function renderBulkBar() {
+  // ── DELETE LIST ───────────────────────────────────────────────────────────
+  document.getElementById('delete-list-btn').addEventListener('click', async () => {
     const list = getActiveList();
-    const done = list ? list.items.filter(i=>i.checked).length : 0;
-    const bar = document.getElementById('bulk-bar');
-    bar.style.display = done>0?'flex':'none';
-    document.getElementById('checked-count').textContent = done;
-  }
-
-  function cartIcon()   { return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`; }
-  function searchIcon() { return `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`; }
-
-  // ── EVENT WIRING ──────────────────────────────────────────────────────────
-  document.getElementById('list-tabs').addEventListener('click', e => {
-    const tab = e.target.closest('.list-tab');
-    if (tab) {
-      state.activeListId = tab.dataset.listId;
-      state.filter='all'; state.search='';
-      document.getElementById('search-input').value='';
-      document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.filter==='all'));
-      render();
-    }
+    if (!list) return;
+    if (!confirm(`Delete "${list.name}"? This cannot be undone.`)) return;
+    await deleteList(state.activeListId);
+    showToast('List deleted');
   });
 
-  document.getElementById('items-container').addEventListener('click', e => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const id=btn.dataset.id, action=btn.dataset.action;
-    const list=getActiveList(), item=list&&list.items.find(i=>i.id===id);
-    if (!item) return;
-    if (action==='toggle') {
-      item.checked=!item.checked; saveState(list);
-      if (list.items.length>0&&list.items.every(i=>i.checked)) { launchConfetti(); showToast('All done! Great shopping!'); }
-      render();
-    }
-    if (action==='delete') {
-      const card=document.querySelector(`.item-card[data-id="${id}"]`);
-      if (card) card.classList.add('removing');
-      setTimeout(()=>{ list.items=list.items.filter(i=>i.id!==id); saveState(list); render(); showToast('Item removed'); },180);
-    }
-    if (action==='edit') { openEditModal(item); }
-  });
-
-  document.getElementById('add-form').addEventListener('submit', e => {
+  // ── ADD ITEM ──────────────────────────────────────────────────────────────
+  document.getElementById('add-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const name=document.getElementById('item-name-input').value.trim();
-    if (!name) return;
-    const qty=Math.max(1,parseInt(document.getElementById('item-qty-input').value,10)||1);
-    const cat=document.getElementById('item-cat-select').value;
-    const list=getActiveList();
-    const dupe=list.items.find(i=>i.name.toLowerCase()===name.toLowerCase()&&i.category===cat&&!i.checked);
-    if (dupe) { dupe.qty+=qty; showToast(`Updated quantity: ${dupe.name} x${dupe.qty}`); }
-    else { list.items.push({id:uid(),name,qty,category:cat,note:'',checked:false}); showToast(`Added: ${name}`); }
-    saveState(list);
-    document.getElementById('item-name-input').value='';
-    document.getElementById('item-qty-input').value='1';
-    render();
+    const name = document.getElementById('item-name-input').value.trim();
+    if (!name || !state.activeListId) return;
+    const qty = document.getElementById('item-qty-input').value;
+    const category = document.getElementById('item-cat-select').value;
+    document.getElementById('item-name-input').value = '';
+    document.getElementById('item-qty-input').value = '1';
+    await addItem(state.activeListId, { name, qty, category });
     document.getElementById('item-name-input').focus();
   });
 
-  document.getElementById('search-input').addEventListener('input', e => { state.search=e.target.value.trim(); renderItems(); });
-
+  // ── FILTER + SEARCH ───────────────────────────────────────────────────────
   document.getElementById('filter-chips').addEventListener('click', e => {
-    const chip=e.target.closest('.chip');
+    const chip = e.target.closest('.chip');
     if (!chip) return;
-    state.filter=chip.dataset.filter;
-    document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c===chip));
+    state.filter = chip.dataset.filter;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
+    renderItems();
+  });
+  document.getElementById('search-input').addEventListener('input', e => {
+    state.search = e.target.value.trim();
     renderItems();
   });
 
-  document.getElementById('uncheck-all-btn').addEventListener('click', () => {
-    const list=getActiveList(); list.items.forEach(i=>i.checked=false); saveState(list); render(); showToast('All items unchecked');
+  // ── BULK ACTIONS ──────────────────────────────────────────────────────────
+  document.getElementById('uncheck-all-btn').addEventListener('click', async () => {
+    const list = getActiveList();
+    if (!list) return;
+    await Promise.all((list.items||[]).filter(i=>i.checked).map(i => toggleItem(state.activeListId, i.id, false)));
+    showToast('All items unchecked');
   });
-  document.getElementById('clear-done-btn').addEventListener('click', () => {
-    const list=getActiveList(), n=list.items.filter(i=>i.checked).length;
-    list.items=list.items.filter(i=>!i.checked); saveState(list); render(); showToast(`Removed ${n} checked item${n!==1?'s':''}`);
+  document.getElementById('clear-done-btn').addEventListener('click', async () => {
+    const list = getActiveList();
+    if (!list) return;
+    await Promise.all((list.items||[]).filter(i=>i.checked).map(i => deleteItem(state.activeListId, i.id)));
+    showToast('Checked items removed');
   });
 
-  document.getElementById('visibility-toggle').addEventListener('click', () => {
-    const list=getActiveList(); list.isPublic=!list.isPublic; saveState(list); renderVisibility(); renderTabs();
-    showToast(list.isPublic?'List is now public':'List is now private');
+  // ── VISIBILITY TOGGLE ─────────────────────────────────────────────────────
+  document.getElementById('visibility-toggle').addEventListener('click', async () => {
+    const list = getActiveList();
+    if (!list) return;
+    const newVal = !list.isPublic;
+    await setListVisibility(state.activeListId, newVal);
+    showToast(newVal ? 'List is now public' : 'List is now private');
   });
 
+  // ── SHARE MODAL ───────────────────────────────────────────────────────────
   document.getElementById('share-btn').addEventListener('click', () => {
-    const list=getActiveList();
-    document.getElementById('share-modal-list-name').textContent=list.name;
-    document.getElementById('share-link-url').textContent=getShareUrl(list);
-    openModal('share-list-modal');
+    const list = getActiveList();
+    if (!list) return;
+    document.getElementById('share-modal-list-name').textContent = list.name;
+    document.getElementById('share-link-url').textContent = getShareUrl(list);
+    document.getElementById('share-list-modal').classList.add('open');
   });
-  document.getElementById('close-share-modal').addEventListener('click',()=>closeModal('share-list-modal'));
-  document.getElementById('close-share-modal-ok').addEventListener('click',()=>closeModal('share-list-modal'));
-  document.getElementById('copy-link-btn').addEventListener('click',()=>{
-    const url=document.getElementById('share-link-url').textContent;
-    if (navigator.clipboard) navigator.clipboard.writeText(url).then(()=>showToast('Link copied!'));
-    else { const ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Link copied!'); }
+  document.getElementById('close-share-modal').addEventListener('click', () => document.getElementById('share-list-modal').classList.remove('open'));
+  document.getElementById('close-share-modal-ok').addEventListener('click', () => document.getElementById('share-list-modal').classList.remove('open'));
+  document.getElementById('copy-link-btn').addEventListener('click', async () => {
+    const url = document.getElementById('share-link-url').textContent;
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Link copied!');
+    } catch { showToast('Copy failed — please copy manually'); }
   });
-  document.getElementById('make-private-btn').addEventListener('click',()=>{
-    const list=getActiveList(); list.isPublic=false; saveState(list);
-    closeModal('share-list-modal'); renderVisibility(); renderTabs(); showToast('List is now private');
-  });
-
-  // New list
-  document.getElementById('new-list-btn').addEventListener('click',()=>openModal('new-list-modal'));
-  document.getElementById('close-new-list-modal').addEventListener('click',()=>closeModal('new-list-modal'));
-  document.getElementById('cancel-new-list').addEventListener('click',()=>closeModal('new-list-modal'));
-  document.getElementById('confirm-new-list').addEventListener('click',()=>{
-    const name=document.getElementById('new-list-name').value.trim()||'New List';
-    const list={id:uid(),name,items:[],isPublic:false};
-    state.lists.push(list); state.activeListId=list.id;
-    saveNewList(list); closeModal('new-list-modal');
-    document.getElementById('new-list-name').value='';
-    render(); showToast(`Created: ${name}`);
+  document.getElementById('make-private-btn').addEventListener('click', async () => {
+    await setListVisibility(state.activeListId, false);
+    document.getElementById('share-list-modal').classList.remove('open');
+    showToast('List is now private');
   });
 
-  // Rename
-  document.getElementById('rename-list-btn').addEventListener('click',()=>{ document.getElementById('rename-list-input').value=getActiveList().name; openModal('rename-list-modal'); });
-  document.getElementById('close-rename-modal').addEventListener('click',()=>closeModal('rename-list-modal'));
-  document.getElementById('cancel-rename').addEventListener('click',()=>closeModal('rename-list-modal'));
-  document.getElementById('confirm-rename').addEventListener('click',()=>{
-    const name=document.getElementById('rename-list-input').value.trim();
-    if (name) { getActiveList().name=name; saveState(); }
-    closeModal('rename-list-modal'); render();
-  });
-
-  // Delete list
-  document.getElementById('delete-list-btn').addEventListener('click',()=>{
-    if (state.lists.length===1) { showToast('You must have at least one list'); return; }
-    const listId=state.activeListId, name=getActiveList().name;
-    state.lists=state.lists.filter(l=>l.id!==listId);
-    state.activeListId=state.lists[0].id;
-    deleteList(listId); render(); showToast(`Deleted: ${name}`);
-  });
-
-  // Edit item
-  let editingItemId=null;
-  function openEditModal(item) {
-    editingItemId=item.id;
-    document.getElementById('edit-item-name').value=item.name;
-    document.getElementById('edit-item-qty').value=item.qty;
-    document.getElementById('edit-item-cat').value=item.category;
-    document.getElementById('edit-item-note').value=item.note||'';
-    openModal('edit-item-modal');
+  // ── EDIT ITEM MODAL ───────────────────────────────────────────────────────
+  let editingItemId = null;
+  function openEditModal(itemId) {
+    const list = getActiveList();
+    const item = (list?.items||[]).find(i => i.id === itemId);
+    if (!item) return;
+    editingItemId = itemId;
+    document.getElementById('edit-item-name').value = item.name;
+    document.getElementById('edit-item-qty').value  = item.qty || 1;
+    document.getElementById('edit-item-cat').value  = item.category || 'General';
+    document.getElementById('edit-item-note').value = item.note || '';
+    document.getElementById('edit-item-modal').classList.add('open');
+    setTimeout(() => document.getElementById('edit-item-name').focus(), 80);
   }
-  document.getElementById('close-edit-modal').addEventListener('click',()=>closeModal('edit-item-modal'));
-  document.getElementById('cancel-edit').addEventListener('click',()=>closeModal('edit-item-modal'));
-  document.getElementById('confirm-edit').addEventListener('click',()=>{
-    const list=getActiveList(), item=list&&list.items.find(i=>i.id===editingItemId);
-    if (item) {
-      item.name=document.getElementById('edit-item-name').value.trim()||item.name;
-      item.qty=Math.max(1,parseInt(document.getElementById('edit-item-qty').value,10)||1);
-      item.category=document.getElementById('edit-item-cat').value;
-      item.note=document.getElementById('edit-item-note').value.trim();
-      saveState(list); render();
-    }
-    closeModal('edit-item-modal'); showToast('Item updated');
+  document.getElementById('close-edit-modal').addEventListener('click', () => { document.getElementById('edit-item-modal').classList.remove('open'); editingItemId = null; });
+  document.getElementById('cancel-edit').addEventListener('click', () => { document.getElementById('edit-item-modal').classList.remove('open'); editingItemId = null; });
+  document.getElementById('confirm-edit').addEventListener('click', async () => {
+    if (!editingItemId) return;
+    const name     = document.getElementById('edit-item-name').value.trim();
+    const qty      = parseInt(document.getElementById('edit-item-qty').value) || 1;
+    const category = document.getElementById('edit-item-cat').value;
+    const note     = document.getElementById('edit-item-note').value.trim();
+    if (!name) return;
+    document.getElementById('edit-item-modal').classList.remove('open');
+    await updateItem(state.activeListId, editingItemId, { name, qty, category, note });
+    editingItemId = null;
+    showToast('Item updated');
   });
 
-  // Modal helpers
-  function openModal(id) {
-    const m=document.getElementById(id); m.classList.add('open');
-    const first=m.querySelector('input,button:not(.icon-btn)');
-    if (first) setTimeout(()=>first.focus(),50);
-  }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-backdrop').forEach(b => {
-    b.addEventListener('click',e=>{ if(e.target===b) closeModal(b.id); });
-  });
-  document.addEventListener('keydown',e=>{
-    if(e.key==='Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m=>closeModal(m.id));
-  });
-  ['new-list-name','rename-list-input'].forEach(id=>{
-    document.getElementById(id).addEventListener('keydown',e=>{
-      if(e.key==='Enter') { if(id==='new-list-name') document.getElementById('confirm-new-list').click(); else document.getElementById('confirm-rename').click(); }
+  // Close modals on backdrop click
+  ['edit-item-modal','share-list-modal','rename-list-modal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
     });
   });
 
+  // ── CONFETTI ──────────────────────────────────────────────────────────────
+  function triggerConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = innerWidth; canvas.height = innerHeight;
+    const pieces = Array.from({length:80}, () => ({
+      x: Math.random()*innerWidth, y: Math.random()*innerHeight - innerHeight,
+      r: Math.random()*6+3, d: Math.random()*80+40,
+      color: ['#01696f','#437a22','#4f98a3','#6daa45','#cedcd8'][Math.floor(Math.random()*5)],
+      tilt: Math.random()*10-10, tiltAngle: 0, tiltSpeed: Math.random()*0.1+0.05,
+      speed: Math.random()*2+1.5
+    }));
+    let frames = 0;
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      pieces.forEach(p => {
+        p.tiltAngle += p.tiltSpeed; p.y += p.speed;
+        p.tilt = Math.sin(p.tiltAngle) * 12;
+        ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r/2, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r/2);
+        ctx.stroke();
+        if (p.y > innerHeight) { p.y = -20; p.x = Math.random()*innerWidth; }
+      });
+      frames++;
+      if (frames < 120) requestAnimationFrame(draw); else ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+    draw();
+  }
+
+  // ── INIT: auto-create a list if none exist ────────────────────────────────
+  // (handled reactively via onSnapshot — no items = new list prompt shown)
   </script>
 </body>
 </html>
