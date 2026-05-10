@@ -974,14 +974,14 @@
   } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
   // ── FIREBASE CONFIG ──────────────────────────────────────────────────────
-  // Replace these values with your own Firebase project config.
   const firebaseConfig = {
-    apiKey:            "REPLACE_WITH_YOUR_API_KEY",
-    authDomain:        "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-    projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
-    storageBucket:     "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-    messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-    appId:             "REPLACE_WITH_YOUR_APP_ID"
+    apiKey:            "AIzaSyBpUygy_Y-4tDLeYJwPFI338kA4yG3n8uE",
+    authDomain:        "shoppinglist-bf78d.firebaseapp.com",
+    projectId:         "shoppinglist-bf78d",
+    storageBucket:     "shoppinglist-bf78d.firebasestorage.app",
+    messagingSenderId: "9753469863",
+    appId:             "1:9753469863:web:8e9871309634749b6b0c82",
+    measurementId:     "G-Q9D8TDYE7N"
   };
 
   const app  = initializeApp(firebaseConfig);
@@ -1053,7 +1053,7 @@
     document.getElementById('app-shell').classList.add('visible');
   }
 
-  // Auth mode toggle (sign in ↔ sign up)
+  // Auth mode toggle (sign in <-> sign up)
   document.getElementById('auth-mode-toggle').addEventListener('click', () => {
     authMode = authMode === 'signin' ? 'signup' : 'signin';
     const isSU = authMode === 'signup';
@@ -1168,7 +1168,7 @@
       currentUser = user;
       updateUserUI(user);
       showAppShell();
-      setSyncStatus('syncing', 'Connecting…');
+      setSyncStatus('syncing', 'Connecting...');
       subscribeToLists();
     } else {
       currentUser = null;
@@ -1228,7 +1228,7 @@
 
   async function updateList(list) {
     if (!currentUser) return;
-    setSyncStatus('syncing', 'Saving…');
+    setSyncStatus('syncing', 'Saving...');
     try {
       await updateDoc(doc(userListsRef(), list.id), {
         name: list.name, isPublic: list.isPublic, items: list.items,
@@ -1364,7 +1364,7 @@
           ${item.note?`<span class="item-note">${escHtml(item.note)}</span>`:''}
         </div>
       </div>
-      <span class="item-qty" aria-label="Quantity: ${item.qty}">×${item.qty}</span>
+      <span class="item-qty" aria-label="Quantity: ${item.qty}">x${item.qty}</span>
       <div class="item-actions">
         <button class="item-action-btn" data-action="edit" data-id="${item.id}" aria-label="Edit ${escHtml(item.name)}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1419,7 +1419,7 @@
     if (!item) return;
     if (action==='toggle') {
       item.checked=!item.checked; saveState(list);
-      if (list.items.length>0&&list.items.every(i=>i.checked)) { launchConfetti(); showToast('🎉 All done! Great shopping!'); }
+      if (list.items.length>0&&list.items.every(i=>i.checked)) { launchConfetti(); showToast('All done! Great shopping!'); }
       render();
     }
     if (action==='delete') {
@@ -1438,7 +1438,7 @@
     const cat=document.getElementById('item-cat-select').value;
     const list=getActiveList();
     const dupe=list.items.find(i=>i.name.toLowerCase()===name.toLowerCase()&&i.category===cat&&!i.checked);
-    if (dupe) { dupe.qty+=qty; showToast(`Updated quantity: ${dupe.name} ×${dupe.qty}`); }
+    if (dupe) { dupe.qty+=qty; showToast(`Updated quantity: ${dupe.name} x${dupe.qty}`); }
     else { list.items.push({id:uid(),name,qty,category:cat,note:'',checked:false}); showToast(`Added: ${name}`); }
     saveState(list);
     document.getElementById('item-name-input').value='';
@@ -1467,7 +1467,7 @@
 
   document.getElementById('visibility-toggle').addEventListener('click', () => {
     const list=getActiveList(); list.isPublic=!list.isPublic; saveState(list); renderVisibility(); renderTabs();
-    showToast(list.isPublic?'🌐 List is now public':'🔒 List is now private');
+    showToast(list.isPublic?'List is now public':'List is now private');
   });
 
   document.getElementById('share-btn').addEventListener('click', () => {
@@ -1480,12 +1480,12 @@
   document.getElementById('close-share-modal-ok').addEventListener('click',()=>closeModal('share-list-modal'));
   document.getElementById('copy-link-btn').addEventListener('click',()=>{
     const url=document.getElementById('share-link-url').textContent;
-    if (navigator.clipboard) navigator.clipboard.writeText(url).then(()=>showToast('🔗 Link copied!'));
-    else { const ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('🔗 Link copied!'); }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(()=>showToast('Link copied!'));
+    else { const ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Link copied!'); }
   });
   document.getElementById('make-private-btn').addEventListener('click',()=>{
     const list=getActiveList(); list.isPublic=false; saveState(list);
-    closeModal('share-list-modal'); renderVisibility(); renderTabs(); showToast('🔒 List is now private');
+    closeModal('share-list-modal'); renderVisibility(); renderTabs(); showToast('List is now private');
   });
 
   // New list
