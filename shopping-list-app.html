@@ -1060,7 +1060,7 @@ document.getElementById('new-template-btn').addEventListener('click', () => open
       } else if (type === 'template') {
         await deleteDoc(doc(templatesCol(), id));
         showToast('Template deleted', 'success');
-        else if (type === 'store') {
+      } else if (type === 'store') {
         await deleteDoc(doc(storesCol(), id));
         showToast('Store deleted', 'success');
       }
