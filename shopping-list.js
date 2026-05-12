@@ -637,15 +637,18 @@ window.showToast = showToast;
 async function loadBuildMeta() {
   const el = document.getElementById('build-meta');
   if (!el) return;
+  const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
   try {
     const res = await fetch('./version.json', { cache: 'no-store' });
     if (!res.ok) throw new Error();
     const v = await res.json();
-    const label = v.buildNumber ? `#${v.buildNumber}` : (v.sha ? v.sha.slice(0, 7) : 'source');
-    const url   = v.commitUrl || v.repo || 'https://github.com/dennismzanetti/shopping-list-app';
-    el.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    const shortSha = (v.sha || '').slice(0, 7);
+    const url      = v.commitUrl || repoUrl;
+    el.innerHTML   = shortSha
+      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${shortSha}</a>`
+      : `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
   } catch {
-    el.innerHTML = `<a href="https://github.com/dennismzanetti/shopping-list-app" target="_blank" rel="noopener noreferrer">source</a>`;
+    el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
   }
 }
 
