@@ -37,6 +37,20 @@ let editingTemplateId = null;
 let tplEditorItems = [];
 let pendingDelete = null;
 
+// Track pending list to open after lists first load (for hash-based restore)
+let pendingListId = null;
+
+// ── Hash-based list restore ────────────────────────────────────────────────
+function getHashListId() {
+  const hash = window.location.hash; // e.g. #list/abc123
+  const m = hash.match(/^#list\/(.+)$/);
+  return m ? m[1] : null;
+}
+
+function setHashListId(listId) {
+  history.replaceState(null, '', listId ? `#list/${listId}` : '#');
+}
+
 // ── Seed Data ──────────────────────────────────────────────────────────────
 const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
@@ -119,6 +133,8 @@ onAuthStateChanged(auth, user => {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     updateUserUI();
+    // Capture hash list id before subscribeToData clears state
+    pendingListId = getHashListId();
     subscribeToData();
     lucide.createIcons();
   } else {
@@ -206,7 +222,10 @@ function teardownSubscriptions() {
   allLists = []; allItems = []; allCategories = []; allStores = []; allTemplates = [];
 }
 
+let listsFirstLoad = true;
+
 function subscribeToData() {
+  listsFirstLoad = true;
   seedDefaultsIfNeeded();
   seedTemplatesIfNeeded();
   subscribeToTemplates();
@@ -227,6 +246,16 @@ function subscribeToData() {
     allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderLists();
     document.getElementById('badge-lists').textContent = allLists.length;
+
+    // On first load, restore the list the user was viewing before refresh
+    if (listsFirstLoad) {
+      listsFirstLoad = false;
+      const restoreId = pendingListId;
+      pendingListId = null;
+      if (restoreId && allLists.find(l => l.id === restoreId)) {
+        openList(restoreId);
+      }
+    }
   });
 }
 
@@ -510,6 +539,7 @@ document.getElementById('create-list-btn').addEventListener('click', async () =>
 // ── List Detail ────────────────────────────────────────────────────────────
 function openList(listId) {
   currentListId = listId;
+  setHashListId(listId);
   const list = allLists.find(l => l.id === listId);
   if (!list) return;
   document.getElementById('detail-list-name').textContent = list.name;
@@ -528,6 +558,7 @@ function openList(listId) {
 document.getElementById('back-to-lists').addEventListener('click', () => {
   if (unsubItems) { unsubItems(); unsubItems = null; }
   currentListId = null;
+  setHashListId(null);
   navigateTo('lists');
   document.getElementById('header-title').textContent = 'My Lists';
 });
@@ -632,7 +663,11 @@ document.getElementById('add-item-quick-btn').addEventListener('click', addItemQ
 async function addItemQuick() {
   const input = document.getElementById('new-item-name');
   const name = input.value.trim();
-  if (!name || !currentListId) return;
+  if (!name) return;
+  if (!currentListId) {
+    showToast('No list selected — please open a list first', 'error');
+    return;
+  }
   try {
     await addDoc(itemsCol(currentListId), {
       name, checked: false, qty: '', unit: '', stores: [], tags: [], notes: '', createdAt: serverTimestamp()
@@ -643,6 +678,10 @@ async function addItemQuick() {
 }
 
 document.getElementById('add-item-detail-btn').addEventListener('click', () => {
+  if (!currentListId) {
+    showToast('No list selected — please open a list first', 'error');
+    return;
+  }
   document.getElementById('item-name-full').value = document.getElementById('new-item-name').value;
   populateItemStoreCheckboxes();
   document.getElementById('item-tags').value = '';
@@ -654,6 +693,7 @@ document.getElementById('add-item-detail-btn').addEventListener('click', () => {
 document.getElementById('save-item-btn').addEventListener('click', async () => {
   const name = document.getElementById('item-name-full').value.trim();
   if (!name) { showToast('Item name is required', 'error'); return; }
+  if (!currentListId) { showToast('No list selected', 'error'); return; }
   const stores = getSelectedStores();
   const tagsRaw = document.getElementById('item-tags').value;
   const tags = tagsRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -790,6 +830,7 @@ document.getElementById('confirm-ok-btn').addEventListener('click', async () => 
       if (currentListId === id) {
         if (unsubItems) { unsubItems(); unsubItems = null; }
         currentListId = null;
+        setHashListId(null);
         navigateTo('lists');
         document.getElementById('header-title').textContent = 'My Lists';
       }
