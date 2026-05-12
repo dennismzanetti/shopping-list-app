@@ -38,8 +38,8 @@ let allCategories = [];
 let allStores = [];
 let allTemplates = [];
 let editingTemplateId = null;
+let editingItemId = null;  // null = adding new, string = editing existing
 let tplEditorItems = [];
-// Index of the tplEditorItems entry being edited in the tpl-item modal; -1 = new
 let tplItemEditingIdx = -1;
 let pendingDelete = null;
 let pendingListId = null;
@@ -330,13 +330,11 @@ function openTemplateEditor(tplId) {
   document.getElementById('tpl-name').value  = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value  = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display = tpl ? 'inline-flex' : 'none';
-  // Normalise items — always ensure all fields present
   tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems();
   openModal('modal-template-editor');
 }
 
-/** Ensure every item has all the same fields as a shopping-list item */
 function normaliseItem(it) {
   if (typeof it === 'string') return { name: it, qty: '', unit: '', stores: [], tags: [], notes: '' };
   return {
@@ -380,7 +378,6 @@ function renderTplEditorItems() {
   container.querySelectorAll('[data-tpl-item-remove]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderTplEditorItems(); })
   );
-  // Click row to edit
   container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
     row.addEventListener('click', e => { if (e.target.closest('button')) return; openTplItemModal(parseInt(row.dataset.tplItemIdx)); })
   );
@@ -404,7 +401,7 @@ function getTplItemSelectedStores() {
 }
 
 function openTplItemModal(idx) {
-  tplItemEditingIdx = idx;  // -1 means new
+  tplItemEditingIdx = idx;
   const it = idx >= 0 ? tplEditorItems[idx] : null;
   document.getElementById('tpl-item-modal-title').textContent = it ? 'Edit Item' : 'Add Item';
   document.getElementById('tpl-item-name').value  = it ? it.name  : '';
@@ -512,7 +509,10 @@ function renderItems() {
     const meta = [qty,storeChips,tagChips,notes].filter(Boolean).join('');
     return `<div class="item-row${item.checked?' checked':''}" data-item-id="${item.id}">
       <div class="item-checkbox${item.checked?' checked':''}" data-toggle="${item.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="item-info"><div class="item-name">${escHtml(item.name)}</div>${meta?`<div class="item-meta">${meta}</div>`:''}</div>
+      <div class="item-info item-info-clickable" data-edit-item="${item.id}" style="cursor:pointer;" title="Edit item">
+        <div class="item-name">${escHtml(item.name)}</div>
+        ${meta?`<div class="item-meta">${meta}</div>`:''}
+      </div>
       <button class="icon-btn item-delete" data-delete-item="${item.id}" aria-label="Delete item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
   }).join('');
@@ -521,6 +521,7 @@ function renderItems() {
   if (checked.length > 0) html += `<div class="items-section-label">Checked (${checked.length})</div>` + renderGroup(checked);
   list_.innerHTML = html;
   list_.querySelectorAll('[data-toggle]').forEach(el => el.addEventListener('click', () => toggleItem(el.dataset.toggle)));
+  list_.querySelectorAll('[data-edit-item]').forEach(el => el.addEventListener('click', () => openEditItemModal(el.dataset.editItem)));
   list_.querySelectorAll('[data-delete-item]').forEach(btn => btn.addEventListener('click', () => deleteItem(btn.dataset.deleteItem)));
   createIcons();
 }
@@ -540,14 +541,35 @@ function getSelectedStores() {
   return Array.from(document.getElementById('item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
 }
 
+/** Open modal to add a brand-new item, optionally prefilling the name */
 function openAddItemModal(prefillName = '') {
   if (!currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
+  editingItemId = null;
+  document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
+  document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
   document.getElementById('item-name-full').value = prefillName;
   document.getElementById('item-qty').value = '';
   document.getElementById('item-unit').value = '';
   document.getElementById('item-tags').value = '';
   document.getElementById('item-notes').value = '';
   populateItemStoreCheckboxes();
+  openModal('modal-add-item');
+  setTimeout(() => document.getElementById('item-name-full').focus(), 50);
+}
+
+/** Open modal to edit an existing item, prefilling all its current values */
+function openEditItemModal(itemId) {
+  const item = allItems.find(i => i.id === itemId);
+  if (!item) return;
+  editingItemId = itemId;
+  document.querySelector('#modal-add-item .modal-title').textContent = 'Edit Item';
+  document.getElementById('save-item-btn').innerHTML = '<i data-lucide="save"></i> Save Changes';
+  document.getElementById('item-name-full').value = item.name || '';
+  document.getElementById('item-qty').value        = item.qty  || '';
+  document.getElementById('item-unit').value       = item.unit || '';
+  document.getElementById('item-tags').value       = toArray(item.tags).join(', ');
+  document.getElementById('item-notes').value      = item.notes || '';
+  populateItemStoreCheckboxes(toArray(item.stores));
   openModal('modal-add-item');
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
 }
@@ -699,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Header add button — context-aware
   document.getElementById('header-add-btn').addEventListener('click', () => {
     const view = document.querySelector('.view.active')?.id?.replace('view-', '');
-    if (view === 'lists')       openModal('modal-new-list');
+    if (view === 'lists')            openModal('modal-new-list');
     else if (view === 'list-detail') openAddItemModal();
     else if (view === 'categories')  openModal('modal-new-category');
     else if (view === 'stores')      openModal('modal-new-store');
@@ -739,18 +761,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('new-item-name');
     openAddItemModal(input.value.trim()); input.value = '';
   });
+
+  // Save item (add OR edit)
   document.getElementById('save-item-btn').addEventListener('click', async () => {
     const name = document.getElementById('item-name-full').value.trim();
     if (!name) { showToast('Item name is required', 'error'); return; }
     if (!currentListId) { showToast('No list selected', 'error'); return; }
     const tags = document.getElementById('item-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const data = {
+      name,
+      qty:    document.getElementById('item-qty').value.trim(),
+      unit:   document.getElementById('item-unit').value.trim(),
+      stores: getSelectedStores(),
+      tags,
+      notes:  document.getElementById('item-notes').value.trim()
+    };
     try {
-      await addDoc(itemsCol(currentListId), { name, qty:document.getElementById('item-qty').value.trim(), unit:document.getElementById('item-unit').value.trim(), stores:getSelectedStores(), tags, notes:document.getElementById('item-notes').value.trim(), checked:false, createdAt:serverTimestamp() });
+      if (editingItemId) {
+        await updateDoc(doc(itemsCol(currentListId), editingItemId), data);
+        showToast('Item updated!', 'success');
+      } else {
+        await addDoc(itemsCol(currentListId), { ...data, checked: false, createdAt: serverTimestamp() });
+      }
       closeModal('modal-add-item');
+      editingItemId = null;
       ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   });
   document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
+
+  // Also reset editingItemId when modal is closed via Cancel or X
+  document.getElementById('modal-add-item').addEventListener('click', e => {
+    if (e.target.closest('[onclick*="closeModal"]') || e.target === document.getElementById('modal-add-item')) {
+      editingItemId = null;
+    }
+  });
 
   // Template editor
   document.getElementById('new-template-btn').addEventListener('click', () => openTemplateEditor(null));
@@ -854,7 +899,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Click-outside-to-close on all modals
   document.querySelectorAll('.modal-overlay').forEach(overlay =>
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); })
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); editingItemId = null; } })
   );
 
   loadBuildMeta();
