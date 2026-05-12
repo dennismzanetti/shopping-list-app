@@ -128,15 +128,14 @@
           <span class="progress-label" id="progress-label">0 of 0</span>
         </div>
         <div class="add-item-bar">
-          <input type="text" class="form-input" id="new-item-name" placeholder="Add an item…">
+          <input type="text" class="form-input" id="new-item-name" placeholder="Add an item… (Enter or click Add to fill in details)">
           <button class="btn btn-primary" id="add-item-quick-btn"><i data-lucide="plus"></i> Add</button>
-          <button class="icon-btn" id="add-item-detail-btn" title="More options"><i data-lucide="sliders-horizontal"></i></button>
         </div>
         <div id="items-container">
           <div class="empty-state" id="items-empty">
             <div class="empty-state-icon"><i data-lucide="package-open"></i></div>
             <h3>List is empty</h3>
-            <p>Type an item above and press Add to get started.</p>
+            <p>Type an item above and press Add to fill in all details.</p>
           </div>
           <div class="items-list" id="items-list"></div>
         </div>
@@ -252,7 +251,7 @@
   </div>
 </div>
 
-<!-- Modal: Add Item (detailed) -->
+<!-- Modal: Add Item -->
 <div class="modal-overlay" id="modal-add-item">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">Add Item</span><button class="icon-btn" onclick="closeModal('modal-add-item')" aria-label="Close"><i data-lucide="x"></i></button></div>

@@ -429,6 +429,7 @@ document.getElementById('new-list-btn').addEventListener('click', () => openModa
 document.getElementById('header-add-btn').addEventListener('click', () => {
   const view = document.querySelector('.view.active')?.id?.replace('view-', '');
   if (view === 'lists') openModal('modal-new-list');
+  else if (view === 'list-detail') openAddItemModal();
   else if (view === 'categories') openModal('modal-new-category');
   else if (view === 'stores') openModal('modal-new-store');
   else if (view === 'templates') openTemplateEditor(null);
@@ -521,30 +522,31 @@ function getSelectedStores() {
   return Array.from(document.getElementById('item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
 }
 
-// ── Add Item ──────────────────────────────────────────────────────────────────
-document.getElementById('new-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') addItemQuick(); });
-document.getElementById('add-item-quick-btn').addEventListener('click', addItemQuick);
-
-async function addItemQuick() {
-  const input = document.getElementById('new-item-name');
-  const name = input.value.trim();
-  if (!name) return;
+// ── Open Add Item Modal ────────────────────────────────────────────────────
+function openAddItemModal(prefillName = '') {
   if (!currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
-  try {
-    await addDoc(itemsCol(currentListId), { name, checked:false, qty:'', unit:'', stores:[], tags:[], notes:'', createdAt:serverTimestamp() });
-    input.value = '';
-    input.focus();
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-}
-
-document.getElementById('add-item-detail-btn').addEventListener('click', () => {
-  if (!currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
-  document.getElementById('item-name-full').value = document.getElementById('new-item-name').value;
-  populateItemStoreCheckboxes();
+  document.getElementById('item-name-full').value = prefillName;
+  document.getElementById('item-qty').value = '';
+  document.getElementById('item-unit').value = '';
   document.getElementById('item-tags').value = '';
   document.getElementById('item-notes').value = '';
+  populateItemStoreCheckboxes();
   openModal('modal-add-item');
   document.getElementById('item-name-full').focus();
+}
+
+// ── Add Item bar — both Add button and Enter key open the modal ────────────
+document.getElementById('new-item-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const val = e.target.value.trim();
+    openAddItemModal(val);
+    e.target.value = '';
+  }
+});
+document.getElementById('add-item-quick-btn').addEventListener('click', () => {
+  const input = document.getElementById('new-item-name');
+  openAddItemModal(input.value.trim());
+  input.value = '';
 });
 
 document.getElementById('save-item-btn').addEventListener('click', async () => {
@@ -673,7 +675,7 @@ function navigateTo(view) {
   if (target) target.classList.add('active');
   document.querySelectorAll(`[data-view="${view}"]`).forEach(n => n.classList.add('active'));
   if (viewTitles[view]) document.getElementById('header-title').textContent = viewTitles[view];
-  document.getElementById('header-add-btn').style.display = ['lists','categories','stores','templates'].includes(view) ? 'flex' : 'none';
+  document.getElementById('header-add-btn').style.display = ['lists','list-detail','categories','stores','templates'].includes(view) ? 'flex' : 'none';
   closeSidebar();
   createIcons();
 }
@@ -695,6 +697,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventL
 document.getElementById('new-list-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('create-list-btn').click(); });
 document.getElementById('new-category-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-category-btn').click(); });
 document.getElementById('new-store-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-store-btn').click(); });
+document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 function showToast(msg, type = 'info') {
