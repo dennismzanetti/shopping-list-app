@@ -39,6 +39,8 @@ let allStores = [];
 let allTemplates = [];
 let editingTemplateId = null;
 let tplEditorItems = [];
+// Index of the tplEditorItems entry being edited in the tpl-item modal; -1 = new
+let tplItemEditingIdx = -1;
 let pendingDelete = null;
 let pendingListId = null;
 let currentTheme = 'light';
@@ -55,21 +57,92 @@ function setHashListId(listId) {
 // ── Seed Data ──────────────────────────────────────────────────────────────
 const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
-    items:[{name:'Milk',qty:'1 gal',stores:[],tags:[]},{name:'Eggs',qty:'1 doz',stores:[],tags:[]},{name:'Bread',qty:'1 loaf',stores:[],tags:[]},{name:'Butter',qty:'',stores:[],tags:[]},{name:'Cheese',qty:'',stores:[],tags:[]},{name:'Chicken breast',qty:'2 lbs',stores:[],tags:[]},{name:'Pasta',qty:'1 box',stores:[],tags:[]},{name:'Rice',qty:'',stores:[],tags:[]},{name:'Olive oil',qty:'',stores:[],tags:[]},{name:'Bananas',qty:'',stores:[],tags:[]},{name:'Spinach',qty:'',stores:[],tags:[]}] },
+    items:[
+      {name:'Milk',qty:'1',unit:'gal',stores:[],tags:[],notes:''},
+      {name:'Eggs',qty:'1',unit:'doz',stores:[],tags:[],notes:''},
+      {name:'Bread',qty:'1',unit:'loaf',stores:[],tags:[],notes:''},
+      {name:'Butter',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Cheese',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Chicken breast',qty:'2',unit:'lbs',stores:[],tags:[],notes:''},
+      {name:'Pasta',qty:'1',unit:'box',stores:[],tags:[],notes:''},
+      {name:'Rice',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Olive oil',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Bananas',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Spinach',qty:'',unit:'',stores:[],tags:[],notes:''}
+    ] },
   { emoji:'🥩', name:'BBQ & Grilling', desc:'Everything you need for a backyard cookout',
-    items:[{name:'Burgers',qty:'2 lbs',stores:[],tags:[]},{name:'Hot dogs',qty:'1 pkg',stores:[],tags:[]},{name:'Chicken wings',qty:'3 lbs',stores:[],tags:[]},{name:'Buns',qty:'1 pkg',stores:[],tags:[]},{name:'Ketchup',qty:'',stores:[],tags:[]},{name:'Mustard',qty:'',stores:[],tags:[]},{name:'BBQ sauce',qty:'',stores:[],tags:[]},{name:'Corn on the cob',qty:'6',stores:[],tags:[]}] },
+    items:[
+      {name:'Burgers',qty:'2',unit:'lbs',stores:[],tags:[],notes:''},
+      {name:'Hot dogs',qty:'1',unit:'pkg',stores:[],tags:[],notes:''},
+      {name:'Chicken wings',qty:'3',unit:'lbs',stores:[],tags:[],notes:''},
+      {name:'Buns',qty:'1',unit:'pkg',stores:[],tags:[],notes:''},
+      {name:'Ketchup',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Mustard',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'BBQ sauce',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Corn on the cob',qty:'6',unit:'',stores:[],tags:[],notes:''}
+    ] },
   { emoji:'🎉', name:'Party Supplies', desc:'Stock up for a gathering or celebration',
-    items:[{name:'Chips & dip',qty:'',stores:[],tags:['snacks']},{name:'Soda',qty:'2 cases',stores:[],tags:['beverages']},{name:'Ice',qty:'2 bags',stores:[],tags:[]},{name:'Plates',qty:'50',stores:[],tags:['supplies']},{name:'Cups',qty:'50',stores:[],tags:['supplies']},{name:'Napkins',qty:'1 pkg',stores:[],tags:['supplies']}] },
+    items:[
+      {name:'Chips & dip',qty:'',unit:'',stores:[],tags:['snacks'],notes:''},
+      {name:'Soda',qty:'2',unit:'cases',stores:[],tags:['beverages'],notes:''},
+      {name:'Ice',qty:'2',unit:'bags',stores:[],tags:[],notes:''},
+      {name:'Plates',qty:'50',unit:'',stores:[],tags:['supplies'],notes:''},
+      {name:'Cups',qty:'50',unit:'',stores:[],tags:['supplies'],notes:''},
+      {name:'Napkins',qty:'1',unit:'pkg',stores:[],tags:['supplies'],notes:''}
+    ] },
   { emoji:'🏠', name:'Household Basics', desc:'Cleaning and home essentials',
-    items:[{name:'Paper towels',qty:'6 rolls',stores:[],tags:['cleaning']},{name:'Toilet paper',qty:'12 rolls',stores:[],tags:[]},{name:'Dish soap',qty:'1 bottle',stores:[],tags:['cleaning']},{name:'Laundry detergent',qty:'',stores:[],tags:['cleaning']},{name:'Trash bags',qty:'1 box',stores:[],tags:[]},{name:'Sponges',qty:'',stores:[],tags:['cleaning']}] },
+    items:[
+      {name:'Paper towels',qty:'6',unit:'rolls',stores:[],tags:['cleaning'],notes:''},
+      {name:'Toilet paper',qty:'12',unit:'rolls',stores:[],tags:[],notes:''},
+      {name:'Dish soap',qty:'1',unit:'bottle',stores:[],tags:['cleaning'],notes:''},
+      {name:'Laundry detergent',qty:'',unit:'',stores:[],tags:['cleaning'],notes:''},
+      {name:'Trash bags',qty:'1',unit:'box',stores:[],tags:[],notes:''},
+      {name:'Sponges',qty:'',unit:'',stores:[],tags:['cleaning'],notes:''}
+    ] },
   { emoji:'🥗', name:'Healthy Eating', desc:'Fresh produce and wholesome staples',
-    items:[{name:'Kale',qty:'1 bunch',stores:[],tags:['produce','organic']},{name:'Spinach',qty:'1 bag',stores:[],tags:['produce']},{name:'Broccoli',qty:'1 head',stores:[],tags:['produce']},{name:'Avocados',qty:'4',stores:[],tags:['produce']},{name:'Blueberries',qty:'1 pint',stores:[],tags:['produce']},{name:'Greek yogurt',qty:'',stores:[],tags:['dairy']},{name:'Quinoa',qty:'1 bag',stores:[],tags:[]},{name:'Salmon',qty:'1 lb',stores:[],tags:['seafood']},{name:'Almonds',qty:'1 bag',stores:[],tags:['snacks']}] },
+    items:[
+      {name:'Kale',qty:'1',unit:'bunch',stores:[],tags:['produce','organic'],notes:''},
+      {name:'Spinach',qty:'1',unit:'bag',stores:[],tags:['produce'],notes:''},
+      {name:'Broccoli',qty:'1',unit:'head',stores:[],tags:['produce'],notes:''},
+      {name:'Avocados',qty:'4',unit:'',stores:[],tags:['produce'],notes:''},
+      {name:'Blueberries',qty:'1',unit:'pint',stores:[],tags:['produce'],notes:''},
+      {name:'Greek yogurt',qty:'',unit:'',stores:[],tags:['dairy'],notes:''},
+      {name:'Quinoa',qty:'1',unit:'bag',stores:[],tags:[],notes:''},
+      {name:'Salmon',qty:'1',unit:'lb',stores:[],tags:['seafood'],notes:''},
+      {name:'Almonds',qty:'1',unit:'bag',stores:[],tags:['snacks'],notes:''}
+    ] },
   { emoji:'🍝', name:'Pasta Night', desc:'Ingredients for a classic Italian dinner',
-    items:[{name:'Spaghetti',qty:'1 box',stores:[],tags:[]},{name:'Marinara sauce',qty:'1 jar',stores:[],tags:[]},{name:'Ground beef',qty:'1 lb',stores:[],tags:[]},{name:'Parmesan cheese',qty:'',stores:[],tags:['dairy']},{name:'Garlic',qty:'1 head',stores:[],tags:['produce']},{name:'Olive oil',qty:'',stores:[],tags:[]},{name:'Fresh basil',qty:'1 bunch',stores:[],tags:['produce']}] },
+    items:[
+      {name:'Spaghetti',qty:'1',unit:'box',stores:[],tags:[],notes:''},
+      {name:'Marinara sauce',qty:'1',unit:'jar',stores:[],tags:[],notes:''},
+      {name:'Ground beef',qty:'1',unit:'lb',stores:[],tags:[],notes:''},
+      {name:'Parmesan cheese',qty:'',unit:'',stores:[],tags:['dairy'],notes:''},
+      {name:'Garlic',qty:'1',unit:'head',stores:[],tags:['produce'],notes:''},
+      {name:'Olive oil',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Fresh basil',qty:'1',unit:'bunch',stores:[],tags:['produce'],notes:''}
+    ] },
   { emoji:'🥞', name:'Breakfast Week', desc:'Morning staples to start every day right',
-    items:[{name:'Eggs',qty:'2 doz',stores:[],tags:[]},{name:'Bacon',qty:'1 pkg',stores:[],tags:[]},{name:'Bread',qty:'1 loaf',stores:[],tags:[]},{name:'Butter',qty:'',stores:[],tags:[]},{name:'Milk',qty:'1 gal',stores:[],tags:['dairy']},{name:'Orange juice',qty:'1 jug',stores:[],tags:['beverages']},{name:'Coffee',qty:'1 bag',stores:[],tags:['beverages']},{name:'Oats',qty:'1 box',stores:[],tags:[]},{name:'Maple syrup',qty:'',stores:[],tags:[]}] },
+    items:[
+      {name:'Eggs',qty:'2',unit:'doz',stores:[],tags:[],notes:''},
+      {name:'Bacon',qty:'1',unit:'pkg',stores:[],tags:[],notes:''},
+      {name:'Bread',qty:'1',unit:'loaf',stores:[],tags:[],notes:''},
+      {name:'Butter',qty:'',unit:'',stores:[],tags:[],notes:''},
+      {name:'Milk',qty:'1',unit:'gal',stores:[],tags:['dairy'],notes:''},
+      {name:'Orange juice',qty:'1',unit:'jug',stores:[],tags:['beverages'],notes:''},
+      {name:'Coffee',qty:'1',unit:'bag',stores:[],tags:['beverages'],notes:''},
+      {name:'Oats',qty:'1',unit:'box',stores:[],tags:[],notes:''},
+      {name:'Maple syrup',qty:'',unit:'',stores:[],tags:[],notes:''}
+    ] },
   { emoji:'🎒', name:'Back to School', desc:'Lunches and snacks for busy school days',
-    items:[{name:'Sandwich bread',qty:'1 loaf',stores:[],tags:[]},{name:'Peanut butter',qty:'1 jar',stores:[],tags:[]},{name:'Jelly',qty:'1 jar',stores:[],tags:[]},{name:'Apple',qty:'6',stores:[],tags:['produce']},{name:'Granola bars',qty:'1 box',stores:[],tags:['snacks']},{name:'Juice boxes',qty:'1 box',stores:[],tags:['beverages']},{name:'String cheese',qty:'1 pkg',stores:[],tags:['dairy']}] }
+    items:[
+      {name:'Sandwich bread',qty:'1',unit:'loaf',stores:[],tags:[],notes:''},
+      {name:'Peanut butter',qty:'1',unit:'jar',stores:[],tags:[],notes:''},
+      {name:'Jelly',qty:'1',unit:'jar',stores:[],tags:[],notes:''},
+      {name:'Apple',qty:'6',unit:'',stores:[],tags:['produce'],notes:''},
+      {name:'Granola bars',qty:'1',unit:'box',stores:[],tags:['snacks'],notes:''},
+      {name:'Juice boxes',qty:'1',unit:'box',stores:[],tags:['beverages'],notes:''},
+      {name:'String cheese',qty:'1',unit:'pkg',stores:[],tags:['dairy'],notes:''}
+    ] }
 ];
 
 // ── Utility ────────────────────────────────────────────────────────────────
@@ -167,7 +240,6 @@ function subscribeToData() {
     allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderStores();
     populateStoreSelect();
-    populateTplStoreSelects();
   });
 
   unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
@@ -231,8 +303,16 @@ async function useTemplate(tplId) {
     const batch = writeBatch(db);
     items.forEach(it => {
       const name = typeof it === 'string' ? it : (it.name || '');
-      const qty = typeof it === 'object' ? (it.qty || '') : '';
-      batch.set(doc(itemsCol(listRef.id)), { name, qty, unit:'', stores: toArray(typeof it === 'object' ? it.stores : []), tags: toArray(typeof it === 'object' ? it.tags : []), notes:'', checked:false, createdAt: serverTimestamp() });
+      batch.set(doc(itemsCol(listRef.id)), {
+        name,
+        qty:    typeof it === 'object' ? (it.qty   || '') : '',
+        unit:   typeof it === 'object' ? (it.unit  || '') : '',
+        stores: toArray(typeof it === 'object' ? it.stores : []),
+        tags:   toArray(typeof it === 'object' ? it.tags   : []),
+        notes:  typeof it === 'object' ? (it.notes || '') : '',
+        checked: false,
+        createdAt: serverTimestamp()
+      });
     });
     await batch.commit();
     showToast(`"${tpl.name}" created with ${items.length} items!`, 'success');
@@ -241,60 +321,121 @@ async function useTemplate(tplId) {
   } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
+// ── Template Editor ────────────────────────────────────────────────────────
 function openTemplateEditor(tplId) {
   editingTemplateId = tplId || null;
   const tpl = tplId ? allTemplates.find(t => t.id === tplId) : null;
   document.getElementById('tpl-editor-title').textContent = tpl ? 'Edit Template' : 'New Template';
   document.getElementById('tpl-emoji').value = tpl ? (tpl.emoji || '') : '';
-  document.getElementById('tpl-name').value = tpl ? tpl.name : '';
-  document.getElementById('tpl-desc').value = tpl ? (tpl.desc || '') : '';
+  document.getElementById('tpl-name').value  = tpl ? tpl.name          : '';
+  document.getElementById('tpl-desc').value  = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display = tpl ? 'inline-flex' : 'none';
-  tplEditorItems = tpl ? (tpl.items || []).map(it =>
-    typeof it === 'string' ? {name:it,qty:'',stores:[],tags:[]} : {name:it.name||'',qty:it.qty||'',stores:toArray(it.stores),tags:toArray(it.tags)}
-  ) : [];
-  populateTplStoreSelects();
+  // Normalise items — always ensure all fields present
+  tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems();
   openModal('modal-template-editor');
 }
 
-function populateTplStoreSelects() {
-  const opts = '<option value="">No store</option>' + allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
-  const sel = document.getElementById('tpl-new-item-store');
-  if (sel) sel.innerHTML = opts;
-  document.querySelectorAll('.tpl-item-store-sel').forEach(sel => { const v = sel.value; sel.innerHTML = opts; sel.value = v; });
+/** Ensure every item has all the same fields as a shopping-list item */
+function normaliseItem(it) {
+  if (typeof it === 'string') return { name: it, qty: '', unit: '', stores: [], tags: [], notes: '' };
+  return {
+    name:   it.name   || '',
+    qty:    it.qty    || '',
+    unit:   it.unit   || '',
+    stores: toArray(it.stores),
+    tags:   toArray(it.tags),
+    notes:  it.notes  || ''
+  };
 }
 
 function renderTplEditorItems() {
   const container = document.getElementById('tpl-editor-items');
   if (!container) return;
-  if (tplEditorItems.length === 0) {
-    container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4);">No items yet — add one below</div>`;
+  const count = tplEditorItems.length;
+  document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+  if (count === 0) {
+    container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet — click "Add Item" below</div>`;
     return;
   }
-  const storeOpts = '<option value="">No store</option>' + allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
-  container.innerHTML = tplEditorItems.map((it, i) => `
-    <div class="tpl-editor-item">
-      <input class="item-name-input" type="text" value="${escHtml(it.name)}" placeholder="Item name" data-idx="${i}" data-field="name">
-      <input class="item-qty-input" type="text" value="${escHtml(it.qty||'')}" placeholder="Qty" data-idx="${i}" data-field="qty">
-      <select class="item-store-select tpl-item-store-sel" data-idx="${i}" data-field="store">${storeOpts}</select>
-      <input class="item-tags-input" type="text" value="${escHtml((it.tags||[]).join(', '))}" placeholder="Tags" data-idx="${i}" data-field="tags">
-      <button class="icon-btn" data-remove-idx="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
-    </div>`).join('');
-  container.querySelectorAll('.tpl-item-store-sel').forEach(sel => { const i = parseInt(sel.dataset.idx); sel.value = (tplEditorItems[i].stores||[])[0]||''; });
-  container.querySelectorAll('input[data-field],select[data-field]').forEach(el => {
-    const handler = () => {
-      const i = parseInt(el.dataset.idx), field = el.dataset.field;
-      if (field === 'tags') tplEditorItems[i].tags = el.value.split(',').map(s=>s.trim()).filter(Boolean);
-      else if (field === 'store') tplEditorItems[i].stores = el.value ? [el.value] : [];
-      else tplEditorItems[i][field] = el.value;
-    };
-    el.addEventListener('input', handler);
-    el.addEventListener('change', handler);
-  });
-  container.querySelectorAll('[data-remove-idx]').forEach(btn =>
-    btn.addEventListener('click', () => { tplEditorItems.splice(parseInt(btn.dataset.removeIdx), 1); renderTplEditorItems(); })
+  container.innerHTML = tplEditorItems.map((it, i) => {
+    const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
+    const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
+    const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
+    const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
+    const meta  = [qty, store, tags, notes].filter(Boolean).join('');
+    return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;" title="Click to edit">
+      <div class="item-info" style="flex:1;min-width:0;">
+        <div class="item-name">${escHtml(it.name || '(unnamed)')}</div>
+        ${meta ? `<div class="item-meta">${meta}</div>` : ''}
+      </div>
+      <button class="icon-btn" data-tpl-item-edit="${i}" aria-label="Edit item" title="Edit item" style="color:var(--color-text-muted);"><i data-lucide="pencil"></i></button>
+      <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit)); })
+  );
+  container.querySelectorAll('[data-tpl-item-remove]').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderTplEditorItems(); })
+  );
+  // Click row to edit
+  container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
+    row.addEventListener('click', e => { if (e.target.closest('button')) return; openTplItemModal(parseInt(row.dataset.tplItemIdx)); })
   );
   createIcons();
+}
+
+// ── Template Item Modal ────────────────────────────────────────────────────
+function populateTplItemStoreCheckboxes(selectedStores = []) {
+  const container = document.getElementById('tpl-item-store-checkboxes');
+  if (!container) return;
+  if (allStores.length === 0) {
+    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
+    return;
+  }
+  container.innerHTML = allStores.map(s =>
+    `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name) ? 'checked' : ''}><span>${escHtml(s.name)}</span></label>`
+  ).join('');
+}
+function getTplItemSelectedStores() {
+  return Array.from(document.getElementById('tpl-item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
+}
+
+function openTplItemModal(idx) {
+  tplItemEditingIdx = idx;  // -1 means new
+  const it = idx >= 0 ? tplEditorItems[idx] : null;
+  document.getElementById('tpl-item-modal-title').textContent = it ? 'Edit Item' : 'Add Item';
+  document.getElementById('tpl-item-name').value  = it ? it.name  : '';
+  document.getElementById('tpl-item-qty').value   = it ? it.qty   : '';
+  document.getElementById('tpl-item-unit').value  = it ? it.unit  : '';
+  document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ')  : '';
+  document.getElementById('tpl-item-notes').value = it ? it.notes : '';
+  populateTplItemStoreCheckboxes(it ? toArray(it.stores) : []);
+  openModal('modal-tpl-item');
+  setTimeout(() => document.getElementById('tpl-item-name').focus(), 50);
+}
+window.closeTplItemModal = function() { closeModal('modal-tpl-item'); };
+
+function saveTplItem() {
+  const name = document.getElementById('tpl-item-name').value.trim();
+  if (!name) { showToast('Item name is required', 'error'); return; }
+  const item = {
+    name,
+    qty:    document.getElementById('tpl-item-qty').value.trim(),
+    unit:   document.getElementById('tpl-item-unit').value.trim(),
+    stores: getTplItemSelectedStores(),
+    tags:   document.getElementById('tpl-item-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+    notes:  document.getElementById('tpl-item-notes').value.trim()
+  };
+  if (tplItemEditingIdx >= 0) {
+    tplEditorItems[tplItemEditingIdx] = item;
+  } else {
+    tplEditorItems.push(item);
+  }
+  closeModal('modal-tpl-item');
+  renderTplEditorItems();
 }
 
 // ── Lists ──────────────────────────────────────────────────────────────────
@@ -388,7 +529,7 @@ async function updateListCounts(listId) {
   try { await updateDoc(doc(listsCol(), listId), { itemCount: allItems.length, checkedCount: allItems.filter(i=>i.checked).length }); } catch {}
 }
 
-// ── Item Store Checkboxes ──────────────────────────────────────────────────
+// ── Item Store Checkboxes (shopping list) ──────────────────────────────────
 function populateItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('item-store-checkboxes');
   if (!container) return;
@@ -399,7 +540,6 @@ function getSelectedStores() {
   return Array.from(document.getElementById('item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
 }
 
-// ── Open Add Item Modal ────────────────────────────────────────────────────
 function openAddItemModal(prefillName = '') {
   if (!currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
   document.getElementById('item-name-full').value = prefillName;
@@ -448,12 +588,12 @@ function populateStoreSelect() {
     allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
 }
 
-// ── Delete ──────────────────────────────────────────────────────────────────
+// ── Delete ─────────────────────────────────────────────────────────────────
 function confirmDelete(type, id) {
   pendingDelete = { type, id };
   const titles = { list:'Delete List?', category:'Delete Category?', store:'Delete Store?', template:'Delete Template?' };
-  const msgs = { list:'This will permanently delete the list and all its items.', category:'This category will be removed from all items.', store:'This store will be removed.', template:'This template will be permanently deleted.' };
-  document.getElementById('confirm-title').textContent = titles[type];
+  const msgs   = { list:'This will permanently delete the list and all its items.', category:'This category will be removed.', store:'This store will be removed.', template:'This template will be permanently deleted.' };
+  document.getElementById('confirm-title').textContent   = titles[type];
   document.getElementById('confirm-message').textContent = msgs[type];
   openModal('modal-confirm');
 }
@@ -477,7 +617,7 @@ function closeSidebar() {
 }
 
 // ── Modals ─────────────────────────────────────────────────────────────────
-window.openModal = id => { const el = document.getElementById(id); if (el) { el.classList.add('open'); createIcons(); } };
+window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open'); createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el) el.classList.remove('open'); };
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -501,68 +641,65 @@ async function loadBuildMeta() {
     const res = await fetch('./version.json', { cache: 'no-store' });
     if (!res.ok) throw new Error();
     const v = await res.json();
-    const shortSha = (v.sha || '').slice(0, 7);
+    const shortSha  = (v.sha || '').slice(0, 7);
     const buildLabel = v.buildNumber ? `#${v.buildNumber}` : '';
-    const shaLink = shortSha ? ` &middot; <a href="${v.commitUrl}" target="_blank" rel="noopener noreferrer">${shortSha}</a>` : '';
-    el.innerHTML = `Build ${buildLabel}${shaLink} &middot; <a href="${v.repo||repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`;
+    const shaLink    = shortSha ? ` · <a href="${v.commitUrl}" target="_blank" rel="noopener noreferrer">${shortSha}</a>` : '';
+    el.innerHTML = `Build ${buildLabel}${shaLink} · <a href="${v.repo||repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`;
   } catch { el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`; }
 }
 
 // ── Bootstrap — all DOM wiring happens here ────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Initial theme
   syncThemeUI();
 
-  // Auth events
+  // Auth
   document.getElementById('google-signin-btn').addEventListener('click', async () => {
-    document.getElementById('auth-body').style.display = 'none';
+    document.getElementById('auth-body').style.display    = 'none';
     document.getElementById('auth-loading').style.display = 'flex';
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (e) {
-      document.getElementById('auth-body').style.display = 'block';
+    try { await signInWithPopup(auth, provider); }
+    catch (e) {
+      document.getElementById('auth-body').style.display    = 'block';
       document.getElementById('auth-loading').style.display = 'none';
       showToast('Sign-in failed: ' + e.message, 'error');
     }
   });
 
   document.getElementById('signout-btn').addEventListener('click', async () => {
-    await signOut(auth);
-    showToast('Signed out', 'info');
+    await signOut(auth); showToast('Signed out', 'info');
   });
 
   onAuthStateChanged(auth, user => {
     if (user) {
       currentUser = user;
       document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
+      document.getElementById('app').style.display         = 'block';
       updateUserUI();
       pendingListId = getHashListId();
       subscribeToData();
       createIcons();
     } else {
       currentUser = null;
-      document.getElementById('app').style.display = 'none';
+      document.getElementById('app').style.display         = 'none';
       document.getElementById('auth-screen').style.display = 'flex';
-      document.getElementById('auth-body').style.display = 'block';
+      document.getElementById('auth-body').style.display    = 'block';
       document.getElementById('auth-loading').style.display = 'none';
       teardownSubscriptions();
     }
   });
 
-  // Theme toggle
+  // Theme
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('dark-mode-toggle').addEventListener('change', toggleTheme);
 
-  // Header add button
+  // Header add button — context-aware
   document.getElementById('header-add-btn').addEventListener('click', () => {
     const view = document.querySelector('.view.active')?.id?.replace('view-', '');
-    if (view === 'lists') openModal('modal-new-list');
+    if (view === 'lists')       openModal('modal-new-list');
     else if (view === 'list-detail') openAddItemModal();
-    else if (view === 'categories') openModal('modal-new-category');
-    else if (view === 'stores') openModal('modal-new-store');
-    else if (view === 'templates') openTemplateEditor(null);
+    else if (view === 'categories')  openModal('modal-new-category');
+    else if (view === 'stores')      openModal('modal-new-store');
+    else if (view === 'templates')   openTemplateEditor(null);
   });
 
   // New list
@@ -574,35 +711,29 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await addDoc(listsCol(), { name, storeName: document.getElementById('new-list-store').value || '', itemCount: 0, checkedCount: 0, createdAt: serverTimestamp() });
       closeModal('modal-new-list');
-      document.getElementById('new-list-name').value = '';
+      document.getElementById('new-list-name').value  = '';
       document.getElementById('new-list-store').value = '';
       showToast(`"${name}" created!`, 'success');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   });
   document.getElementById('new-list-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('create-list-btn').click(); });
 
-  // List detail
+  // List detail nav
   document.getElementById('back-to-lists').addEventListener('click', () => {
     if (unsubItems) { unsubItems(); unsubItems = null; }
-    currentListId = null;
-    setHashListId(null);
+    currentListId = null; setHashListId(null);
     navigateTo('lists');
     document.getElementById('header-title').textContent = 'My Lists';
   });
   document.getElementById('detail-delete-btn').addEventListener('click', () => { if (currentListId) confirmDelete('list', currentListId); });
 
-  // Add item bar
+  // Add item (quick bar)
   document.getElementById('new-item-name').addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      const val = e.target.value.trim();
-      openAddItemModal(val);
-      e.target.value = '';
-    }
+    if (e.key === 'Enter') { openAddItemModal(e.target.value.trim()); e.target.value = ''; }
   });
   document.getElementById('add-item-quick-btn').addEventListener('click', () => {
     const input = document.getElementById('new-item-name');
-    openAddItemModal(input.value.trim());
-    input.value = '';
+    openAddItemModal(input.value.trim()); input.value = '';
   });
   document.getElementById('save-item-btn').addEventListener('click', async () => {
     const name = document.getElementById('item-name-full').value.trim();
@@ -612,46 +743,48 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await addDoc(itemsCol(currentListId), { name, qty:document.getElementById('item-qty').value.trim(), unit:document.getElementById('item-unit').value.trim(), stores:getSelectedStores(), tags, notes:document.getElementById('item-notes').value.trim(), checked:false, createdAt:serverTimestamp() });
       closeModal('modal-add-item');
-      document.getElementById('new-item-name').value = '';
       ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   });
   document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
 
-  // Templates
+  // Template editor
   document.getElementById('new-template-btn').addEventListener('click', () => openTemplateEditor(null));
-  document.getElementById('tpl-add-item-btn').addEventListener('click', () => {
-    const nameEl = document.getElementById('tpl-new-item-name');
-    const name = nameEl.value.trim();
-    if (!name) { nameEl.focus(); return; }
-    const storeVal = document.getElementById('tpl-new-item-store').value;
-    tplEditorItems.push({ name, qty: document.getElementById('tpl-new-item-qty').value.trim(), stores: storeVal ? [storeVal] : [], tags: document.getElementById('tpl-new-item-tags').value.split(',').map(s=>s.trim()).filter(Boolean) });
-    nameEl.value = '';
-    document.getElementById('tpl-new-item-qty').value = '';
-    document.getElementById('tpl-new-item-store').value = '';
-    document.getElementById('tpl-new-item-tags').value = '';
-    renderTplEditorItems();
-    nameEl.focus();
-  });
-  document.getElementById('tpl-new-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('tpl-add-item-btn').click(); });
+  document.getElementById('tpl-add-item-btn').addEventListener('click', () => openTplItemModal(-1));
   document.getElementById('tpl-save-btn').addEventListener('click', async () => {
     const name = document.getElementById('tpl-name').value.trim();
     if (!name) { showToast('Template name is required', 'error'); return; }
-    const data = { name, emoji: document.getElementById('tpl-emoji').value.trim() || '📋', desc: document.getElementById('tpl-desc').value.trim(), items: tplEditorItems, updatedAt: serverTimestamp() };
+    const data = {
+      name,
+      emoji: document.getElementById('tpl-emoji').value.trim() || '📋',
+      desc:  document.getElementById('tpl-desc').value.trim(),
+      items: tplEditorItems,
+      updatedAt: serverTimestamp()
+    };
     try {
-      if (editingTemplateId) { await updateDoc(doc(templatesCol(), editingTemplateId), data); showToast('Template saved!', 'success'); }
-      else { data.createdAt = serverTimestamp(); await addDoc(templatesCol(), data); showToast(`"${name}" template created!`, 'success'); }
+      if (editingTemplateId) {
+        await updateDoc(doc(templatesCol(), editingTemplateId), data);
+        showToast('Template saved!', 'success');
+      } else {
+        data.createdAt = serverTimestamp();
+        await addDoc(templatesCol(), data);
+        showToast(`"${name}" template created!`, 'success');
+      }
       closeModal('modal-template-editor');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   });
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
     if (!editingTemplateId) return;
     pendingDelete = { type: 'template', id: editingTemplateId };
-    document.getElementById('confirm-title').textContent = 'Delete Template?';
+    document.getElementById('confirm-title').textContent   = 'Delete Template?';
     document.getElementById('confirm-message').textContent = 'This template will be permanently deleted.';
     closeModal('modal-template-editor');
     openModal('modal-confirm');
   });
+
+  // Template item modal — Save button
+  document.getElementById('tpl-item-save-btn').addEventListener('click', saveTplItem);
+  document.getElementById('tpl-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') saveTplItem(); });
 
   // Categories
   document.getElementById('new-category-btn').addEventListener('click', () => openModal('modal-new-category'));
@@ -661,7 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await addDoc(categoriesCol(), { name, emoji: document.getElementById('new-category-emoji').value.trim(), createdAt: serverTimestamp() });
       closeModal('modal-new-category');
-      document.getElementById('new-category-name').value = '';
+      document.getElementById('new-category-name').value  = '';
       document.getElementById('new-category-emoji').value = '';
       showToast(`"${name}" added!`, 'success');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
@@ -701,8 +834,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         showToast('List deleted', 'success');
       } else if (type === 'category') { await deleteDoc(doc(categoriesCol(), id)); showToast('Category deleted', 'success'); }
-      else if (type === 'template') { await deleteDoc(doc(templatesCol(), id)); showToast('Template deleted', 'success'); }
-      else if (type === 'store') { await deleteDoc(doc(storesCol(), id)); showToast('Store deleted', 'success'); }
+      else if (type === 'template')  { await deleteDoc(doc(templatesCol(),  id)); showToast('Template deleted', 'success'); }
+      else if (type === 'store')     { await deleteDoc(doc(storesCol(),     id)); showToast('Store deleted',    'success'); }
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
     pendingDelete = null;
   });
@@ -715,10 +848,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
 
-  // Modal overlay click-outside-to-close
-  document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); }));
+  // Click-outside-to-close on all modals
+  document.querySelectorAll('.modal-overlay').forEach(overlay =>
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); })
+  );
 
-  // Build meta
   loadBuildMeta();
   createIcons();
 });
@@ -732,9 +866,9 @@ function updateUserUI() {
     if (currentUser.photoURL) el.innerHTML = `<img src="${currentUser.photoURL}" alt="Avatar">`;
     else el.textContent = initials;
   });
-  document.getElementById('sidebar-name').textContent = currentUser.displayName || 'User';
+  document.getElementById('sidebar-name').textContent  = currentUser.displayName || 'User';
   document.getElementById('sidebar-email').textContent = currentUser.email || '';
-  document.getElementById('settings-name').textContent = currentUser.displayName || 'User';
+  document.getElementById('settings-name').textContent  = currentUser.displayName || 'User';
   document.getElementById('settings-email').textContent = currentUser.email || '';
 }
 

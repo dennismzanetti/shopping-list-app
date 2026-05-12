@@ -204,35 +204,86 @@
   </nav>
 </div>
 
-<!-- Modal: Template Editor -->
+<!-- ═══════════════════════════════════════════════════════════════
+     Modal: Template Editor
+     ═══════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-template-editor">
-  <div class="modal" style="max-width:640px;">
+  <div class="modal" style="max-width:680px;">
     <div class="modal-header">
       <span class="modal-title" id="tpl-editor-title">New Template</span>
       <button class="icon-btn" onclick="closeModal('modal-template-editor')" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
+      <!-- Template meta -->
       <div class="form-row" style="grid-template-columns:60px 1fr;">
         <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="tpl-emoji" type="text" placeholder="🛒" maxlength="4"></div>
         <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
       </div>
-      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description"></div>
-      <div class="form-group" style="margin-bottom:var(--space-2);">
-        <label class="form-label">Items</label>
+      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
+
+      <!-- Item list -->
+      <div class="form-group" style="margin-bottom:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+          <label class="form-label" style="margin-bottom:0;">Items</label>
+          <span id="tpl-item-count" style="font-size:var(--text-xs);color:var(--color-text-faint);">0 items</span>
+        </div>
         <div class="tpl-editor-items" id="tpl-editor-items"></div>
-        <div class="tpl-editor-add-row">
-          <input type="text" id="tpl-new-item-name" placeholder="Item name…">
-          <input type="text" id="tpl-new-item-qty" placeholder="Qty" style="width:70px;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text);">
-          <select id="tpl-new-item-store" style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text);"></select>
-          <input type="text" id="tpl-new-item-tags" placeholder="Tags (comma-separated)" style="width:160px;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text);">
-          <button class="btn btn-primary" id="tpl-add-item-btn"><i data-lucide="plus"></i> Add</button>
+        <!-- Quick-add bar -->
+        <div style="margin-top:var(--space-3);">
+          <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);">
+            <i data-lucide="plus"></i> Add Item
+          </button>
         </div>
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="tpl-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
       <button class="btn btn-ghost" onclick="closeModal('modal-template-editor')">Cancel</button>
-      <button class="btn btn-danger" id="tpl-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete Template</button>
       <button class="btn btn-primary" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     Modal: Template Item Editor (add / edit a single template item)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-tpl-item">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title" id="tpl-item-modal-title">Add Template Item</span>
+      <button class="icon-btn" onclick="closeTplItemModal()" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="tpl-item-name">Item name *</label>
+        <input class="form-input" id="tpl-item-name" type="text" placeholder="e.g. Whole milk">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="tpl-item-qty">Quantity</label>
+          <input class="form-input" id="tpl-item-qty" type="text" placeholder="e.g. 2">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="tpl-item-unit">Unit</label>
+          <input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs, oz, pkg">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
+        <div class="store-checkboxes" id="tpl-item-store-checkboxes"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="tpl-item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label>
+        <input class="form-input" id="tpl-item-tags" type="text" placeholder="e.g. organic, weekly">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="tpl-item-notes">Notes</label>
+        <input class="form-input" id="tpl-item-notes" type="text" placeholder="e.g. brand preference">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeTplItemModal()">Cancel</button>
+      <button class="btn btn-primary" id="tpl-item-save-btn"><i data-lucide="check"></i> Save Item</button>
     </div>
   </div>
 </div>
