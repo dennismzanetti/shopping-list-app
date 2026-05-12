@@ -1057,7 +1057,7 @@ document.getElementById('new-template-btn').addEventListener('click', () => open
       } else if (type === 'category') {
         await deleteDoc(doc(categoriesCol(), id));
         showToast('Category deleted', 'success');
-      } } else if (type === 'template') {
+      } else if (type === 'template') {
         await deleteDoc(doc(templatesCol(), id));
         showToast('Template deleted', 'success');
         else if (type === 'store') {
