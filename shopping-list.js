@@ -636,16 +636,17 @@ window.showToast = showToast;
 // ── Build meta ─────────────────────────────────────────────────────────────
 async function loadBuildMeta() {
   const el = document.getElementById('build-meta');
-  const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
+  if (!el) return;
   try {
     const res = await fetch('./version.json', { cache: 'no-store' });
     if (!res.ok) throw new Error();
     const v = await res.json();
-    const shortSha  = (v.sha || '').slice(0, 7);
-    const buildLabel = v.buildNumber ? `#${v.buildNumber}` : '';
-    const shaLink    = shortSha ? ` · <a href="${v.commitUrl}" target="_blank" rel="noopener noreferrer">${shortSha}</a>` : '';
-    el.innerHTML = `Build ${buildLabel}${shaLink} · <a href="${v.repo||repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`;
-  } catch { el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`; }
+    const label = v.buildNumber ? `#${v.buildNumber}` : (v.sha ? v.sha.slice(0, 7) : 'source');
+    const url   = v.commitUrl || v.repo || 'https://github.com/dennismzanetti/shopping-list-app';
+    el.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  } catch {
+    el.innerHTML = `<a href="https://github.com/dennismzanetti/shopping-list-app" target="_blank" rel="noopener noreferrer">source</a>`;
+  }
 }
 
 // ── Bootstrap — all DOM wiring happens here ────────────────────────────────
