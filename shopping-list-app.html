@@ -205,6 +205,17 @@
     .progress-bar-fill{height:100%;background:var(--color-primary);border-radius:var(--radius-full);transition:width .4s ease}
     .progress-label{font-size:var(--text-xs);color:var(--color-text-muted);white-space:nowrap}
 
+    /* Templates */
+    .template-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;display:flex;flex-direction:column;gap:var(--space-3)}
+    .template-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary);transform:translateY(-1px)}
+    .template-card-emoji{font-size:2rem;line-height:1}
+    .template-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text)}
+    .template-card-desc{font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5}
+    .template-card-items{display:flex;flex-wrap:wrap;gap:var(--space-1);margin-top:var(--space-1)}
+    .template-item-chip{font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-text-muted);padding:2px 8px;border-radius:var(--radius-full)}
+    .template-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:var(--space-3);border-top:1px solid var(--color-divider)}
+    .template-item-count{font-size:var(--text-xs);color:var(--color-text-faint)}
+
     /* Mobile */
     .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bottom-nav-height);background:var(--color-surface);border-top:1px solid var(--color-border);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
     .bottom-nav-items{display:flex;height:100%}
@@ -294,6 +305,7 @@
       <nav class="sidebar-nav">
         <div class="nav-section-label">Lists</div>
         <div class="nav-item active" data-view="lists"><i data-lucide="shopping-cart"></i>My Lists<span class="nav-badge" id="badge-lists">0</span></div>
+        <div class="nav-item" data-view="templates"><i data-lucide="layout-template"></i>Templates</div>
         <div class="nav-section-label">Organize</div>
         <div class="nav-item" data-view="categories"><i data-lucide="tag"></i>Categories</div>
         <div class="nav-item" data-view="stores"><i data-lucide="store"></i>Stores</div>
@@ -378,6 +390,14 @@
         </div>
       </div>
 
+      <!-- Templates View -->
+      <div class="view" id="view-templates">
+        <div class="page-header">
+          <div><h1 class="page-title">Templates</h1><p class="page-subtitle">Start a new list from a ready-made template</p></div>
+        </div>
+        <div class="lists-grid" id="templates-grid"></div>
+      </div>
+
       <!-- Categories View -->
       <div class="view" id="view-categories">
         <div class="page-header">
@@ -424,6 +444,7 @@
   <nav class="bottom-nav">
     <div class="bottom-nav-items">
       <div class="bottom-nav-item active" data-view="lists"><i data-lucide="shopping-cart"></i><span>Lists</span></div>
+      <div class="bottom-nav-item" data-view="templates"><i data-lucide="layout-template"></i><span>Templates</span></div>
       <div class="bottom-nav-item" data-view="categories"><i data-lucide="tag"></i><span>Categories</span></div>
       <div class="bottom-nav-item" data-view="stores"><i data-lucide="store"></i><span>Stores</span></div>
       <div class="bottom-nav-item" data-view="settings"><i data-lucide="settings"></i><span>Settings</span></div>
@@ -535,6 +556,58 @@
   let allCategories = [];
   let allStores = [];
 
+  // ── Templates Data ─────────────────────────────────────────────────────────────────────
+  const LIST_TEMPLATES = [
+    {
+      emoji: '🛒',
+      name: 'Weekly Groceries',
+      desc: 'Everyday essentials for the week',
+      items: ['Milk','Eggs','Bread','Butter','Cheese','Yogurt','Chicken breast','Ground beef','Pasta','Rice','Canned tomatoes','Olive oil','Onions','Garlic','Bananas','Apples','Spinach','Carrots','Toilet paper','Dish soap']
+    },
+    {
+      emoji: '🥩',
+      name: 'BBQ & Grilling',
+      desc: 'Everything you need for a backyard cookout',
+      items: ['Burgers','Hot dogs','Chicken wings','Steak','Buns','Ketchup','Mustard','Relish','BBQ sauce','Corn on the cob','Coleslaw mix','Potato salad','Charcoal','Lighter fluid','Paper plates','Napkins']
+    },
+    {
+      emoji: '🎉',
+      name: 'Party Supplies',
+      desc: 'Stock up for a gathering or celebration',
+      items: ['Chips & dip','Soda','Juice','Beer / Wine','Ice','Plates','Cups','Napkins','Forks & spoons','Plastic wrap','Aluminum foil','Trash bags','Birthday candles','Streamers','Balloons']
+    },
+    {
+      emoji: '🏠',
+      name: 'Household Basics',
+      desc: 'Cleaning and home essentials',
+      items: ['Paper towels','Toilet paper','Dish soap','Laundry detergent','Fabric softener','All-purpose cleaner','Trash bags','Sponges','Ziplock bags','Aluminum foil','Plastic wrap','Light bulbs','Batteries','Hand soap']
+    },
+    {
+      emoji: '🥗',
+      name: 'Healthy Eating',
+      desc: 'Fresh produce and wholesome staples',
+      items: ['Kale','Spinach','Broccoli','Bell peppers','Cucumbers','Cherry tomatoes','Avocados','Blueberries','Strawberries','Greek yogurt','Hummus','Quinoa','Brown rice','Oats','Almonds','Salmon','Chicken breast','Eggs','Olive oil','Lemons']
+    },
+    {
+      emoji: '🍝',
+      name: 'Pasta Night',
+      desc: 'Ingredients for a classic Italian dinner',
+      items: ['Spaghetti','Penne','Fettuccine','Marinara sauce','Alfredo sauce','Ground beef','Italian sausage','Parmesan cheese','Mozzarella','Garlic','Onion','Crushed tomatoes','Olive oil','Fresh basil','Bread','Red wine']
+    },
+    {
+      emoji: '🥞',
+      name: 'Breakfast Week',
+      desc: 'Morning staples to start every day right',
+      items: ['Eggs','Bacon','Sausage','Bread','Bagels','Cream cheese','Butter','Milk','Orange juice','Coffee','Tea','Oats','Granola','Yogurt','Bananas','Berries','Maple syrup','Pancake mix']
+    },
+    {
+      emoji: '🎒',
+      name: 'Back to School',
+      desc: 'Lunches and snacks for busy school days',
+      items: ['Sandwich bread','Peanut butter','Jelly','Deli turkey','Deli ham','Cheese slices','Apples','Grapes','Baby carrots','Celery','Crackers','Granola bars','Juice boxes','Chips','Yogurt tubes','String cheese','Pretzels','Fruit snacks']
+    }
+  ];
+
   // ── Theme ──────────────────────────────────────────────────────────────────────────────
   const html = document.documentElement;
   let currentTheme = 'light';
@@ -586,6 +659,7 @@
       document.getElementById('app').style.display = 'block';
       updateUserUI();
       subscribeToData();
+      renderTemplates();
       lucide.createIcons();
     } else {
       currentUser = null;
@@ -679,6 +753,69 @@
       renderLists();
       document.getElementById('badge-lists').textContent = allLists.length;
     });
+  }
+
+  // ── Templates ─────────────────────────────────────────────────────────────────────────
+  function renderTemplates() {
+    const grid = document.getElementById('templates-grid');
+    grid.innerHTML = LIST_TEMPLATES.map((t, i) => {
+      const previewItems = t.items.slice(0, 5);
+      const remaining = t.items.length - previewItems.length;
+      const chips = previewItems.map(item => `<span class="template-item-chip">${escHtml(item)}</span>`).join('');
+      const moreChip = remaining > 0 ? `<span class="template-item-chip">+${remaining} more</span>` : '';
+      return `<div class="template-card" data-tpl-idx="${i}">
+        <div class="template-card-emoji">${t.emoji}</div>
+        <div>
+          <div class="template-card-title">${escHtml(t.name)}</div>
+          <div class="template-card-desc">${escHtml(t.desc)}</div>
+        </div>
+        <div class="template-card-items">${chips}${moreChip}</div>
+        <div class="template-card-footer">
+          <span class="template-item-count">${t.items.length} items</span>
+          <button class="btn btn-primary" data-use-tpl="${i}"><i data-lucide="plus"></i> Use Template</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    grid.querySelectorAll('[data-use-tpl]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        useTemplate(parseInt(btn.dataset.useTpl));
+      });
+    });
+    lucide.createIcons();
+  }
+
+  async function useTemplate(idx) {
+    const tpl = LIST_TEMPLATES[idx];
+    if (!tpl || !currentUser) return;
+    try {
+      const listRef = await addDoc(listsCol(), {
+        name: tpl.name,
+        storeName: '',
+        itemCount: tpl.items.length,
+        checkedCount: 0,
+        createdAt: serverTimestamp()
+      });
+      const batch = writeBatch(db);
+      tpl.items.forEach(name => {
+        batch.set(doc(itemsCol(listRef.id)), {
+          name,
+          checked: false,
+          qty: '',
+          unit: '',
+          category: '',
+          notes: '',
+          createdAt: serverTimestamp()
+        });
+      });
+      await batch.commit();
+      showToast(`"${tpl.name}" created with ${tpl.items.length} items!`, 'success');
+      navigateTo('lists');
+      setTimeout(() => openList(listRef.id), 300);
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
   }
 
   // ── Lists ──────────────────────────────────────────────────────────────────────────────
@@ -1034,7 +1171,7 @@
   });
 
   // ── Navigation ────────────────────────────────────────────────────────────────────────────────────
-  const viewTitles = { lists: 'My Lists', 'list-detail': '', categories: 'Categories', stores: 'Stores', settings: 'Settings' };
+  const viewTitles = { lists: 'My Lists', 'list-detail': '', categories: 'Categories', stores: 'Stores', settings: 'Settings', templates: 'Templates' };
 
   function navigateTo(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
