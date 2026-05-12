@@ -38,7 +38,7 @@ let allCategories = [];
 let allStores = [];
 let allTemplates = [];
 let editingTemplateId = null;
-let editingItemId = null;  // null = adding new, string = editing existing
+let editingItemId = null;
 let tplEditorItems = [];
 let tplItemEditingIdx = -1;
 let pendingDelete = null;
@@ -493,7 +493,7 @@ function renderItems() {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
   const unchecked = allItems.filter(i => !i.checked);
-  const checked = allItems.filter(i => i.checked);
+  const checked   = allItems.filter(i =>  i.checked);
   const total = allItems.length, doneCount = checked.length;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   document.getElementById('progress-bar').style.width = pct + '%';
@@ -502,17 +502,20 @@ function renderItems() {
   empty.style.display = 'none';
 
   const renderGroup = items => items.map(item => {
-    const qty = item.qty ? `<span class="item-qty-badge">${escHtml(item.qty)}${item.unit ? ' '+escHtml(item.unit) : ''}</span>` : '';
+    const qty        = item.qty ? `<span class="item-qty-badge">${escHtml(item.qty)}${item.unit ? ' '+escHtml(item.unit) : ''}</span>` : '';
     const storeChips = toArray(item.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
-    const tagChips = toArray(item.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
-    const notes = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';
-    const meta = [qty,storeChips,tagChips,notes].filter(Boolean).join('');
-    return `<div class="item-row${item.checked?' checked':''}" data-item-id="${item.id}">
-      <div class="item-checkbox${item.checked?' checked':''}" data-toggle="${item.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="item-info item-info-clickable" data-edit-item="${item.id}" style="cursor:pointer;" title="Edit item">
-        <div class="item-name">${escHtml(item.name)}</div>
-        ${meta?`<div class="item-meta">${meta}</div>`:''}
+    const tagChips   = toArray(item.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
+    const notes      = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';
+    const meta       = [qty, storeChips, tagChips, notes].filter(Boolean).join('');
+    return `<div class="item-row${item.checked ? ' checked' : ''}" data-item-id="${item.id}">
+      <div class="item-checkbox${item.checked ? ' checked' : ''}" data-toggle="${item.id}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
+      <div class="item-info" style="flex:1;min-width:0;">
+        <div class="item-name">${escHtml(item.name)}</div>
+        ${meta ? `<div class="item-meta">${meta}</div>` : ''}
+      </div>
+      <button class="icon-btn item-edit" data-edit-item="${item.id}" aria-label="Edit item" title="Edit item" style="color:var(--color-text-muted);"><i data-lucide="pencil"></i></button>
       <button class="icon-btn item-delete" data-delete-item="${item.id}" aria-label="Delete item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
   }).join('');
@@ -520,8 +523,8 @@ function renderItems() {
   let html = unchecked.length > 0 ? renderGroup(unchecked) : '';
   if (checked.length > 0) html += `<div class="items-section-label">Checked (${checked.length})</div>` + renderGroup(checked);
   list_.innerHTML = html;
-  list_.querySelectorAll('[data-toggle]').forEach(el => el.addEventListener('click', () => toggleItem(el.dataset.toggle)));
-  list_.querySelectorAll('[data-edit-item]').forEach(el => el.addEventListener('click', () => openEditItemModal(el.dataset.editItem)));
+  list_.querySelectorAll('[data-toggle]').forEach(el     => el.addEventListener('click',  ()  => toggleItem(el.dataset.toggle)));
+  list_.querySelectorAll('[data-edit-item]').forEach(btn => btn.addEventListener('click', ()  => openEditItemModal(btn.dataset.editItem)));
   list_.querySelectorAll('[data-delete-item]').forEach(btn => btn.addEventListener('click', () => deleteItem(btn.dataset.deleteItem)));
   createIcons();
 }
@@ -548,9 +551,9 @@ function openAddItemModal(prefillName = '') {
   document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
   document.getElementById('item-name-full').value = prefillName;
-  document.getElementById('item-qty').value = '';
-  document.getElementById('item-unit').value = '';
-  document.getElementById('item-tags').value = '';
+  document.getElementById('item-qty').value   = '';
+  document.getElementById('item-unit').value  = '';
+  document.getElementById('item-tags').value  = '';
   document.getElementById('item-notes').value = '';
   populateItemStoreCheckboxes();
   openModal('modal-add-item');
@@ -564,9 +567,9 @@ function openEditItemModal(itemId) {
   editingItemId = itemId;
   document.querySelector('#modal-add-item .modal-title').textContent = 'Edit Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="save"></i> Save Changes';
-  document.getElementById('item-name-full').value = item.name || '';
-  document.getElementById('item-qty').value        = item.qty  || '';
-  document.getElementById('item-unit').value       = item.unit || '';
+  document.getElementById('item-name-full').value = item.name  || '';
+  document.getElementById('item-qty').value        = item.qty   || '';
+  document.getElementById('item-unit').value       = item.unit  || '';
   document.getElementById('item-tags').value       = toArray(item.tags).join(', ');
   document.getElementById('item-notes').value      = item.notes || '';
   populateItemStoreCheckboxes(toArray(item.stores));
@@ -790,12 +793,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
 
-  // Also reset editingItemId when modal is closed via Cancel or X
-  document.getElementById('modal-add-item').addEventListener('click', e => {
-    if (e.target.closest('[onclick*="closeModal"]') || e.target === document.getElementById('modal-add-item')) {
-      editingItemId = null;
-    }
-  });
+  // Reset editingItemId when modal is dismissed
+  document.querySelectorAll('.modal-overlay').forEach(overlay =>
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); editingItemId = null; } })
+  );
 
   // Template editor
   document.getElementById('new-template-btn').addEventListener('click', () => openTemplateEditor(null));
@@ -896,11 +897,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sidebar-backdrop').classList.toggle('open');
   });
   document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
-
-  // Click-outside-to-close on all modals
-  document.querySelectorAll('.modal-overlay').forEach(overlay =>
-    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); editingItemId = null; } })
-  );
 
   loadBuildMeta();
   createIcons();
