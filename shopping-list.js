@@ -40,26 +40,33 @@ let pendingDelete = null;
 // ── Seed Data ──────────────────────────────────────────────────────────────
 const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
-    items:[{name:'Milk',qty:'1 gal',store:'',tags:''},{name:'Eggs',qty:'1 doz',store:'',tags:''},{name:'Bread',qty:'1 loaf',store:'',tags:''},{name:'Butter',qty:'',store:'',tags:''},{name:'Cheese',qty:'',store:'',tags:''},{name:'Chicken breast',qty:'2 lbs',store:'',tags:''},{name:'Pasta',qty:'1 box',store:'',tags:''},{name:'Rice',qty:'',store:'',tags:''},{name:'Olive oil',qty:'',store:'',tags:''},{name:'Bananas',qty:'',store:'',tags:''},{name:'Spinach',qty:'',store:'',tags:''}] },
+    items:[{name:'Milk',qty:'1 gal',stores:[],tags:[]},{name:'Eggs',qty:'1 doz',stores:[],tags:[]},{name:'Bread',qty:'1 loaf',stores:[],tags:[]},{name:'Butter',qty:'',stores:[],tags:[]},{name:'Cheese',qty:'',stores:[],tags:[]},{name:'Chicken breast',qty:'2 lbs',stores:[],tags:[]},{name:'Pasta',qty:'1 box',stores:[],tags:[]},{name:'Rice',qty:'',stores:[],tags:[]},{name:'Olive oil',qty:'',stores:[],tags:[]},{name:'Bananas',qty:'',stores:[],tags:[]},{name:'Spinach',qty:'',stores:[],tags:[]}] },
   { emoji:'🥩', name:'BBQ & Grilling', desc:'Everything you need for a backyard cookout',
-    items:[{name:'Burgers',qty:'2 lbs',store:'',tags:''},{name:'Hot dogs',qty:'1 pkg',store:'',tags:''},{name:'Chicken wings',qty:'3 lbs',store:'',tags:''},{name:'Buns',qty:'1 pkg',store:'',tags:''},{name:'Ketchup',qty:'',store:'',tags:''},{name:'Mustard',qty:'',store:'',tags:''},{name:'BBQ sauce',qty:'',store:'',tags:''},{name:'Corn on the cob',qty:'6',store:'',tags:''}] },
+    items:[{name:'Burgers',qty:'2 lbs',stores:[],tags:[]},{name:'Hot dogs',qty:'1 pkg',stores:[],tags:[]},{name:'Chicken wings',qty:'3 lbs',stores:[],tags:[]},{name:'Buns',qty:'1 pkg',stores:[],tags:[]},{name:'Ketchup',qty:'',stores:[],tags:[]},{name:'Mustard',qty:'',stores:[],tags:[]},{name:'BBQ sauce',qty:'',stores:[],tags:[]},{name:'Corn on the cob',qty:'6',stores:[],tags:[]}] },
   { emoji:'🎉', name:'Party Supplies', desc:'Stock up for a gathering or celebration',
-    items:[{name:'Chips & dip',qty:'',store:'',tags:'snacks'},{name:'Soda',qty:'2 cases',store:'',tags:'beverages'},{name:'Ice',qty:'2 bags',store:'',tags:''},{name:'Plates',qty:'50',store:'',tags:'supplies'},{name:'Cups',qty:'50',store:'',tags:'supplies'},{name:'Napkins',qty:'1 pkg',store:'',tags:'supplies'}] },
+    items:[{name:'Chips & dip',qty:'',stores:[],tags:['snacks']},{name:'Soda',qty:'2 cases',stores:[],tags:['beverages']},{name:'Ice',qty:'2 bags',stores:[],tags:[]},{name:'Plates',qty:'50',stores:[],tags:['supplies']},{name:'Cups',qty:'50',stores:[],tags:['supplies']},{name:'Napkins',qty:'1 pkg',stores:[],tags:['supplies']}] },
   { emoji:'🏠', name:'Household Basics', desc:'Cleaning and home essentials',
-    items:[{name:'Paper towels',qty:'6 rolls',store:'',tags:'cleaning'},{name:'Toilet paper',qty:'12 rolls',store:'',tags:''},{name:'Dish soap',qty:'1 bottle',store:'',tags:'cleaning'},{name:'Laundry detergent',qty:'',store:'',tags:'cleaning'},{name:'Trash bags',qty:'1 box',store:'',tags:''},{name:'Sponges',qty:'',store:'',tags:'cleaning'}] },
+    items:[{name:'Paper towels',qty:'6 rolls',stores:[],tags:['cleaning']},{name:'Toilet paper',qty:'12 rolls',stores:[],tags:[]},{name:'Dish soap',qty:'1 bottle',stores:[],tags:['cleaning']},{name:'Laundry detergent',qty:'',stores:[],tags:['cleaning']},{name:'Trash bags',qty:'1 box',stores:[],tags:[]},{name:'Sponges',qty:'',stores:[],tags:['cleaning']}] },
   { emoji:'🥗', name:'Healthy Eating', desc:'Fresh produce and wholesome staples',
-    items:[{name:'Kale',qty:'1 bunch',store:'',tags:'produce,organic'},{name:'Spinach',qty:'1 bag',store:'',tags:'produce'},{name:'Broccoli',qty:'1 head',store:'',tags:'produce'},{name:'Avocados',qty:'4',store:'',tags:'produce'},{name:'Blueberries',qty:'1 pint',store:'',tags:'produce'},{name:'Greek yogurt',qty:'',store:'',tags:'dairy'},{name:'Quinoa',qty:'1 bag',store:'',tags:''},{name:'Salmon',qty:'1 lb',store:'',tags:'seafood'},{name:'Almonds',qty:'1 bag',store:'',tags:'snacks'}] },
+    items:[{name:'Kale',qty:'1 bunch',stores:[],tags:['produce','organic']},{name:'Spinach',qty:'1 bag',stores:[],tags:['produce']},{name:'Broccoli',qty:'1 head',stores:[],tags:['produce']},{name:'Avocados',qty:'4',stores:[],tags:['produce']},{name:'Blueberries',qty:'1 pint',stores:[],tags:['produce']},{name:'Greek yogurt',qty:'',stores:[],tags:['dairy']},{name:'Quinoa',qty:'1 bag',stores:[],tags:[]},{name:'Salmon',qty:'1 lb',stores:[],tags:['seafood']},{name:'Almonds',qty:'1 bag',stores:[],tags:['snacks']}] },
   { emoji:'🍝', name:'Pasta Night', desc:'Ingredients for a classic Italian dinner',
-    items:[{name:'Spaghetti',qty:'1 box',store:'',tags:''},{name:'Marinara sauce',qty:'1 jar',store:'',tags:''},{name:'Ground beef',qty:'1 lb',store:'',tags:''},{name:'Parmesan cheese',qty:'',store:'',tags:'dairy'},{name:'Garlic',qty:'1 head',store:'',tags:'produce'},{name:'Olive oil',qty:'',store:'',tags:''},{name:'Fresh basil',qty:'1 bunch',store:'',tags:'produce'}] },
+    items:[{name:'Spaghetti',qty:'1 box',stores:[],tags:[]},{name:'Marinara sauce',qty:'1 jar',stores:[],tags:[]},{name:'Ground beef',qty:'1 lb',stores:[],tags:[]},{name:'Parmesan cheese',qty:'',stores:[],tags:['dairy']},{name:'Garlic',qty:'1 head',stores:[],tags:['produce']},{name:'Olive oil',qty:'',stores:[],tags:[]},{name:'Fresh basil',qty:'1 bunch',stores:[],tags:['produce']}] },
   { emoji:'🥞', name:'Breakfast Week', desc:'Morning staples to start every day right',
-    items:[{name:'Eggs',qty:'2 doz',store:'',tags:''},{name:'Bacon',qty:'1 pkg',store:'',tags:''},{name:'Bread',qty:'1 loaf',store:'',tags:''},{name:'Butter',qty:'',store:'',tags:''},{name:'Milk',qty:'1 gal',store:'',tags:'dairy'},{name:'Orange juice',qty:'1 jug',store:'',tags:'beverages'},{name:'Coffee',qty:'1 bag',store:'',tags:'beverages'},{name:'Oats',qty:'1 box',store:'',tags:''},{name:'Maple syrup',qty:'',store:'',tags:''}] },
+    items:[{name:'Eggs',qty:'2 doz',stores:[],tags:[]},{name:'Bacon',qty:'1 pkg',stores:[],tags:[]},{name:'Bread',qty:'1 loaf',stores:[],tags:[]},{name:'Butter',qty:'',stores:[],tags:[]},{name:'Milk',qty:'1 gal',stores:[],tags:['dairy']},{name:'Orange juice',qty:'1 jug',stores:[],tags:['beverages']},{name:'Coffee',qty:'1 bag',stores:[],tags:['beverages']},{name:'Oats',qty:'1 box',stores:[],tags:[]},{name:'Maple syrup',qty:'',stores:[],tags:[]}] },
   { emoji:'🎒', name:'Back to School', desc:'Lunches and snacks for busy school days',
-    items:[{name:'Sandwich bread',qty:'1 loaf',store:'',tags:''},{name:'Peanut butter',qty:'1 jar',store:'',tags:''},{name:'Jelly',qty:'1 jar',store:'',tags:''},{name:'Apple',qty:'6',store:'',tags:'produce'},{name:'Granola bars',qty:'1 box',store:'',tags:'snacks'},{name:'Juice boxes',qty:'1 box',store:'',tags:'beverages'},{name:'String cheese',qty:'1 pkg',store:'',tags:'dairy'}] }
+    items:[{name:'Sandwich bread',qty:'1 loaf',stores:[],tags:[]},{name:'Peanut butter',qty:'1 jar',stores:[],tags:[]},{name:'Jelly',qty:'1 jar',stores:[],tags:[]},{name:'Apple',qty:'6',stores:[],tags:['produce']},{name:'Granola bars',qty:'1 box',stores:[],tags:['snacks']},{name:'Juice boxes',qty:'1 box',stores:[],tags:['beverages']},{name:'String cheese',qty:'1 pkg',stores:[],tags:['dairy']}] }
 ];
 
 // ── Utility ────────────────────────────────────────────────────────────────
 function escHtml(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Normalise legacy string store/tags fields to arrays
+function toArray(val) {
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === 'string' && val.trim()) return val.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
 }
 
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -207,13 +214,13 @@ function subscribeToData() {
   unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
     allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCategories();
-    populateCategorySelects();
   });
 
   unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
     allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderStores();
     populateStoreSelect();
+    populateTplStoreSelects();
   });
 
   unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
@@ -286,9 +293,9 @@ async function useTemplate(tplId) {
     items.forEach(it => {
       const name = typeof it === 'string' ? it : (it.name || '');
       const qty = typeof it === 'object' ? (it.qty || '') : '';
-      const store = typeof it === 'object' ? (it.store || '') : '';
-      const tags = typeof it === 'object' ? (it.tags || '') : '';
-      batch.set(doc(itemsCol(listRef.id)), { name, qty, unit:'', store, tags, category:'', notes:'', checked:false, createdAt: serverTimestamp() });
+      const stores = toArray(typeof it === 'object' ? it.stores : []);
+      const tags = toArray(typeof it === 'object' ? it.tags : []);
+      batch.set(doc(itemsCol(listRef.id)), { name, qty, unit:'', stores, tags, notes:'', checked:false, createdAt: serverTimestamp() });
     });
     await batch.commit();
     showToast(`"${tpl.name}" created with ${items.length} items!`, 'success');
@@ -305,7 +312,11 @@ function openTemplateEditor(tplId) {
   document.getElementById('tpl-name').value = tpl ? tpl.name : '';
   document.getElementById('tpl-desc').value = tpl ? (tpl.desc || '') : '';
   document.getElementById('tpl-delete-btn').style.display = tpl ? 'inline-flex' : 'none';
-  tplEditorItems = tpl ? (tpl.items || []).map(it => typeof it === 'string' ? {name:it,qty:'',store:'',tags:''} : {...it}) : [];
+  tplEditorItems = tpl ? (tpl.items || []).map(it =>
+    typeof it === 'string'
+      ? {name:it, qty:'', stores:[], tags:[]}
+      : {name:it.name||'', qty:it.qty||'', stores:toArray(it.stores), tags:toArray(it.tags)}
+  ) : [];
   populateTplStoreSelects();
   renderTplEditorItems();
   openModal('modal-template-editor');
@@ -329,17 +340,29 @@ function renderTplEditorItems() {
       <input class="item-name-input" type="text" value="${escHtml(it.name)}" placeholder="Item name" data-idx="${i}" data-field="name">
       <input class="item-qty-input" type="text" value="${escHtml(it.qty||'')}" placeholder="Qty" data-idx="${i}" data-field="qty">
       <select class="item-store-select tpl-item-store-sel" data-idx="${i}" data-field="store">${storeOpts}</select>
-      <input class="item-tags-input" type="text" value="${escHtml(it.tags||'')}" placeholder="Tags" data-idx="${i}" data-field="tags">
+      <input class="item-tags-input" type="text" value="${escHtml((it.tags||[]).join(', '))}" placeholder="Tags" data-idx="${i}" data-field="tags">
       <button class="icon-btn" data-remove-idx="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`).join('');
 
   container.querySelectorAll('.tpl-item-store-sel').forEach(sel => {
     const i = parseInt(sel.dataset.idx);
-    sel.value = tplEditorItems[i].store || '';
+    sel.value = (tplEditorItems[i].stores || [])[0] || '';
   });
   container.querySelectorAll('input[data-field],select[data-field]').forEach(el => {
-    el.addEventListener('input', () => { tplEditorItems[parseInt(el.dataset.idx)][el.dataset.field] = el.value; });
-    el.addEventListener('change', () => { tplEditorItems[parseInt(el.dataset.idx)][el.dataset.field] = el.value; });
+    el.addEventListener('input', () => {
+      const i = parseInt(el.dataset.idx);
+      const field = el.dataset.field;
+      if (field === 'tags') tplEditorItems[i].tags = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+      else if (field === 'store') tplEditorItems[i].stores = el.value ? [el.value] : [];
+      else tplEditorItems[i][field] = el.value;
+    });
+    el.addEventListener('change', () => {
+      const i = parseInt(el.dataset.idx);
+      const field = el.dataset.field;
+      if (field === 'tags') tplEditorItems[i].tags = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+      else if (field === 'store') tplEditorItems[i].stores = el.value ? [el.value] : [];
+      else tplEditorItems[i][field] = el.value;
+    });
   });
   container.querySelectorAll('[data-remove-idx]').forEach(btn => {
     btn.addEventListener('click', () => { tplEditorItems.splice(parseInt(btn.dataset.removeIdx), 1); renderTplEditorItems(); });
@@ -351,11 +374,12 @@ document.getElementById('tpl-add-item-btn').addEventListener('click', () => {
   const nameEl = document.getElementById('tpl-new-item-name');
   const name = nameEl.value.trim();
   if (!name) { nameEl.focus(); return; }
+  const storeVal = document.getElementById('tpl-new-item-store').value;
   tplEditorItems.push({
     name,
     qty: document.getElementById('tpl-new-item-qty').value.trim(),
-    store: document.getElementById('tpl-new-item-store').value,
-    tags: document.getElementById('tpl-new-item-tags').value.trim()
+    stores: storeVal ? [storeVal] : [],
+    tags: document.getElementById('tpl-new-item-tags').value.split(',').map(s=>s.trim()).filter(Boolean)
   });
   nameEl.value = '';
   document.getElementById('tpl-new-item-qty').value = '';
@@ -533,16 +557,19 @@ function renderItems() {
 
   const renderGroup = (items) => items.map(item => {
     const qty = item.qty ? `<span class="item-qty-badge">${escHtml(item.qty)}${item.unit ? ' ' + escHtml(item.unit) : ''}</span>` : '';
-    const cat = item.category ? `<span class="category-chip">${escHtml(item.category)}</span>` : '';
+    const stores = toArray(item.stores);
+    const tags = toArray(item.tags);
+    const storeChips = stores.map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
+    const tagChips = tags.map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';
-    const metaParts = [qty, cat, notes].filter(Boolean).join(' ');
+    const metaParts = [qty, storeChips, tagChips, notes].filter(Boolean).join('');
     return `<div class="item-row${item.checked ? ' checked' : ''}" data-item-id="${item.id}">
       <div class="item-checkbox${item.checked ? ' checked' : ''}" data-toggle="${item.id}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="item-info">
         <div class="item-name">${escHtml(item.name)}</div>
-        ${metaParts ? `<div class="item-meta" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:3px;">${metaParts}</div>` : ''}
+        ${metaParts ? `<div class="item-meta">${metaParts}</div>` : ''}
       </div>
       <button class="icon-btn item-delete" data-delete-item="${item.id}" aria-label="Delete item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
@@ -573,6 +600,30 @@ async function updateListCounts(listId) {
   } catch {}
 }
 
+// ── Item Store Checkboxes ──────────────────────────────────────────────────
+function populateItemStoreCheckboxes(selectedStores = []) {
+  const container = document.getElementById('item-store-checkboxes');
+  if (!container) return;
+  if (allStores.length === 0) {
+    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
+    return;
+  }
+  container.innerHTML = allStores.map(s => {
+    const checked = selectedStores.includes(s.name) ? 'checked' : '';
+    return `<label class="store-checkbox-label">
+      <input type="checkbox" value="${escHtml(s.name)}" ${checked}>
+      <span>${escHtml(s.name)}</span>
+    </label>`;
+  }).join('');
+}
+
+function getSelectedStores() {
+  const container = document.getElementById('item-store-checkboxes');
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+}
+
+// ── Add Item Handlers ──────────────────────────────────────────────────────
 document.getElementById('new-item-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') addItemQuick();
 });
@@ -583,7 +634,9 @@ async function addItemQuick() {
   const name = input.value.trim();
   if (!name || !currentListId) return;
   try {
-    await addDoc(itemsCol(currentListId), { name, checked: false, qty: '', unit: '', category: '', notes: '', createdAt: serverTimestamp() });
+    await addDoc(itemsCol(currentListId), {
+      name, checked: false, qty: '', unit: '', stores: [], tags: [], notes: '', createdAt: serverTimestamp()
+    });
     input.value = '';
     input.focus();
   } catch (e) { showToast('Error: ' + e.message, 'error'); }
@@ -591,6 +644,9 @@ async function addItemQuick() {
 
 document.getElementById('add-item-detail-btn').addEventListener('click', () => {
   document.getElementById('item-name-full').value = document.getElementById('new-item-name').value;
+  populateItemStoreCheckboxes();
+  document.getElementById('item-tags').value = '';
+  document.getElementById('item-notes').value = '';
   openModal('modal-add-item');
   document.getElementById('item-name-full').focus();
 });
@@ -598,22 +654,23 @@ document.getElementById('add-item-detail-btn').addEventListener('click', () => {
 document.getElementById('save-item-btn').addEventListener('click', async () => {
   const name = document.getElementById('item-name-full').value.trim();
   if (!name) { showToast('Item name is required', 'error'); return; }
-  const catEl = document.getElementById('item-category');
-  const catText = catEl.options[catEl.selectedIndex]?.text || '';
+  const stores = getSelectedStores();
+  const tagsRaw = document.getElementById('item-tags').value;
+  const tags = tagsRaw.split(',').map(s => s.trim()).filter(Boolean);
   try {
     await addDoc(itemsCol(currentListId), {
       name,
       qty: document.getElementById('item-qty').value.trim(),
       unit: document.getElementById('item-unit').value.trim(),
-      category: catEl.value ? catText : '',
+      stores,
+      tags,
       notes: document.getElementById('item-notes').value.trim(),
       checked: false,
       createdAt: serverTimestamp()
     });
     closeModal('modal-add-item');
     document.getElementById('new-item-name').value = '';
-    ['item-name-full','item-qty','item-unit','item-notes'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('item-category').value = '';
+    ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
   } catch (e) { showToast('Error: ' + e.message, 'error'); }
 });
 
@@ -650,12 +707,6 @@ function renderCategories() {
     btn.addEventListener('click', () => confirmDelete('category', btn.dataset.deleteCat));
   });
   lucide.createIcons();
-}
-
-function populateCategorySelects() {
-  const sel = document.getElementById('item-category');
-  sel.innerHTML = '<option value="">No category</option>' +
-    allCategories.map(c => `<option value="${c.id}">${c.emoji || ''} ${escHtml(c.name)}</option>`).join('');
 }
 
 document.getElementById('new-category-btn').addEventListener('click', () => openModal('modal-new-category'));
