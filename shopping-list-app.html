@@ -141,13 +141,15 @@
         </div>
       </div>
 
-      <!-- Templates View -->
-      <div class="view" id="view-templates">
-        <div class="page-header">
-          <div><h1 class="page-title">Templates</h1><p class="page-subtitle">Start a new list from a ready-made template</p></div>
-        </div>
-        <div class="lists-grid" id="templates-grid"></div>
+ 
+    <!-- Templates View -->
+    <div class="view" id="view-templates">
+      <div class="page-header">
+        <div><h1 class="page-title">Templates</h1><p class="page-subtitle">Start a new list from a ready-made template</p></div>
+        <button class="btn btn-primary" id="new-template-btn"><i data-lucide="plus"></i> New Template</button>
       </div>
+      <div class="lists-grid" id="templates-grid"></div>
+    </div>
 
       <!-- Categories View -->
       <div class="view" id="view-categories">
@@ -202,6 +204,40 @@
     </div>
   </nav>
 </div>
+
+<!-- Modal: Template Editor -->
+<div class="modal-overlay" id="modal-template-editor">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <span class="modal-title" id="tpl-editor-title">New Template</span>
+      <button class="icon-btn" onclick="closeModal('modal-template-editor')" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="grid-template-columns:60px 1fr;">
+        <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="tpl-emoji" type="text" placeholder="🛒" maxlength="4"></div>
+        <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description"></div>
+      <div class="form-group" style="margin-bottom:var(--space-2);">
+        <label class="form-label">Items</label>
+        <div class="tpl-editor-items" id="tpl-editor-items"></div>
+        <div class="tpl-editor-add-row">
+          <input type="text" id="tpl-new-item-name" placeholder="Item name…">
+          <input type="text" id="tpl-new-item-qty" placeholder="Qty" style="width:70px;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text);">
+          <select id="tpl-new-item-store" style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text);"></select>
+          <input type="text" id="tpl-new-item-tags" placeholder="Tags (comma-separated)" style="width:160px;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text);">
+          <button class="btn btn-primary" id="tpl-add-item-btn"><i data-lucide="plus"></i> Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-template-editor')">Cancel</button>
+      <button class="btn btn-danger" id="tpl-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete Template</button>
+      <button class="btn btn-primary" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Modal: New List -->
 <div class="modal-overlay" id="modal-new-list">
@@ -308,56 +344,32 @@
   let allStores = [];
 
   // ── Templates Data ─────────────────────────────────────────────────────────────────────────
-  const LIST_TEMPLATES = [
-    {
-      emoji: '🛒',
-      name: 'Weekly Groceries',
-      desc: 'Everyday essentials for the week',
-      items: ['Milk','Eggs','Bread','Butter','Cheese','Yogurt','Chicken breast','Ground beef','Pasta','Rice','Canned tomatoes','Olive oil','Onions','Garlic','Bananas','Apples','Spinach','Carrots','Toilet paper','Dish soap']
-    },
-    {
-      emoji: '🥩',
-      name: 'BBQ & Grilling',
-      desc: 'Everything you need for a backyard cookout',
-      items: ['Burgers','Hot dogs','Chicken wings','Steak','Buns','Ketchup','Mustard','Relish','BBQ sauce','Corn on the cob','Coleslaw mix','Potato salad','Charcoal','Lighter fluid','Paper plates','Napkins']
-    },
-    {
-      emoji: '🎉',
-      name: 'Party Supplies',
-      desc: 'Stock up for a gathering or celebration',
-      items: ['Chips & dip','Soda','Juice','Beer / Wine','Ice','Plates','Cups','Napkins','Forks & spoons','Plastic wrap','Aluminum foil','Trash bags','Birthday candles','Streamers','Balloons']
-    },
-    {
-      emoji: '🏠',
-      name: 'Household Basics',
-      desc: 'Cleaning and home essentials',
-      items: ['Paper towels','Toilet paper','Dish soap','Laundry detergent','Fabric softener','All-purpose cleaner','Trash bags','Sponges','Ziplock bags','Aluminum foil','Plastic wrap','Light bulbs','Batteries','Hand soap']
-    },
-    {
-      emoji: '🥗',
-      name: 'Healthy Eating',
-      desc: 'Fresh produce and wholesome staples',
-      items: ['Kale','Spinach','Broccoli','Bell peppers','Cucumbers','Cherry tomatoes','Avocados','Blueberries','Strawberries','Greek yogurt','Hummus','Quinoa','Brown rice','Oats','Almonds','Salmon','Chicken breast','Eggs','Olive oil','Lemons']
-    },
-    {
-      emoji: '🍝',
-      name: 'Pasta Night',
-      desc: 'Ingredients for a classic Italian dinner',
-      items: ['Spaghetti','Penne','Fettuccine','Marinara sauce','Alfredo sauce','Ground beef','Italian sausage','Parmesan cheese','Mozzarella','Garlic','Onion','Crushed tomatoes','Olive oil','Fresh basil','Bread','Red wine']
-    },
-    {
-      emoji: '🥞',
-      name: 'Breakfast Week',
-      desc: 'Morning staples to start every day right',
-      items: ['Eggs','Bacon','Sausage','Bread','Bagels','Cream cheese','Butter','Milk','Orange juice','Coffee','Tea','Oats','Granola','Yogurt','Bananas','Berries','Maple syrup','Pancake mix']
-    },
-    {
-      emoji: '🎒',
-      name: 'Back to School',
-      desc: 'Lunches and snacks for busy school days',
-      items: ['Sandwich bread','Peanut butter','Jelly','Deli turkey','Deli ham','Cheese slices','Apples','Grapes','Baby carrots','Celery','Crackers','Granola bars','Juice boxes','Chips','Yogurt tubes','String cheese','Pretzels','Fruit snacks']
-    }
-  ];
+// ── Templates ──────────────────────────────────────────────────────────────
+const templatesCol = () => collection(db, 'users', uid(), 'templates');
+let allTemplates = [];
+let unsubTemplates = null;
+let editingTemplateId = null;
+let tplEditorItems = []; // working copy of items in the editor
+
+const SEED_TEMPLATES = [
+  { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
+    items:[{name:'Milk',qty:'1 gal',store:'',tags:''},{name:'Eggs',qty:'1 doz',store:'',tags:''},{name:'Bread',qty:'1 loaf',store:'',tags:''},{name:'Butter',qty:'',store:'',tags:''},{name:'Cheese',qty:'',store:'',tags:''},{name:'Chicken breast',qty:'2 lbs',store:'',tags:''},{name:'Pasta',qty:'1 box',store:'',tags:''},{name:'Rice',qty:'',store:'',tags:''},{name:'Olive oil',qty:'',store:'',tags:''},{name:'Bananas',qty:'',store:'',tags:''},{name:'Spinach',qty:'',store:'',tags:''}] },
+  { emoji:'🥩', name:'BBQ & Grilling', desc:'Everything you need for a backyard cookout',
+    items:[{name:'Burgers',qty:'2 lbs',store:'',tags:''},{name:'Hot dogs',qty:'1 pkg',store:'',tags:''},{name:'Chicken wings',qty:'3 lbs',store:'',tags:''},{name:'Buns',qty:'1 pkg',store:'',tags:''},{name:'Ketchup',qty:'',store:'',tags:''},{name:'Mustard',qty:'',store:'',tags:''},{name:'BBQ sauce',qty:'',store:'',tags:''},{name:'Corn on the cob',qty:'6',store:'',tags:''}] },
+  { emoji:'🎉', name:'Party Supplies', desc:'Stock up for a gathering or celebration',
+    items:[{name:'Chips & dip',qty:'',store:'',tags:'snacks'},{name:'Soda',qty:'2 cases',store:'',tags:'beverages'},{name:'Ice',qty:'2 bags',store:'',tags:''},{name:'Plates',qty:'50',store:'',tags:'supplies'},{name:'Cups',qty:'50',store:'',tags:'supplies'},{name:'Napkins',qty:'1 pkg',store:'',tags:'supplies'}] },
+  { emoji:'🏠', name:'Household Basics', desc:'Cleaning and home essentials',
+    items:[{name:'Paper towels',qty:'6 rolls',store:'',tags:'cleaning'},{name:'Toilet paper',qty:'12 rolls',store:'',tags:''},{name:'Dish soap',qty:'1 bottle',store:'',tags:'cleaning'},{name:'Laundry detergent',qty:'',store:'',tags:'cleaning'},{name:'Trash bags',qty:'1 box',store:'',tags:''},{name:'Sponges',qty:'',store:'',tags:'cleaning'}] },
+  { emoji:'🥗', name:'Healthy Eating', desc:'Fresh produce and wholesome staples',
+    items:[{name:'Kale',qty:'1 bunch',store:'',tags:'produce,organic'},{name:'Spinach',qty:'1 bag',store:'',tags:'produce'},{name:'Broccoli',qty:'1 head',store:'',tags:'produce'},{name:'Avocados',qty:'4',store:'',tags:'produce'},{name:'Blueberries',qty:'1 pint',store:'',tags:'produce'},{name:'Greek yogurt',qty:'',store:'',tags:'dairy'},{name:'Quinoa',qty:'1 bag',store:'',tags:''},{name:'Salmon',qty:'1 lb',store:'',tags:'seafood'},{name:'Almonds',qty:'1 bag',store:'',tags:'snacks'}] },
+  { emoji:'🍝', name:'Pasta Night', desc:'Ingredients for a classic Italian dinner',
+    items:[{name:'Spaghetti',qty:'1 box',store:'',tags:''},{name:'Marinara sauce',qty:'1 jar',store:'',tags:''},{name:'Ground beef',qty:'1 lb',store:'',tags:''},{name:'Parmesan cheese',qty:'',store:'',tags:'dairy'},{name:'Garlic',qty:'1 head',store:'',tags:'produce'},{name:'Olive oil',qty:'',store:'',tags:''},{name:'Fresh basil',qty:'1 bunch',store:'',tags:'produce'}] },
+  { emoji:'🥞', name:'Breakfast Week', desc:'Morning staples to start every day right',
+    items:[{name:'Eggs',qty:'2 doz',store:'',tags:''},{name:'Bacon',qty:'1 pkg',store:'',tags:''},{name:'Bread',qty:'1 loaf',store:'',tags:''},{name:'Butter',qty:'',store:'',tags:''},{name:'Milk',qty:'1 gal',store:'',tags:'dairy'},{name:'Orange juice',qty:'1 jug',store:'',tags:'beverages'},{name:'Coffee',qty:'1 bag',store:'',tags:'beverages'},{name:'Oats',qty:'1 box',store:'',tags:''},{name:'Maple syrup',qty:'',store:'',tags:''}] },
+  { emoji:'🎒', name:'Back to School', desc:'Lunches and snacks for busy school days',
+    items:[{name:'Sandwich bread',qty:'1 loaf',store:'',tags:''},{name:'Peanut butter',qty:'1 jar',store:'',tags:''},{name:'Jelly',qty:'1 jar',store:'',tags:''},{name:'Apple',qty:'6',store:'',tags:'produce'},{name:'Granola bars',qty:'1 box',store:'',tags:'snacks'},{name:'Juice boxes',qty:'1 box',store:'',tags:'beverages'},{name:'String cheese',qty:'1 pkg',store:'',tags:'dairy'}] }
+];
+
 
   // ── Theme ──────────────────────────────────────────────────────────────────────────────────
   const html = document.documentElement;
@@ -481,11 +493,14 @@
     if (unsubItems) { unsubItems(); unsubItems = null; }
     if (unsubCategories) { unsubCategories(); unsubCategories = null; }
     if (unsubStores) { unsubStores(); unsubStores = null; }
-    allLists = []; allItems = []; allCategories = []; allStores = [];
+    if (unsubTemplates) { unsubTemplates(); unsubTemplates = null; }
+    allTemplates = []; allLists = []; allItems = []; allCategories = []; allStores = [];
   }
 
   function subscribeToData() {
     seedDefaultsIfNeeded();
+    seedTemplatesIfNeeded();
+    subscribeToTemplates();
 
     unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
       allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -507,67 +522,196 @@
   }
 
   // ── Templates ─────────────────────────────────────────────────────────────────────────────────
-  function renderTemplates() {
-    const grid = document.getElementById('templates-grid');
-    grid.innerHTML = LIST_TEMPLATES.map((t, i) => {
-      const previewItems = t.items.slice(0, 5);
-      const remaining = t.items.length - previewItems.length;
-      const chips = previewItems.map(item => `<span class="template-item-chip">${escHtml(item)}</span>`).join('');
-      const moreChip = remaining > 0 ? `<span class="template-item-chip">+${remaining} more</span>` : '';
-      return `<div class="template-card" data-tpl-idx="${i}">
-        <div class="template-card-emoji">${t.emoji}</div>
-        <div>
-          <div class="template-card-title">${escHtml(t.name)}</div>
-          <div class="template-card-desc">${escHtml(t.desc)}</div>
-        </div>
-        <div class="template-card-items">${chips}${moreChip}</div>
-        <div class="template-card-footer">
-          <span class="template-item-count">${t.items.length} items</span>
-          <button class="btn btn-primary" data-use-tpl="${i}"><i data-lucide="plus"></i> Use Template</button>
-        </div>
-      </div>`;
-    }).join('');
-
-    grid.querySelectorAll('[data-use-tpl]').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        useTemplate(parseInt(btn.dataset.useTpl));
-      });
+async function seedTemplatesIfNeeded() {
+  const snap = await getDocs(templatesCol());
+  if (snap.empty) {
+    const batch = writeBatch(db);
+    SEED_TEMPLATES.forEach(t => {
+      batch.set(doc(templatesCol()), { ...t, createdAt: serverTimestamp() });
     });
-    lucide.createIcons();
+    await batch.commit();
   }
+}
 
-  async function useTemplate(idx) {
-    const tpl = LIST_TEMPLATES[idx];
-    if (!tpl || !currentUser) return;
-    try {
-      const listRef = await addDoc(listsCol(), {
-        name: tpl.name,
-        storeName: '',
-        itemCount: tpl.items.length,
-        checkedCount: 0,
-        createdAt: serverTimestamp()
-      });
-      const batch = writeBatch(db);
-      tpl.items.forEach(name => {
-        batch.set(doc(itemsCol(listRef.id)), {
-          name,
-          checked: false,
-          qty: '',
-          unit: '',
-          category: '',
-          notes: '',
-          createdAt: serverTimestamp()
-        });
-      });
-      await batch.commit();
-      showToast(`"${tpl.name}" created with ${tpl.items.length} items!`, 'success');
-      navigateTo('lists');
-      setTimeout(() => openList(listRef.id), 300);
-    } catch (e) {
-      showToast('Error: ' + e.message, 'error');
-    }
+function subscribeToTemplates() {
+  unsubTemplates = onSnapshot(query(templatesCol(), orderBy('createdAt')), snap => {
+    allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTemplates();
+  });
+}
+
+function renderTemplates() {
+  const grid = document.getElementById('templates-grid');
+  if (!grid) return;
+  if (allTemplates.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <div class="empty-state-icon"><i data-lucide="layout-template"></i></div>
+      <h3>No templates yet</h3>
+      <p>Create a template to quickly start new lists.</p>
+    </div>`;
+    lucide.createIcons(); return;
   }
+  grid.innerHTML = allTemplates.map(t => {
+    const items = t.items || [];
+    const preview = items.slice(0, 5);
+    const more = items.length - preview.length;
+    const chips = preview.map(it => `<span class="template-item-chip">${escHtml(it.name || it)}</span>`).join('');
+    const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
+    return `<div class="template-card" data-tpl-id="${t.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div class="template-card-emoji">${t.emoji || '📋'}</div>
+        <button class="icon-btn template-card-edit-btn" data-edit-tpl="${t.id}" aria-label="Edit template" title="Edit template"><i data-lucide="pencil"></i></button>
+      </div>
+      <div>
+        <div class="template-card-title">${escHtml(t.name)}</div>
+        <div class="template-card-desc">${escHtml(t.desc || '')}</div>
+      </div>
+      <div class="template-card-items">${chips}${moreChip}</div>
+      <div class="template-card-footer">
+        <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+        <button class="btn btn-primary" data-use-tpl="${t.id}"><i data-lucide="plus"></i> Use Template</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-use-tpl]').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); useTemplate(btn.dataset.useTpl); });
+  });
+  grid.querySelectorAll('[data-edit-tpl]').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openTemplateEditor(btn.dataset.editTpl); });
+  });
+  lucide.createIcons();
+}
+
+async function useTemplate(tplId) {
+  const tpl = allTemplates.find(t => t.id === tplId);
+  if (!tpl || !currentUser) return;
+  const items = tpl.items || [];
+  try {
+    const listRef = await addDoc(listsCol(), {
+      name: tpl.name, storeName: '', itemCount: items.length, checkedCount: 0, createdAt: serverTimestamp()
+    });
+    const batch = writeBatch(db);
+    items.forEach(it => {
+      const name = typeof it === 'string' ? it : (it.name || '');
+      const qty = typeof it === 'object' ? (it.qty || '') : '';
+      const store = typeof it === 'object' ? (it.store || '') : '';
+      const tags = typeof it === 'object' ? (it.tags || '') : '';
+      batch.set(doc(itemsCol(listRef.id)), { name, qty, unit:'', store, tags, category:'', notes:'', checked:false, createdAt: serverTimestamp() });
+    });
+    await batch.commit();
+    showToast(`"${tpl.name}" created with ${items.length} items!`, 'success');
+    navigateTo('lists');
+    setTimeout(() => openList(listRef.id), 300);
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+// Template Editor
+function openTemplateEditor(tplId) {
+  editingTemplateId = tplId || null;
+  const tpl = tplId ? allTemplates.find(t => t.id === tplId) : null;
+  document.getElementById('tpl-editor-title').textContent = tpl ? 'Edit Template' : 'New Template';
+  document.getElementById('tpl-emoji').value = tpl ? (tpl.emoji || '') : '';
+  document.getElementById('tpl-name').value = tpl ? tpl.name : '';
+  document.getElementById('tpl-desc').value = tpl ? (tpl.desc || '') : '';
+  document.getElementById('tpl-delete-btn').style.display = tpl ? 'inline-flex' : 'none';
+  tplEditorItems = tpl ? (tpl.items || []).map(it => typeof it === 'string' ? {name:it,qty:'',store:'',tags:''} : {...it}) : [];
+  populateTplStoreSelects();
+  renderTplEditorItems();
+  openModal('modal-template-editor');
+}
+
+function populateTplStoreSelects() {
+  const opts = '<option value="">No store</option>' + allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+  document.getElementById('tpl-new-item-store').innerHTML = opts;
+  document.querySelectorAll('.tpl-item-store-sel').forEach(sel => { const v = sel.value; sel.innerHTML = opts; sel.value = v; });
+}
+
+function renderTplEditorItems() {
+  const container = document.getElementById('tpl-editor-items');
+  if (tplEditorItems.length === 0) {
+    container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4);">No items yet — add one below</div>`;
+    return;
+  }
+  const storeOpts = '<option value="">No store</option>' + allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+  container.innerHTML = tplEditorItems.map((it, i) => `
+    <div class="tpl-editor-item">
+      <input class="item-name-input" type="text" value="${escHtml(it.name)}" placeholder="Item name" data-idx="${i}" data-field="name">
+      <input class="item-qty-input" type="text" value="${escHtml(it.qty||'')}" placeholder="Qty" data-idx="${i}" data-field="qty">
+      <select class="item-store-select tpl-item-store-sel" data-idx="${i}" data-field="store">${storeOpts}</select>
+      <input class="item-tags-input" type="text" value="${escHtml(it.tags||'')}" placeholder="Tags" data-idx="${i}" data-field="tags">
+      <button class="icon-btn" data-remove-idx="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
+    </div>`).join('');
+
+  // Set store select values
+  container.querySelectorAll('.tpl-item-store-sel').forEach(sel => {
+    const i = parseInt(sel.dataset.idx);
+    sel.value = tplEditorItems[i].store || '';
+  });
+
+  container.querySelectorAll('input[data-field],select[data-field]').forEach(el => {
+    el.addEventListener('input', () => { tplEditorItems[parseInt(el.dataset.idx)][el.dataset.field] = el.value; });
+    el.addEventListener('change', () => { tplEditorItems[parseInt(el.dataset.idx)][el.dataset.field] = el.value; });
+  });
+  container.querySelectorAll('[data-remove-idx]').forEach(btn => {
+    btn.addEventListener('click', () => { tplEditorItems.splice(parseInt(btn.dataset.removeIdx), 1); renderTplEditorItems(); });
+  });
+  lucide.createIcons();
+}
+
+document.getElementById('tpl-add-item-btn').addEventListener('click', () => {
+  const nameEl = document.getElementById('tpl-new-item-name');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  tplEditorItems.push({
+    name,
+    qty: document.getElementById('tpl-new-item-qty').value.trim(),
+    store: document.getElementById('tpl-new-item-store').value,
+    tags: document.getElementById('tpl-new-item-tags').value.trim()
+  });
+  nameEl.value = '';
+  document.getElementById('tpl-new-item-qty').value = '';
+  document.getElementById('tpl-new-item-store').value = '';
+  document.getElementById('tpl-new-item-tags').value = '';
+  renderTplEditorItems();
+  nameEl.focus();
+});
+
+document.getElementById('tpl-new-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('tpl-add-item-btn').click(); });
+
+document.getElementById('tpl-save-btn').addEventListener('click', async () => {
+  const name = document.getElementById('tpl-name').value.trim();
+  if (!name) { showToast('Template name is required', 'error'); return; }
+  const data = {
+    name,
+    emoji: document.getElementById('tpl-emoji').value.trim() || '📋',
+    desc: document.getElementById('tpl-desc').value.trim(),
+    items: tplEditorItems,
+    updatedAt: serverTimestamp()
+  };
+  try {
+    if (editingTemplateId) {
+      await updateDoc(doc(templatesCol(), editingTemplateId), data);
+      showToast('Template saved!', 'success');
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(templatesCol(), data);
+      showToast(`"${name}" template created!`, 'success');
+    }
+    closeModal('modal-template-editor');
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+});
+
+document.getElementById('tpl-delete-btn').addEventListener('click', () => {
+  if (!editingTemplateId) return;
+  pendingDelete = { type: 'template', id: editingTemplateId };
+  document.getElementById('confirm-title').textContent = 'Delete Template?';
+  document.getElementById('confirm-message').textContent = 'This template will be permanently deleted.';
+  closeModal('modal-template-editor');
+  openModal('modal-confirm');
+});
+
+document.getElementById('new-template-btn').addEventListener('click', () => openTemplateEditor(null));
 
   // ── Lists ──────────────────────────────────────────────────────────────────────────────────
   function renderLists() {
@@ -913,7 +1057,10 @@
       } else if (type === 'category') {
         await deleteDoc(doc(categoriesCol(), id));
         showToast('Category deleted', 'success');
-      } else if (type === 'store') {
+      } } else if (type === 'template') {
+        await deleteDoc(doc(templatesCol(), id));
+        showToast('Template deleted', 'success');
+        else if (type === 'store') {
         await deleteDoc(doc(storesCol(), id));
         showToast('Store deleted', 'success');
       }
