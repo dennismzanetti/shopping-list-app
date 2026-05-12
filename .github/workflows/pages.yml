@@ -25,16 +25,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Write build metadata
         run: |
-          cat > version.json <<EOF
-          {
-            "buildNumber": "${{ github.run_number }}",
-            "runId": "${{ github.run_id }}",
-            "sha": "${{ github.sha }}",
-            "repo": "${{ github.server_url }}/${{ github.repository }}",
-            "commitUrl": "${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}",
-            "runUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          }
-          EOF
+          printf '{"sha":"%s","commitUrl":"%s","buildNumber":"%s","runId":"%s","repo":"%s"}\n' \
+            "${{ github.sha }}" \
+            "${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" \
+            "${{ github.run_number }}" \
+            "${{ github.run_id }}" \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            > version.json
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
