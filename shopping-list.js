@@ -20,7 +20,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Safe lucide wrapper — never throws even if lucide hasn't initialised yet
 function createIcons() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 }
@@ -42,6 +41,7 @@ let editingTemplateId = null;
 let tplEditorItems = [];
 let pendingDelete = null;
 let pendingListId = null;
+let currentTheme = 'light';
 
 // ── Hash-based list restore ────────────────────────────────────────────────
 function getHashListId() {
@@ -83,12 +83,9 @@ function toArray(val) {
 }
 
 // ── Theme ──────────────────────────────────────────────────────────────────
-const html = document.documentElement;
-let currentTheme = 'light';
-html.setAttribute('data-theme', currentTheme);
-syncThemeUI();
-
 function syncThemeUI() {
+  const html = document.documentElement;
+  html.setAttribute('data-theme', currentTheme);
   const btn = document.getElementById('theme-toggle');
   const toggle = document.getElementById('dark-mode-toggle');
   if (btn) btn.innerHTML = currentTheme === 'dark'
@@ -98,65 +95,11 @@ function syncThemeUI() {
 }
 function toggleTheme() {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', currentTheme);
   syncThemeUI();
 }
-document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-document.getElementById('dark-mode-toggle').addEventListener('change', toggleTheme);
 
 // ── Auth ───────────────────────────────────────────────────────────────────
 const provider = new GoogleAuthProvider();
-
-document.getElementById('google-signin-btn').addEventListener('click', async () => {
-  document.getElementById('auth-body').style.display = 'none';
-  document.getElementById('auth-loading').style.display = 'flex';
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (e) {
-    document.getElementById('auth-body').style.display = 'block';
-    document.getElementById('auth-loading').style.display = 'none';
-    showToast('Sign-in failed: ' + e.message, 'error');
-  }
-});
-
-document.getElementById('signout-btn').addEventListener('click', async () => {
-  await signOut(auth);
-  showToast('Signed out', 'info');
-});
-
-onAuthStateChanged(auth, user => {
-  if (user) {
-    currentUser = user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    updateUserUI();
-    pendingListId = getHashListId();
-    subscribeToData();
-    createIcons();
-  } else {
-    currentUser = null;
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('auth-body').style.display = 'block';
-    document.getElementById('auth-loading').style.display = 'none';
-    teardownSubscriptions();
-  }
-});
-
-function updateUserUI() {
-  if (!currentUser) return;
-  const initials = (currentUser.displayName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  ['sidebar-avatar', 'settings-avatar'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (currentUser.photoURL) el.innerHTML = `<img src="${currentUser.photoURL}" alt="Avatar">`;
-    else el.textContent = initials;
-  });
-  document.getElementById('sidebar-name').textContent = currentUser.displayName || 'User';
-  document.getElementById('sidebar-email').textContent = currentUser.email || '';
-  document.getElementById('settings-name').textContent = currentUser.displayName || 'User';
-  document.getElementById('settings-email').textContent = currentUser.email || '';
-}
 
 // ── Firestore Helpers ──────────────────────────────────────────────────────
 const uid = () => currentUser.uid;
@@ -316,12 +259,14 @@ function openTemplateEditor(tplId) {
 
 function populateTplStoreSelects() {
   const opts = '<option value="">No store</option>' + allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
-  document.getElementById('tpl-new-item-store').innerHTML = opts;
+  const sel = document.getElementById('tpl-new-item-store');
+  if (sel) sel.innerHTML = opts;
   document.querySelectorAll('.tpl-item-store-sel').forEach(sel => { const v = sel.value; sel.innerHTML = opts; sel.value = v; });
 }
 
 function renderTplEditorItems() {
   const container = document.getElementById('tpl-editor-items');
+  if (!container) return;
   if (tplEditorItems.length === 0) {
     container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4);">No items yet — add one below</div>`;
     return;
@@ -351,42 +296,6 @@ function renderTplEditorItems() {
   );
   createIcons();
 }
-
-document.getElementById('tpl-add-item-btn').addEventListener('click', () => {
-  const nameEl = document.getElementById('tpl-new-item-name');
-  const name = nameEl.value.trim();
-  if (!name) { nameEl.focus(); return; }
-  const storeVal = document.getElementById('tpl-new-item-store').value;
-  tplEditorItems.push({ name, qty: document.getElementById('tpl-new-item-qty').value.trim(), stores: storeVal ? [storeVal] : [], tags: document.getElementById('tpl-new-item-tags').value.split(',').map(s=>s.trim()).filter(Boolean) });
-  nameEl.value = '';
-  document.getElementById('tpl-new-item-qty').value = '';
-  document.getElementById('tpl-new-item-store').value = '';
-  document.getElementById('tpl-new-item-tags').value = '';
-  renderTplEditorItems();
-  nameEl.focus();
-});
-document.getElementById('tpl-new-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('tpl-add-item-btn').click(); });
-
-document.getElementById('tpl-save-btn').addEventListener('click', async () => {
-  const name = document.getElementById('tpl-name').value.trim();
-  if (!name) { showToast('Template name is required', 'error'); return; }
-  const data = { name, emoji: document.getElementById('tpl-emoji').value.trim() || '📋', desc: document.getElementById('tpl-desc').value.trim(), items: tplEditorItems, updatedAt: serverTimestamp() };
-  try {
-    if (editingTemplateId) { await updateDoc(doc(templatesCol(), editingTemplateId), data); showToast('Template saved!', 'success'); }
-    else { data.createdAt = serverTimestamp(); await addDoc(templatesCol(), data); showToast(`"${name}" template created!`, 'success'); }
-    closeModal('modal-template-editor');
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-});
-
-document.getElementById('tpl-delete-btn').addEventListener('click', () => {
-  if (!editingTemplateId) return;
-  pendingDelete = { type: 'template', id: editingTemplateId };
-  document.getElementById('confirm-title').textContent = 'Delete Template?';
-  document.getElementById('confirm-message').textContent = 'This template will be permanently deleted.';
-  closeModal('modal-template-editor');
-  openModal('modal-confirm');
-});
-document.getElementById('new-template-btn').addEventListener('click', () => openTemplateEditor(null));
 
 // ── Lists ──────────────────────────────────────────────────────────────────
 function renderLists() {
@@ -424,29 +333,6 @@ function renderLists() {
   createIcons();
 }
 
-document.getElementById('search-lists').addEventListener('input', renderLists);
-document.getElementById('new-list-btn').addEventListener('click', () => openModal('modal-new-list'));
-document.getElementById('header-add-btn').addEventListener('click', () => {
-  const view = document.querySelector('.view.active')?.id?.replace('view-', '');
-  if (view === 'lists') openModal('modal-new-list');
-  else if (view === 'list-detail') openAddItemModal();
-  else if (view === 'categories') openModal('modal-new-category');
-  else if (view === 'stores') openModal('modal-new-store');
-  else if (view === 'templates') openTemplateEditor(null);
-});
-
-document.getElementById('create-list-btn').addEventListener('click', async () => {
-  const name = document.getElementById('new-list-name').value.trim();
-  if (!name) { showToast('Please enter a list name', 'error'); return; }
-  try {
-    await addDoc(listsCol(), { name, storeName: document.getElementById('new-list-store').value || '', itemCount: 0, checkedCount: 0, createdAt: serverTimestamp() });
-    closeModal('modal-new-list');
-    document.getElementById('new-list-name').value = '';
-    document.getElementById('new-list-store').value = '';
-    showToast(`"${name}" created!`, 'success');
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-});
-
 // ── List Detail ────────────────────────────────────────────────────────────
 function openList(listId) {
   currentListId = listId;
@@ -464,15 +350,6 @@ function openList(listId) {
     updateListCounts(listId);
   });
 }
-
-document.getElementById('back-to-lists').addEventListener('click', () => {
-  if (unsubItems) { unsubItems(); unsubItems = null; }
-  currentListId = null;
-  setHashListId(null);
-  navigateTo('lists');
-  document.getElementById('header-title').textContent = 'My Lists';
-});
-document.getElementById('detail-delete-btn').addEventListener('click', () => { if (currentListId) confirmDelete('list', currentListId); });
 
 function renderItems() {
   const list_ = document.getElementById('items-list');
@@ -532,46 +409,7 @@ function openAddItemModal(prefillName = '') {
   document.getElementById('item-notes').value = '';
   populateItemStoreCheckboxes();
   openModal('modal-add-item');
-  document.getElementById('item-name-full').focus();
-}
-
-// ── Add Item bar — both Add button and Enter key open the modal ────────────
-document.getElementById('new-item-name').addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    const val = e.target.value.trim();
-    openAddItemModal(val);
-    e.target.value = '';
-  }
-});
-document.getElementById('add-item-quick-btn').addEventListener('click', () => {
-  const input = document.getElementById('new-item-name');
-  openAddItemModal(input.value.trim());
-  input.value = '';
-});
-
-document.getElementById('save-item-btn').addEventListener('click', async () => {
-  const name = document.getElementById('item-name-full').value.trim();
-  if (!name) { showToast('Item name is required', 'error'); return; }
-  if (!currentListId) { showToast('No list selected', 'error'); return; }
-  const tags = document.getElementById('item-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
-  try {
-    await addDoc(itemsCol(currentListId), { name, qty:document.getElementById('item-qty').value.trim(), unit:document.getElementById('item-unit').value.trim(), stores:getSelectedStores(), tags, notes:document.getElementById('item-notes').value.trim(), checked:false, createdAt:serverTimestamp() });
-    closeModal('modal-add-item');
-    document.getElementById('new-item-name').value = '';
-    ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-});
-
-async function toggleItem(itemId) {
-  const item = allItems.find(i => i.id === itemId);
-  if (!item || !currentListId) return;
-  try { await updateDoc(doc(itemsCol(currentListId), itemId), { checked: !item.checked }); }
-  catch (e) { showToast('Error: ' + e.message, 'error'); }
-}
-async function deleteItem(itemId) {
-  if (!currentListId) return;
-  try { await deleteDoc(doc(itemsCol(currentListId), itemId)); }
-  catch (e) { showToast('Error: ' + e.message, 'error'); }
+  setTimeout(() => document.getElementById('item-name-full').focus(), 50);
 }
 
 // ── Categories ─────────────────────────────────────────────────────────────
@@ -589,18 +427,6 @@ function renderCategories() {
   grid.querySelectorAll('[data-delete-cat]').forEach(btn => btn.addEventListener('click', () => confirmDelete('category', btn.dataset.deleteCat)));
   createIcons();
 }
-document.getElementById('new-category-btn').addEventListener('click', () => openModal('modal-new-category'));
-document.getElementById('save-category-btn').addEventListener('click', async () => {
-  const name = document.getElementById('new-category-name').value.trim();
-  if (!name) { showToast('Category name is required', 'error'); return; }
-  try {
-    await addDoc(categoriesCol(), { name, emoji: document.getElementById('new-category-emoji').value.trim(), createdAt: serverTimestamp() });
-    closeModal('modal-new-category');
-    document.getElementById('new-category-name').value = '';
-    document.getElementById('new-category-emoji').value = '';
-    showToast(`"${name}" added!`, 'success');
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-});
 
 // ── Stores ─────────────────────────────────────────────────────────────────
 function renderStores() {
@@ -621,17 +447,6 @@ function populateStoreSelect() {
   document.getElementById('new-list-store').innerHTML = '<option value="">No default store</option>' +
     allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
 }
-document.getElementById('new-store-btn').addEventListener('click', () => openModal('modal-new-store'));
-document.getElementById('save-store-btn').addEventListener('click', async () => {
-  const name = document.getElementById('new-store-name').value.trim();
-  if (!name) { showToast('Store name is required', 'error'); return; }
-  try {
-    await addDoc(storesCol(), { name, createdAt: serverTimestamp() });
-    closeModal('modal-new-store');
-    document.getElementById('new-store-name').value = '';
-    showToast(`"${name}" added!`, 'success');
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-});
 
 // ── Delete ──────────────────────────────────────────────────────────────────
 function confirmDelete(type, id) {
@@ -642,29 +457,6 @@ function confirmDelete(type, id) {
   document.getElementById('confirm-message').textContent = msgs[type];
   openModal('modal-confirm');
 }
-document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
-  if (!pendingDelete) return;
-  const { type, id } = pendingDelete;
-  closeModal('modal-confirm');
-  try {
-    if (type === 'list') {
-      const itemSnap = await getDocs(itemsCol(id));
-      const batch = writeBatch(db);
-      itemSnap.docs.forEach(d => batch.delete(d.ref));
-      batch.delete(doc(listsCol(), id));
-      await batch.commit();
-      if (currentListId === id) {
-        if (unsubItems) { unsubItems(); unsubItems = null; }
-        currentListId = null; setHashListId(null); navigateTo('lists');
-        document.getElementById('header-title').textContent = 'My Lists';
-      }
-      showToast('List deleted', 'success');
-    } else if (type === 'category') { await deleteDoc(doc(categoriesCol(), id)); showToast('Category deleted', 'success'); }
-    else if (type === 'template') { await deleteDoc(doc(templatesCol(), id)); showToast('Template deleted', 'success'); }
-    else if (type === 'store') { await deleteDoc(doc(storesCol(), id)); showToast('Store deleted', 'success'); }
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
-  pendingDelete = null;
-});
 
 // ── Navigation ─────────────────────────────────────────────────────────────
 const viewTitles = { lists:'My Lists', 'list-detail':'', templates:'Templates', categories:'Categories', stores:'Stores', settings:'Settings' };
@@ -679,25 +471,14 @@ function navigateTo(view) {
   closeSidebar();
   createIcons();
 }
-document.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => { const v = el.dataset.view; if (v !== 'list-detail') navigateTo(v); }));
-document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('mobile-open');
-  document.getElementById('sidebar-backdrop').classList.toggle('open');
-});
-document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('mobile-open');
   document.getElementById('sidebar-backdrop').classList.remove('open');
 }
 
 // ── Modals ─────────────────────────────────────────────────────────────────
-window.openModal = id => { document.getElementById(id).classList.add('open'); createIcons(); };
-window.closeModal = id => { document.getElementById(id).classList.remove('open'); };
-document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); }));
-document.getElementById('new-list-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('create-list-btn').click(); });
-document.getElementById('new-category-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-category-btn').click(); });
-document.getElementById('new-store-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-store-btn').click(); });
-document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
+window.openModal = id => { const el = document.getElementById(id); if (el) { el.classList.add('open'); createIcons(); } };
+window.closeModal = id => { const el = document.getElementById(id); if (el) el.classList.remove('open'); };
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 function showToast(msg, type = 'info') {
@@ -726,5 +507,245 @@ async function loadBuildMeta() {
     el.innerHTML = `Build ${buildLabel}${shaLink} &middot; <a href="${v.repo||repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`;
   } catch { el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">View source</a>`; }
 }
-loadBuildMeta();
-createIcons();
+
+// ── Bootstrap — all DOM wiring happens here ────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Initial theme
+  syncThemeUI();
+
+  // Auth events
+  document.getElementById('google-signin-btn').addEventListener('click', async () => {
+    document.getElementById('auth-body').style.display = 'none';
+    document.getElementById('auth-loading').style.display = 'flex';
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      document.getElementById('auth-body').style.display = 'block';
+      document.getElementById('auth-loading').style.display = 'none';
+      showToast('Sign-in failed: ' + e.message, 'error');
+    }
+  });
+
+  document.getElementById('signout-btn').addEventListener('click', async () => {
+    await signOut(auth);
+    showToast('Signed out', 'info');
+  });
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      updateUserUI();
+      pendingListId = getHashListId();
+      subscribeToData();
+      createIcons();
+    } else {
+      currentUser = null;
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('auth-body').style.display = 'block';
+      document.getElementById('auth-loading').style.display = 'none';
+      teardownSubscriptions();
+    }
+  });
+
+  // Theme toggle
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('dark-mode-toggle').addEventListener('change', toggleTheme);
+
+  // Header add button
+  document.getElementById('header-add-btn').addEventListener('click', () => {
+    const view = document.querySelector('.view.active')?.id?.replace('view-', '');
+    if (view === 'lists') openModal('modal-new-list');
+    else if (view === 'list-detail') openAddItemModal();
+    else if (view === 'categories') openModal('modal-new-category');
+    else if (view === 'stores') openModal('modal-new-store');
+    else if (view === 'templates') openTemplateEditor(null);
+  });
+
+  // New list
+  document.getElementById('new-list-btn').addEventListener('click', () => openModal('modal-new-list'));
+  document.getElementById('search-lists').addEventListener('input', renderLists);
+  document.getElementById('create-list-btn').addEventListener('click', async () => {
+    const name = document.getElementById('new-list-name').value.trim();
+    if (!name) { showToast('Please enter a list name', 'error'); return; }
+    try {
+      await addDoc(listsCol(), { name, storeName: document.getElementById('new-list-store').value || '', itemCount: 0, checkedCount: 0, createdAt: serverTimestamp() });
+      closeModal('modal-new-list');
+      document.getElementById('new-list-name').value = '';
+      document.getElementById('new-list-store').value = '';
+      showToast(`"${name}" created!`, 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  document.getElementById('new-list-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('create-list-btn').click(); });
+
+  // List detail
+  document.getElementById('back-to-lists').addEventListener('click', () => {
+    if (unsubItems) { unsubItems(); unsubItems = null; }
+    currentListId = null;
+    setHashListId(null);
+    navigateTo('lists');
+    document.getElementById('header-title').textContent = 'My Lists';
+  });
+  document.getElementById('detail-delete-btn').addEventListener('click', () => { if (currentListId) confirmDelete('list', currentListId); });
+
+  // Add item bar
+  document.getElementById('new-item-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const val = e.target.value.trim();
+      openAddItemModal(val);
+      e.target.value = '';
+    }
+  });
+  document.getElementById('add-item-quick-btn').addEventListener('click', () => {
+    const input = document.getElementById('new-item-name');
+    openAddItemModal(input.value.trim());
+    input.value = '';
+  });
+  document.getElementById('save-item-btn').addEventListener('click', async () => {
+    const name = document.getElementById('item-name-full').value.trim();
+    if (!name) { showToast('Item name is required', 'error'); return; }
+    if (!currentListId) { showToast('No list selected', 'error'); return; }
+    const tags = document.getElementById('item-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
+    try {
+      await addDoc(itemsCol(currentListId), { name, qty:document.getElementById('item-qty').value.trim(), unit:document.getElementById('item-unit').value.trim(), stores:getSelectedStores(), tags, notes:document.getElementById('item-notes').value.trim(), checked:false, createdAt:serverTimestamp() });
+      closeModal('modal-add-item');
+      document.getElementById('new-item-name').value = '';
+      ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
+
+  // Templates
+  document.getElementById('new-template-btn').addEventListener('click', () => openTemplateEditor(null));
+  document.getElementById('tpl-add-item-btn').addEventListener('click', () => {
+    const nameEl = document.getElementById('tpl-new-item-name');
+    const name = nameEl.value.trim();
+    if (!name) { nameEl.focus(); return; }
+    const storeVal = document.getElementById('tpl-new-item-store').value;
+    tplEditorItems.push({ name, qty: document.getElementById('tpl-new-item-qty').value.trim(), stores: storeVal ? [storeVal] : [], tags: document.getElementById('tpl-new-item-tags').value.split(',').map(s=>s.trim()).filter(Boolean) });
+    nameEl.value = '';
+    document.getElementById('tpl-new-item-qty').value = '';
+    document.getElementById('tpl-new-item-store').value = '';
+    document.getElementById('tpl-new-item-tags').value = '';
+    renderTplEditorItems();
+    nameEl.focus();
+  });
+  document.getElementById('tpl-new-item-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('tpl-add-item-btn').click(); });
+  document.getElementById('tpl-save-btn').addEventListener('click', async () => {
+    const name = document.getElementById('tpl-name').value.trim();
+    if (!name) { showToast('Template name is required', 'error'); return; }
+    const data = { name, emoji: document.getElementById('tpl-emoji').value.trim() || '📋', desc: document.getElementById('tpl-desc').value.trim(), items: tplEditorItems, updatedAt: serverTimestamp() };
+    try {
+      if (editingTemplateId) { await updateDoc(doc(templatesCol(), editingTemplateId), data); showToast('Template saved!', 'success'); }
+      else { data.createdAt = serverTimestamp(); await addDoc(templatesCol(), data); showToast(`"${name}" template created!`, 'success'); }
+      closeModal('modal-template-editor');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  document.getElementById('tpl-delete-btn').addEventListener('click', () => {
+    if (!editingTemplateId) return;
+    pendingDelete = { type: 'template', id: editingTemplateId };
+    document.getElementById('confirm-title').textContent = 'Delete Template?';
+    document.getElementById('confirm-message').textContent = 'This template will be permanently deleted.';
+    closeModal('modal-template-editor');
+    openModal('modal-confirm');
+  });
+
+  // Categories
+  document.getElementById('new-category-btn').addEventListener('click', () => openModal('modal-new-category'));
+  document.getElementById('save-category-btn').addEventListener('click', async () => {
+    const name = document.getElementById('new-category-name').value.trim();
+    if (!name) { showToast('Category name is required', 'error'); return; }
+    try {
+      await addDoc(categoriesCol(), { name, emoji: document.getElementById('new-category-emoji').value.trim(), createdAt: serverTimestamp() });
+      closeModal('modal-new-category');
+      document.getElementById('new-category-name').value = '';
+      document.getElementById('new-category-emoji').value = '';
+      showToast(`"${name}" added!`, 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  document.getElementById('new-category-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-category-btn').click(); });
+
+  // Stores
+  document.getElementById('new-store-btn').addEventListener('click', () => openModal('modal-new-store'));
+  document.getElementById('save-store-btn').addEventListener('click', async () => {
+    const name = document.getElementById('new-store-name').value.trim();
+    if (!name) { showToast('Store name is required', 'error'); return; }
+    try {
+      await addDoc(storesCol(), { name, createdAt: serverTimestamp() });
+      closeModal('modal-new-store');
+      document.getElementById('new-store-name').value = '';
+      showToast(`"${name}" added!`, 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  document.getElementById('new-store-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-store-btn').click(); });
+
+  // Confirm dialog
+  document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
+    if (!pendingDelete) return;
+    const { type, id } = pendingDelete;
+    closeModal('modal-confirm');
+    try {
+      if (type === 'list') {
+        const itemSnap = await getDocs(itemsCol(id));
+        const batch = writeBatch(db);
+        itemSnap.docs.forEach(d => batch.delete(d.ref));
+        batch.delete(doc(listsCol(), id));
+        await batch.commit();
+        if (currentListId === id) {
+          if (unsubItems) { unsubItems(); unsubItems = null; }
+          currentListId = null; setHashListId(null); navigateTo('lists');
+          document.getElementById('header-title').textContent = 'My Lists';
+        }
+        showToast('List deleted', 'success');
+      } else if (type === 'category') { await deleteDoc(doc(categoriesCol(), id)); showToast('Category deleted', 'success'); }
+      else if (type === 'template') { await deleteDoc(doc(templatesCol(), id)); showToast('Template deleted', 'success'); }
+      else if (type === 'store') { await deleteDoc(doc(storesCol(), id)); showToast('Store deleted', 'success'); }
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    pendingDelete = null;
+  });
+
+  // Navigation
+  document.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => { const v = el.dataset.view; if (v !== 'list-detail') navigateTo(v); }));
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('sidebar-backdrop').classList.toggle('open');
+  });
+  document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
+
+  // Modal overlay click-outside-to-close
+  document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); }));
+
+  // Build meta
+  loadBuildMeta();
+  createIcons();
+});
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const initials = (currentUser.displayName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  ['sidebar-avatar', 'settings-avatar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (currentUser.photoURL) el.innerHTML = `<img src="${currentUser.photoURL}" alt="Avatar">`;
+    else el.textContent = initials;
+  });
+  document.getElementById('sidebar-name').textContent = currentUser.displayName || 'User';
+  document.getElementById('sidebar-email').textContent = currentUser.email || '';
+  document.getElementById('settings-name').textContent = currentUser.displayName || 'User';
+  document.getElementById('settings-email').textContent = currentUser.email || '';
+}
+
+async function toggleItem(itemId) {
+  const item = allItems.find(i => i.id === itemId);
+  if (!item || !currentListId) return;
+  try { await updateDoc(doc(itemsCol(currentListId), itemId), { checked: !item.checked }); }
+  catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+async function deleteItem(itemId) {
+  if (!currentListId) return;
+  try { await deleteDoc(doc(itemsCol(currentListId), itemId)); }
+  catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
