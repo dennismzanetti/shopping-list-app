@@ -175,20 +175,24 @@
     .lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--space-4)}
     .list-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);cursor:pointer;transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;position:relative}
     .list-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary);transform:translateY(-1px)}
+    /* FIX: card header is flex; title gets padding-right to clear the absolute action buttons */
     .list-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--space-3)}
-    .list-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text)}
+    .list-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text);padding-right:calc(36px * 2 + var(--space-1) + var(--space-2))}
     .list-card-meta{font-size:var(--text-xs);color:var(--color-text-muted);display:flex;gap:var(--space-3);margin-top:var(--space-2)}
     .list-card-progress{height:4px;background:var(--color-surface-offset);border-radius:var(--radius-full);margin-top:var(--space-3);overflow:hidden}
     .list-card-progress-bar{height:100%;background:var(--color-primary);border-radius:var(--radius-full);transition:width .4s ease}
-    .list-card-actions{position:absolute;top:var(--space-3);right:var(--space-3);display:flex;gap:var(--space-1)}
+    /* FIX: action buttons always visible, never behind the card title */
+    .list-card-actions{position:absolute;top:var(--space-3);right:var(--space-3);display:flex;gap:var(--space-1);z-index:1}
 
     /* Items list view */
     .list-detail-header{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6)}
     .back-btn{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm);color:var(--color-text-muted);cursor:pointer;padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);transition:background var(--transition-interactive),color var(--transition-interactive)}
     .back-btn:hover{background:var(--color-surface-offset);color:var(--color-text)}
     .back-btn svg{width:16px;height:16px}
-    .add-item-bar{display:flex;gap:var(--space-2);margin-bottom:var(--space-4)}
-    .add-item-bar .form-input{flex:1}
+    /* FIX: add-item bar — button always fully visible, never squished */
+    .add-item-bar{display:flex;gap:var(--space-2);margin-bottom:var(--space-4);align-items:center}
+    .add-item-bar .form-input{flex:1;min-width:0}
+    .add-item-bar .btn{flex-shrink:0}
     .items-list{display:flex;flex-direction:column;gap:var(--space-2)}
     .item-row{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);transition:background var(--transition-interactive),opacity var(--transition-interactive)}
     .item-row.checked{opacity:.55}
