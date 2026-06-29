@@ -127,11 +127,16 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
           <span class="progress-label" id="progress-label">0 of 0</span>
         </div>
+        <!-- Quick-add bar -->
+        <div class="quick-add-bar">
+          <input type="text" class="form-input" id="new-item-name" placeholder="Quick-add an item… (press Enter)">
+          <button class="btn btn-primary" id="add-item-quick-btn"><i data-lucide="plus"></i></button>
+        </div>
         <div id="items-container">
           <div class="empty-state" id="items-empty">
             <div class="empty-state-icon"><i data-lucide="package-open"></i></div>
             <h3>List is empty</h3>
-            <p>Tap the <strong>+</strong> button to add your first item.</p>
+            <p>Tap the <strong>+</strong> button or use the quick-add bar above.</p>
           </div>
           <div class="items-list" id="items-list"></div>
         </div>
@@ -210,21 +215,17 @@
       <button class="icon-btn" onclick="closeModal('modal-template-editor')" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <!-- Template meta -->
       <div class="form-row" style="grid-template-columns:60px 1fr;">
         <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="tpl-emoji" type="text" placeholder="🛒" maxlength="4"></div>
         <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
       </div>
       <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
-
-      <!-- Item list -->
       <div class="form-group" style="margin-bottom:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
           <label class="form-label" style="margin-bottom:0;">Items</label>
           <span id="tpl-item-count" style="font-size:var(--text-xs);color:var(--color-text-faint);">0 items</span>
         </div>
         <div class="tpl-editor-items" id="tpl-editor-items"></div>
-        <!-- Quick-add bar -->
         <div style="margin-top:var(--space-3);">
           <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);">
             <i data-lucide="plus"></i> Add Item
@@ -241,7 +242,7 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     Modal: Template Item Editor (add / edit a single template item)
+     Modal: Template Item Editor
      ═══════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-tpl-item">
   <div class="modal" style="max-width:480px;">
