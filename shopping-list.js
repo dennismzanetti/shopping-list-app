@@ -10,7 +10,7 @@ function createIcons() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 }
 
-// ── State ──────────────────────────────────────────────────────────────────
+// ── State ───────────────────────────────────────────────────────────────────────────
 let currentUser = null;
 let currentListId = null;
 let unsubLists = null;
@@ -31,7 +31,7 @@ let pendingDelete = null;
 let pendingListId = null;
 let currentTheme = 'light';
 
-// ── Hash-based list restore ────────────────────────────────────────────────
+// ── Hash-based list restore ─────────────────────────────────────────────────────────
 function getHashListId() {
   const m = window.location.hash.match(/^#list\/(.+)$/);
   return m ? m[1] : null;
@@ -40,7 +40,7 @@ function setHashListId(listId) {
   history.replaceState(null, '', listId ? `#list/${listId}` : '#');
 }
 
-// ── Seed Data ──────────────────────────────────────────────────────────────
+// ── Seed Data ─────────────────────────────────────────────────────────────────────────
 const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
     items:[
@@ -131,7 +131,7 @@ const SEED_TEMPLATES = [
     ] }
 ];
 
-// ── Utility ────────────────────────────────────────────────────────────────
+// ── Utility ──────────────────────────────────────────────────────────────────────────
 function escHtml(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -141,7 +141,7 @@ function toArray(val) {
   return [];
 }
 
-// ── Theme ──────────────────────────────────────────────────────────────────
+// ── Theme ────────────────────────────────────────────────────────────────────────────
 function syncThemeUI() {
   const html = document.documentElement;
   html.setAttribute('data-theme', currentTheme);
@@ -157,7 +157,7 @@ function toggleTheme() {
   syncThemeUI();
 }
 
-// ── Firestore Helpers ──────────────────────────────────────────────────────
+// ── Firestore Helpers ──────────────────────────────────────────────────────────────────
 const uid = () => currentUser.uid;
 const listsCol = () => collection(db, 'users', uid(), 'lists');
 const itemsCol = (listId) => collection(db, 'users', uid(), 'lists', listId, 'items');
@@ -238,7 +238,7 @@ function subscribeToData() {
   });
 }
 
-// ── Templates ──────────────────────────────────────────────────────────────
+// ── Templates ────────────────────────────────────────────────────────────────────────
 function subscribeToTemplates() {
   unsubTemplates = onSnapshot(query(templatesCol(), orderBy('createdAt')), snap => {
     allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -304,7 +304,7 @@ async function useTemplate(tplId) {
   } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
-// ── Template Editor ────────────────────────────────────────────────────────
+// ── Template Editor ──────────────────────────────────────────────────────────────────────
 function openTemplateEditor(tplId) {
   editingTemplateId = tplId || null;
   const tpl = tplId ? allTemplates.find(t => t.id === tplId) : null;
@@ -367,7 +367,7 @@ function renderTplEditorItems() {
   createIcons();
 }
 
-// ── Template Item Modal ────────────────────────────────────────────────────
+// ── Template Item Modal ─────────────────────────────────────────────────────────────────────
 function populateTplItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('tpl-item-store-checkboxes');
   if (!container) return;
@@ -418,7 +418,7 @@ function saveTplItem() {
   renderTplEditorItems();
 }
 
-// ── Lists ──────────────────────────────────────────────────────────────────
+// ── Lists ──────────────────────────────────────────────────────────────────────────────
 function renderLists() {
   const grid = document.getElementById('lists-grid');
   const q = document.getElementById('search-lists').value.toLowerCase();
@@ -454,7 +454,7 @@ function renderLists() {
   createIcons();
 }
 
-// ── List Detail ────────────────────────────────────────────────────────────
+// ── List Detail ───────────────────────────────────────────────────────────────────────────
 function openList(listId) {
   currentListId = listId;
   setHashListId(listId);
@@ -516,7 +516,7 @@ async function updateListCounts(listId) {
   try { await updateDoc(doc(listsCol(), listId), { itemCount: allItems.length, checkedCount: allItems.filter(i=>i.checked).length }); } catch {}
 }
 
-// ── Item Store Checkboxes (shopping list) ──────────────────────────────────
+// ── Item Store Checkboxes ─────────────────────────────────────────────────────────────
 function populateItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('item-store-checkboxes');
   if (!container) return;
@@ -527,7 +527,6 @@ function getSelectedStores() {
   return Array.from(document.getElementById('item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
 }
 
-/** Open modal to add a brand-new item, optionally prefilling the name */
 function openAddItemModal(prefillName = '') {
   if (!currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
   editingItemId = null;
@@ -543,7 +542,6 @@ function openAddItemModal(prefillName = '') {
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
 }
 
-/** Open modal to edit an existing item, prefilling all its current values */
 function openEditItemModal(itemId) {
   const item = allItems.find(i => i.id === itemId);
   if (!item) return;
@@ -560,7 +558,7 @@ function openEditItemModal(itemId) {
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
 }
 
-// ── Categories ─────────────────────────────────────────────────────────────
+// ── Categories ─────────────────────────────────────────────────────────────────────────────
 function renderCategories() {
   const grid = document.getElementById('categories-grid');
   if (allCategories.length === 0) {
@@ -576,7 +574,7 @@ function renderCategories() {
   createIcons();
 }
 
-// ── Stores ─────────────────────────────────────────────────────────────────
+// ── Stores ──────────────────────────────────────────────────────────────────────────────
 function renderStores() {
   const grid = document.getElementById('stores-grid');
   if (allStores.length === 0) {
@@ -596,7 +594,7 @@ function populateStoreSelect() {
     allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
 }
 
-// ── Delete ─────────────────────────────────────────────────────────────────
+// ── Delete ──────────────────────────────────────────────────────────────────────────────
 function confirmDelete(type, id) {
   pendingDelete = { type, id };
   const titles = { list:'Delete List?', category:'Delete Category?', store:'Delete Store?', template:'Delete Template?' };
@@ -606,7 +604,7 @@ function confirmDelete(type, id) {
   openModal('modal-confirm');
 }
 
-// ── Navigation ─────────────────────────────────────────────────────────────
+// ── Navigation ───────────────────────────────────────────────────────────────────────────
 const viewTitles = { lists:'My Lists', 'list-detail':'', templates:'Templates', categories:'Categories', stores:'Stores', settings:'Settings' };
 function navigateTo(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -615,7 +613,6 @@ function navigateTo(view) {
   if (target) target.classList.add('active');
   document.querySelectorAll(`[data-view="${view}"]`).forEach(n => n.classList.add('active'));
   if (viewTitles[view]) document.getElementById('header-title').textContent = viewTitles[view];
-  document.getElementById('header-add-btn').style.display = ['lists','list-detail','categories','stores','templates'].includes(view) ? 'flex' : 'none';
   closeSidebar();
   createIcons();
 }
@@ -624,11 +621,11 @@ function closeSidebar() {
   document.getElementById('sidebar-backdrop').classList.remove('open');
 }
 
-// ── Modals ─────────────────────────────────────────────────────────────────
+// ── Modals ──────────────────────────────────────────────────────────────────────────────
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open'); createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el) el.classList.remove('open'); };
 
-// ── Toast ──────────────────────────────────────────────────────────────────
+// ── Toast ──────────────────────────────────────────────────────────────────────────────
 function showToast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -641,7 +638,7 @@ function showToast(msg, type = 'info') {
 }
 window.showToast = showToast;
 
-// ── Build meta ─────────────────────────────────────────────────────────────
+// ── Build meta ───────────────────────────────────────────────────────────────────────────
 async function loadBuildMeta() {
   const el = document.getElementById('build-meta');
   if (!el) return;
@@ -660,7 +657,7 @@ async function loadBuildMeta() {
   }
 }
 
-// ── Bootstrap — all DOM wiring happens here ────────────────────────────────
+// ── Bootstrap ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
@@ -704,16 +701,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('dark-mode-toggle').addEventListener('change', toggleTheme);
 
-  // Header add button — context-aware
-  document.getElementById('header-add-btn').addEventListener('click', () => {
-    const view = document.querySelector('.view.active')?.id?.replace('view-', '');
-    if (view === 'lists')            openModal('modal-new-list');
-    else if (view === 'list-detail') openAddItemModal();
-    else if (view === 'categories')  openModal('modal-new-category');
-    else if (view === 'stores')      openModal('modal-new-store');
-    else if (view === 'templates')   openTemplateEditor(null);
-  });
-
   // New list
   document.getElementById('new-list-btn').addEventListener('click', () => openModal('modal-new-list'));
   document.getElementById('search-lists').addEventListener('input', renderLists);
@@ -739,14 +726,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('detail-delete-btn').addEventListener('click', () => { if (currentListId) confirmDelete('list', currentListId); });
 
-  // Add item (quick bar)
-  document.getElementById('new-item-name').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { openAddItemModal(e.target.value.trim()); e.target.value = ''; }
-  });
-  document.getElementById('add-item-quick-btn').addEventListener('click', () => {
-    const input = document.getElementById('new-item-name');
-    openAddItemModal(input.value.trim()); input.value = '';
-  });
+  // Add Item button (replaces quick-add bar)
+  document.getElementById('add-item-quick-btn').addEventListener('click', () => openAddItemModal());
 
   // Save item (add OR edit)
   document.getElementById('save-item-btn').addEventListener('click', async () => {

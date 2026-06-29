@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <!-- lucide MUST load synchronously before the module script -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="shopping-list.css">
 </head>
@@ -86,7 +85,6 @@
       </div>
       <div class="header-actions">
         <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-        <button class="icon-btn" id="header-add-btn" aria-label="Add new"><i data-lucide="plus"></i></button>
       </div>
     </header>
 
@@ -127,16 +125,15 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
           <span class="progress-label" id="progress-label">0 of 0</span>
         </div>
-        <!-- Quick-add bar -->
+        <!-- Add Item button -->
         <div class="quick-add-bar">
-          <input type="text" class="form-input" id="new-item-name" placeholder="Quick-add an item… (press Enter)">
-          <button class="btn btn-primary" id="add-item-quick-btn"><i data-lucide="plus"></i></button>
+          <button class="btn btn-primary" id="add-item-quick-btn" style="width:100%;justify-content:center;"><i data-lucide="plus"></i> Add Item</button>
         </div>
         <div id="items-container">
           <div class="empty-state" id="items-empty">
             <div class="empty-state-icon"><i data-lucide="package-open"></i></div>
             <h3>List is empty</h3>
-            <p>Tap the <strong>+</strong> button or use the quick-add bar above.</p>
+            <p>Tap <strong>Add Item</strong> above to get started.</p>
           </div>
           <div class="items-list" id="items-list"></div>
         </div>
@@ -205,9 +202,7 @@
   </nav>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     Modal: Template Editor
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- Modal: Template Editor -->
 <div class="modal-overlay" id="modal-template-editor">
   <div class="modal" style="max-width:680px;">
     <div class="modal-header">
@@ -241,9 +236,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     Modal: Template Item Editor
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- Modal: Template Item Editor -->
 <div class="modal-overlay" id="modal-tpl-item">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
@@ -251,32 +244,17 @@
       <button class="icon-btn" onclick="closeTplItemModal()" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label" for="tpl-item-name">Item name *</label>
-        <input class="form-input" id="tpl-item-name" type="text" placeholder="e.g. Whole milk">
-      </div>
+      <div class="form-group"><label class="form-label" for="tpl-item-name">Item name *</label><input class="form-input" id="tpl-item-name" type="text" placeholder="e.g. Whole milk"></div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="tpl-item-qty">Quantity</label>
-          <input class="form-input" id="tpl-item-qty" type="text" placeholder="e.g. 2">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="tpl-item-unit">Unit</label>
-          <input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs, oz, pkg">
-        </div>
+        <div class="form-group"><label class="form-label" for="tpl-item-qty">Quantity</label><input class="form-input" id="tpl-item-qty" type="text" placeholder="e.g. 2"></div>
+        <div class="form-group"><label class="form-label" for="tpl-item-unit">Unit</label><input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs, oz, pkg"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
         <div class="store-checkboxes" id="tpl-item-store-checkboxes"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="tpl-item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label>
-        <input class="form-input" id="tpl-item-tags" type="text" placeholder="e.g. organic, weekly">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="tpl-item-notes">Notes</label>
-        <input class="form-input" id="tpl-item-notes" type="text" placeholder="e.g. brand preference">
-      </div>
+      <div class="form-group"><label class="form-label" for="tpl-item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label><input class="form-input" id="tpl-item-tags" type="text" placeholder="e.g. organic, weekly"></div>
+      <div class="form-group"><label class="form-label" for="tpl-item-notes">Notes</label><input class="form-input" id="tpl-item-notes" type="text" placeholder="e.g. brand preference"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeTplItemModal()">Cancel</button>
@@ -313,10 +291,7 @@
         <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
         <div class="store-checkboxes" id="item-store-checkboxes"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label>
-        <input class="form-input" id="item-tags" type="text" placeholder="e.g. organic, gluten-free, weekly">
-      </div>
+      <div class="form-group"><label class="form-label" for="item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label><input class="form-input" id="item-tags" type="text" placeholder="e.g. organic, gluten-free, weekly"></div>
       <div class="form-group"><label class="form-label" for="item-notes">Notes</label><input class="form-input" id="item-notes" type="text" placeholder="e.g. brand preference"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-add-item')">Cancel</button><button class="btn btn-primary" id="save-item-btn"><i data-lucide="plus"></i> Add Item</button></div>
