@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Header user button → navigate to settings
   const headerUserBtn = document.getElementById('header-user-btn');
   if (headerUserBtn) {
-    headerUserBtn.addEventListener('click', () => navigateTo('settings'));
+    headerUserBtn.addEventListener('click', () => navigateTo('settings', { onSettings: loadAboutCommits }));
   }
 
   // Auth
@@ -187,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.pendingListId = getHashListId();
       subscribeToData();
       createIcons();
+      navigateTo('lists');
     } else {
       state.currentUser = null;
       document.getElementById('app').style.display         = 'none';
