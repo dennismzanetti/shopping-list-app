@@ -6,7 +6,6 @@ import {
   onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 import { escHtml, toArray, createIcons } from './js/utils.js';
-import { seedDefaultsIfNeeded, seedTemplatesIfNeeded, SEED_TEMPLATES } from './js/seed.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
 
@@ -29,14 +28,12 @@ const templatesCol = () => collection(db, 'users', uid(), 'templates');
 
 function teardownSubscriptions() {
   if (state.unsubLists) { state.unsubLists(); state.unsubLists = null; }
-  if (state.unsubItems) { state.unsubItems(); state.state.unsubItems = null; }
+  if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
   if (state.unsubCategories) { state.unsubCategories(); state.unsubCategories = null; }
   if (state.unsubStores) { state.unsubStores(); state.unsubStores = null; }
   if (state.unsubTemplates) { state.unsubTemplates(); state.unsubTemplates = null; }
   state.allLists = []; state.allItems = []; state.allCategories = []; state.allStores = []; state.allTemplates = [];
 }
-
-let state.listsFirstLoad = true;
 
 function subscribeToData() {
   state.listsFirstLoad = true;
@@ -135,7 +132,7 @@ function openTemplateEditor(tplId) {
   document.getElementById('tpl-desc').value  = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display = tpl ? 'inline-flex' : 'none';
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
-  renderstate.tplEditorItems();
+  renderTplEditorItems();
   openModal('modal-template-editor');
 }
 
@@ -152,7 +149,7 @@ function normaliseItem(it) {
   };
 }
 
-function renderstate.tplEditorItems() {
+function renderTplEditorItems() {
   const container = document.getElementById('tpl-editor-items');
   if (!container) return;
   const count = state.tplEditorItems.length;
@@ -182,7 +179,7 @@ function renderstate.tplEditorItems() {
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit)); })
   );
   container.querySelectorAll('[data-tpl-item-remove]').forEach(btn =>
-    btn.addEventListener('click', e => { e.stopPropagation(); state.tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderstate.tplEditorItems(); })
+    btn.addEventListener('click', e => { e.stopPropagation(); state.tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderTplEditorItems(); })
   );
   container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
     row.addEventListener('click', e => { if (e.target.closest('button')) return; openTplItemModal(parseInt(row.dataset.tplItemIdx)); })
@@ -241,7 +238,7 @@ function saveTplItem() {
     state.tplEditorItems.push(item);
   }
   closeModal('modal-tpl-item');
-  renderstate.tplEditorItems();
+  renderTplEditorItems();
 }
 
 // ── Lists ──────────────────────────────────────────────────────────────────────────────
