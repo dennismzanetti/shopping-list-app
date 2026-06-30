@@ -33,6 +33,62 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
+// ── Add-to-List helpers ───────────────────────────────────────────────────────
+function renderAddToListSection() {
+  const picker = document.getElementById('tpl-list-picker');
+  if (!picker) return;
+  if (state.allLists.length === 0) {
+    picker.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No lists yet — use "Create new list" below.</span>`;
+    return;
+  }
+  picker.innerHTML = state.allLists.map((l, i) => {
+    const count = l.itemCount !== undefined ? `${l.itemCount} item${l.itemCount !== 1 ? 's' : ''}` : '';
+    return `<label class="store-checkbox-label" style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;gap:var(--space-3);">
+      <input type="radio" name="tpl-list-pick" value="${escHtml(l.id)}" ${i === 0 ? 'checked' : ''}>
+      <span style="flex:1;font-size:var(--text-sm);">${escHtml(l.name)}</span>
+      ${count ? `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">${count}</span>` : ''}
+    </label>`;
+  }).join('');
+}
+
+function getCheckedTplItems() {
+  return Array.from(
+    document.getElementById('tpl-editor-items')?.querySelectorAll('input[type=checkbox].tpl-item-select:checked') || []
+  ).map(cb => state.tplEditorItems[parseInt(cb.dataset.idx)]);
+}
+
+export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db }) {
+  const items = getCheckedTplItems();
+  if (items.length === 0) { window.showToast('No items selected', 'error'); return; }
+
+  const picked = document.querySelector('input[name="tpl-list-pick"]:checked');
+  if (!picked) { window.showToast('Please select a list', 'error'); return; }
+
+  let listId = picked.value;
+
+  // Create new list if needed
+  if (listId === '__new__') {
+    const newName = document.getElementById('tpl-new-list-name').value.trim();
+    if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
+    try {
+      const ref = await addDoc(listsCol(), { name: newName, createdAt: serverTimestamp(), itemCount: 0 });
+      listId = ref.id;
+    } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
+  }
+
+  // Batch-write items to the chosen list
+  try {
+    const batch = writeBatch(db);
+    items.forEach(it => {
+      const ref = doc(itemsCol(listId));
+      batch.set(ref, { ...it, checked: false, createdAt: serverTimestamp() });
+    });
+    await batch.commit();
+    window.showToast(`${items.length} item${items.length !== 1 ? 's' : ''} added to list!`, 'success');
+    window.closeModal('modal-template-editor');
+  } catch (e) { window.showToast('Error adding items: ' + e.message, 'error'); }
+}
+
 // ── Render grid ──────────────────────────────────────────────────────────────
 export function renderTemplates(onEdit) {
   const grid = document.getElementById('templates-grid');
@@ -52,7 +108,7 @@ export function renderTemplates(onEdit) {
     }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
     return `<div class="template-card" data-tpl-id="${t.id}" style="cursor:pointer;" title="Edit template">
-      <div class="template-card-emoji">${t.emoji || '📋'}</div>
+      <div class="template-card-emoji">${t.emoji || '\uD83D\uDCCB'}</div>
       <div><div class="template-card-title">${escHtml(t.name)}</div><div class="template-card-desc">${escHtml(t.desc || '')}</div></div>
       <div class="template-card-items">${chips}${moreChip}</div>
       <div class="template-card-footer"><span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span></div>
@@ -75,6 +131,7 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
+  renderAddToListSection();
   window.openModal('modal-template-editor');
 }
 
@@ -95,6 +152,9 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
     const meta  = [qty, cat, store, tags, notes].filter(Boolean).join('');
     return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;" title="Click to edit">
+      <input type="checkbox" class="tpl-item-select" data-idx="${i}" checked
+             style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"
+             aria-label="Select ${escHtml(it.name || 'item')} for Add to List">
       <div class="item-info" style="flex:1;min-width:0;">
         <div class="item-name">${escHtml(it.name || '(unnamed)')}</div>
         ${meta ? `<div class="item-meta">${meta}</div>` : ''}
@@ -115,7 +175,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   );
   container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
     row.addEventListener('click', e => {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button') || e.target.classList.contains('tpl-item-select')) return;
       openTplItemModal(parseInt(row.dataset.tplItemIdx), { buildCategoryOptions });
     })
   );
@@ -162,7 +222,8 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
 }
 
 // ── initTemplates — wires all template UI listeners ──────────────────────────
-export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete }) {
+export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+                                 listsCol, itemsCol, writeBatch, db }) {
 
   document.getElementById('new-template-btn').addEventListener('click', () =>
     openTemplateEditor(null, { buildCategoryOptions })
@@ -184,7 +245,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     if (!name) { window.showToast('Template name is required', 'error'); return; }
     const data = {
       name,
-      emoji: document.getElementById('tpl-emoji').value.trim() || '📋',
+      emoji: document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDCCB',
       desc:  document.getElementById('tpl-desc').value.trim(),
       items: state.tplEditorItems,
       updatedAt: serverTimestamp()
@@ -201,6 +262,10 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
       window.closeModal('modal-template-editor');
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });
+
+  document.getElementById('tpl-add-to-list-btn').addEventListener('click', () =>
+    addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
+  );
 
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
     if (!state.editingTemplateId) return;
