@@ -8,14 +8,6 @@ import {
 import { escHtml, toArray, createIcons } from './js/utils.js';
 import { seedDefaultsIfNeeded, seedTemplatesIfNeeded, SEED_TEMPLATES } from './js/seed.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
-import { signInWithPopup, signOut, onAuthStateChanged }
-  from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
-import {
-  collection, doc, addDoc, updateDoc, deleteDoc,
-  onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs
-} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
-import { escHtml, toArray, createIcons } from './js/utils.js';
-import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────
