@@ -6,6 +6,7 @@ import {
   onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 import { escHtml, toArray, createIcons } from './js/utils.js';
+import { renderCategories, renderStores, populateStoreSelect } from './js/categories.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
 import { seedDefaultsIfNeeded, seedTemplatesIfNeeded } from './js/seed.js';
@@ -50,8 +51,8 @@ function subscribeToData() {
 
   state.unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
     state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderStores();
-    populateStoreSelect();
+    renderStores(allStores, confirmDelete);
+    populateStoreSelect(allStores);
   });
 
   state.unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
@@ -397,26 +398,6 @@ function renderCategories() {
     </div></div>`).join('');
   grid.querySelectorAll('[data-delete-cat]').forEach(btn => btn.addEventListener('click', () => confirmDelete('category', btn.dataset.deleteCat)));
   createIcons();
-}
-
-// ── Stores ──────────────────────────────────────────────────────────────────────────────
-function renderStores() {
-  const grid = document.getElementById('stores-grid');
-  if (state.allStores.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="store"></i></div><h3>No stores</h3><p>Add your favorite grocery stores.</p></div>`;
-    createIcons(); return;
-  }
-  grid.innerHTML = state.allStores.map(store => `
-    <div class="card"><div class="card-body" style="display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:var(--text-sm);font-weight:600;">${escHtml(store.name)}</div>
-      <button class="icon-btn" data-delete-store="${store.id}" aria-label="Delete" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
-    </div></div>`).join('');
-  grid.querySelectorAll('[data-delete-store]').forEach(btn => btn.addEventListener('click', () => confirmDelete('store', btn.dataset.deleteStore)));
-  createIcons();
-}
-function populateStoreSelect() {
-  document.getElementById('new-list-store').innerHTML = '<option value="">No default store</option>' +
-    state.allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
 }
 
 // ── Delete ──────────────────────────────────────────────────────────────────────────────
