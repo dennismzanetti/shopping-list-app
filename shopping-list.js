@@ -469,7 +469,6 @@ function renderItems() {
         ${meta ? `<div class="item-meta">${meta}</div>` : ''}
       </div>
       <button class="icon-btn item-edit" data-edit-item="${item.id}" aria-label="Edit item" title="Edit item" style="color:var(--color-text-muted);"><i data-lucide="pencil"></i></button>
-      <button class="icon-btn item-delete" data-delete-item="${item.id}" aria-label="Delete item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
   }).join('');
 
@@ -478,7 +477,6 @@ function renderItems() {
   list_.innerHTML = html;
   list_.querySelectorAll('[data-toggle]').forEach(el     => el.addEventListener('click',  ()  => toggleItem(el.dataset.toggle)));
   list_.querySelectorAll('[data-edit-item]').forEach(btn => btn.addEventListener('click', ()  => openEditItemModal(btn.dataset.editItem)));
-  list_.querySelectorAll('[data-delete-item]').forEach(btn => btn.addEventListener('click', () => deleteItem(btn.dataset.deleteItem)));
   createIcons();
 }
 
