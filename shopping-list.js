@@ -8,27 +8,16 @@ import {
 import { escHtml, toArray, createIcons } from './js/utils.js';
 import { seedDefaultsIfNeeded, seedTemplatesIfNeeded, SEED_TEMPLATES } from './js/seed.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
-
-// ── State ───────────────────────────────────────────────────────────────────────────
-let currentUser = null;
-let currentListId = null;
-let unsubLists = null;
-let unsubItems = null;
-let unsubCategories = null;
-let unsubStores = null;
-let unsubTemplates = null;
-let allLists = [];
-let allItems = [];
-let allCategories = [];
-let allStores = [];
-let allTemplates = [];
-let editingTemplateId = null;
-let editingItemId = null;
-let tplEditorItems = [];
-let tplItemEditingIdx = -1;
-let pendingDelete = null;
-let pendingListId = null;
-let currentTheme = 'light';
+import { auth, db, provider } from './js/firebase.js';
+import { signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
+import {
+  collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs
+} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+import { escHtml, toArray, createIcons } from './js/utils.js';
+import { syncThemeUI, toggleTheme } from './js/theme.js';
+import { state } from './js/state.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────
 function getHashListId() {
@@ -40,7 +29,7 @@ function setHashListId(listId) {
 }
 
 // ── Firestore Helpers ──────────────────────────────────────────────────────────────────
-const uid = () => currentUser.uid;
+const uid = () => state.currentUser.uid;
 const listsCol = () => collection(db, 'users', uid(), 'lists');
 const itemsCol = (listId) => collection(db, 'users', uid(), 'lists', listId, 'items');
 const categoriesCol = () => collection(db, 'users', uid(), 'categories');
@@ -48,43 +37,43 @@ const storesCol = () => collection(db, 'users', uid(), 'stores');
 const templatesCol = () => collection(db, 'users', uid(), 'templates');
 
 function teardownSubscriptions() {
-  if (unsubLists) { unsubLists(); unsubLists = null; }
-  if (unsubItems) { unsubItems(); unsubItems = null; }
-  if (unsubCategories) { unsubCategories(); unsubCategories = null; }
-  if (unsubStores) { unsubStores(); unsubStores = null; }
-  if (unsubTemplates) { unsubTemplates(); unsubTemplates = null; }
-  allLists = []; allItems = []; allCategories = []; allStores = []; allTemplates = [];
+  if (state.unsubLists) { state.unsubLists(); state.unsubLists = null; }
+  if (state.unsubItems) { state.unsubItems(); state.state.unsubItems = null; }
+  if (state.unsubCategories) { state.unsubCategories(); state.unsubCategories = null; }
+  if (state.unsubStores) { state.unsubStores(); state.unsubStores = null; }
+  if (state.unsubTemplates) { state.unsubTemplates(); state.unsubTemplates = null; }
+  state.allLists = []; state.allItems = []; state.allCategories = []; state.allStores = []; state.allTemplates = [];
 }
 
-let listsFirstLoad = true;
+let state.listsFirstLoad = true;
 
 function subscribeToData() {
-  listsFirstLoad = true;
+  state.listsFirstLoad = true;
   seedDefaultsIfNeeded();
   seedTemplatesIfNeeded();
   subscribeToTemplates();
 
-  unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
-    allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  state.unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
+    state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCategories();
     populateCategorySelects();
   });
 
-  unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
-    allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  state.unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
+    state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderStores();
     populateStoreSelect();
   });
 
-  unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
-    allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  state.unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
+    state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderLists();
-    document.getElementById('badge-lists').textContent = allLists.length;
-    if (listsFirstLoad) {
-      listsFirstLoad = false;
-      const restoreId = pendingListId;
-      pendingListId = null;
-      if (restoreId && allLists.find(l => l.id === restoreId)) openList(restoreId);
+    document.getElementById('badge-lists').textContent = state.allLists.length;
+    if (state.listsFirstLoad) {
+      state.listsFirstLoad = false;
+      const restoreId = state.pendingListId;
+      state.pendingListId = null;
+      if (restoreId && state.allLists.find(l => l.id === restoreId)) openList(restoreId);
     }
   });
 }
@@ -92,7 +81,7 @@ function subscribeToData() {
 // ── Category Selects ────────────────────────────────────────────────────────────────────
 function buildCategoryOptions(selectedCategory = '') {
   const blank = `<option value="">-- No category --</option>`;
-  const opts = allCategories.map(c =>
+  const opts = state.allCategories.map(c =>
     `<option value="${escHtml(c.name)}" ${c.name === selectedCategory ? 'selected' : ''}>${c.emoji ? c.emoji + ' ' : ''}${escHtml(c.name)}</option>`
   ).join('');
   return blank + opts;
@@ -107,8 +96,8 @@ function populateCategorySelects(selectedItem = '', selectedTplItem = '') {
 
 // ── Templates ────────────────────────────────────────────────────────────────────────
 function subscribeToTemplates() {
-  unsubTemplates = onSnapshot(query(templatesCol(), orderBy('createdAt')), snap => {
-    allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  state.unsubTemplates = onSnapshot(query(templatesCol(), orderBy('createdAt')), snap => {
+    state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderTemplates();
   });
 }
@@ -116,16 +105,16 @@ function subscribeToTemplates() {
 function renderTemplates() {
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
-  if (allTemplates.length === 0) {
+  if (state.allTemplates.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="layout-template"></i></div><h3>No templates yet</h3><p>Create a template to quickly start new lists.</p></div>`;
     createIcons(); return;
   }
-  grid.innerHTML = allTemplates.map(t => {
+  grid.innerHTML = state.allTemplates.map(t => {
     const items = t.items || [];
     const preview = items.slice(0, 5);
     const more = items.length - preview.length;
     const chips = preview.map(it => {
-      const cat = allCategories.find(c => c.name === (it.category || ''));
+      const cat = state.allCategories.find(c => c.name === (it.category || ''));
       const prefix = cat?.emoji ? cat.emoji + ' ' : '';
       return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
     }).join('');
@@ -147,15 +136,15 @@ function renderTemplates() {
 
 // ── Template Editor ──────────────────────────────────────────────────────────────────────
 function openTemplateEditor(tplId) {
-  editingTemplateId = tplId || null;
-  const tpl = tplId ? allTemplates.find(t => t.id === tplId) : null;
+  state.editingTemplateId = tplId || null;
+  const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
   document.getElementById('tpl-editor-title').textContent = tpl ? 'Edit Template' : 'New Template';
   document.getElementById('tpl-emoji').value = tpl ? (tpl.emoji || '') : '';
   document.getElementById('tpl-name').value  = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value  = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display = tpl ? 'inline-flex' : 'none';
-  tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
-  renderTplEditorItems();
+  state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
+  renderstate.tplEditorItems();
   openModal('modal-template-editor');
 }
 
@@ -172,16 +161,16 @@ function normaliseItem(it) {
   };
 }
 
-function renderTplEditorItems() {
+function renderstate.tplEditorItems() {
   const container = document.getElementById('tpl-editor-items');
   if (!container) return;
-  const count = tplEditorItems.length;
+  const count = state.tplEditorItems.length;
   document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
   if (count === 0) {
     container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet — click "Add Item" below</div>`;
     return;
   }
-  container.innerHTML = tplEditorItems.map((it, i) => {
+  container.innerHTML = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
     const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
@@ -202,7 +191,7 @@ function renderTplEditorItems() {
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit)); })
   );
   container.querySelectorAll('[data-tpl-item-remove]').forEach(btn =>
-    btn.addEventListener('click', e => { e.stopPropagation(); tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderTplEditorItems(); })
+    btn.addEventListener('click', e => { e.stopPropagation(); state.tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderstate.tplEditorItems(); })
   );
   container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
     row.addEventListener('click', e => { if (e.target.closest('button')) return; openTplItemModal(parseInt(row.dataset.tplItemIdx)); })
@@ -214,11 +203,11 @@ function renderTplEditorItems() {
 function populateTplItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('tpl-item-store-checkboxes');
   if (!container) return;
-  if (allStores.length === 0) {
+  if (state.allStores.length === 0) {
     container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
     return;
   }
-  container.innerHTML = allStores.map(s =>
+  container.innerHTML = state.allStores.map(s =>
     `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name) ? 'checked' : ''}><span>${escHtml(s.name)}</span></label>`
   ).join('');
 }
@@ -227,8 +216,8 @@ function getTplItemSelectedStores() {
 }
 
 function openTplItemModal(idx) {
-  tplItemEditingIdx = idx;
-  const it = idx >= 0 ? tplEditorItems[idx] : null;
+  state.tplItemEditingIdx = idx;
+  const it = idx >= 0 ? state.tplEditorItems[idx] : null;
   document.getElementById('tpl-item-modal-title').textContent = it ? 'Edit Item' : 'Add Item';
   document.getElementById('tpl-item-name').value  = it ? it.name  : '';
   document.getElementById('tpl-item-qty').value   = it ? it.qty   : '';
@@ -255,21 +244,21 @@ function saveTplItem() {
     tags:     document.getElementById('tpl-item-tags').value.split(',').map(s => s.trim()).filter(Boolean),
     notes:    document.getElementById('tpl-item-notes').value.trim()
   };
-  if (tplItemEditingIdx >= 0) {
-    tplEditorItems[tplItemEditingIdx] = item;
+  if (state.tplItemEditingIdx >= 0) {
+    state.tplEditorItems[state.tplItemEditingIdx] = item;
   } else {
-    tplEditorItems.push(item);
+    state.tplEditorItems.push(item);
   }
   closeModal('modal-tpl-item');
-  renderTplEditorItems();
+  renderstate.tplEditorItems();
 }
 
 // ── Lists ──────────────────────────────────────────────────────────────────────────────
 function renderLists() {
   const grid = document.getElementById('lists-grid');
   const q = document.getElementById('search-lists').value.toLowerCase();
-  const filtered = allLists.filter(l => l.name.toLowerCase().includes(q));
-  document.getElementById('lists-subtitle').textContent = allLists.length === 1 ? '1 list' : `${allLists.length} lists`;
+  const filtered = state.allLists.filter(l => l.name.toLowerCase().includes(q));
+  document.getElementById('lists-subtitle').textContent = state.allLists.length === 1 ? '1 list' : `${state.allLists.length} lists`;
 
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
@@ -300,17 +289,17 @@ function renderLists() {
 
 // ── List Detail ───────────────────────────────────────────────────────────────────────────
 function openList(listId) {
-  currentListId = listId;
+  state.currentListId = listId;
   setHashListId(listId);
-  const list = allLists.find(l => l.id === listId);
+  const list = state.allLists.find(l => l.id === listId);
   if (!list) return;
   document.getElementById('detail-list-name').textContent = list.name;
   document.getElementById('detail-list-store').textContent = list.storeName ? `📍 ${list.storeName}` : '';
   document.getElementById('header-title').textContent = list.name;
   navigateTo('list-detail');
-  if (unsubItems) { unsubItems(); unsubItems = null; }
-  unsubItems = onSnapshot(query(itemsCol(listId), orderBy('createdAt')), snap => {
-    allItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
+  state.unsubItems = onSnapshot(query(itemsCol(listId), orderBy('createdAt')), snap => {
+    state.allItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderItems();
     updateListCounts(listId);
   });
@@ -319,9 +308,9 @@ function openList(listId) {
 function renderItems() {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
-  const unchecked = allItems.filter(i => !i.checked);
-  const checked   = allItems.filter(i =>  i.checked);
-  const total = allItems.length, doneCount = checked.length;
+  const unchecked = state.allItems.filter(i => !i.checked);
+  const checked   = state.allItems.filter(i =>  i.checked);
+  const total = state.allItems.length, doneCount = checked.length;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   document.getElementById('progress-bar').style.width = pct + '%';
   document.getElementById('progress-label').textContent = `${doneCount} of ${total} checked`;
@@ -356,23 +345,23 @@ function renderItems() {
 }
 
 async function updateListCounts(listId) {
-  try { await updateDoc(doc(listsCol(), listId), { itemCount: allItems.length, checkedCount: allItems.filter(i=>i.checked).length }); } catch {}
+  try { await updateDoc(doc(listsCol(), listId), { itemCount: state.allItems.length, checkedCount: state.allItems.filter(i=>i.checked).length }); } catch {}
 }
 
 // ── Item Store Checkboxes ─────────────────────────────────────────────────────────────
 function populateItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('item-store-checkboxes');
   if (!container) return;
-  if (allStores.length === 0) { container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`; return; }
-  container.innerHTML = allStores.map(s => `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name)?'checked':''}><span>${escHtml(s.name)}</span></label>`).join('');
+  if (state.allStores.length === 0) { container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`; return; }
+  container.innerHTML = state.allStores.map(s => `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name)?'checked':''}><span>${escHtml(s.name)}</span></label>`).join('');
 }
 function getSelectedStores() {
   return Array.from(document.getElementById('item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
 }
 
 function openAddItemModal(prefillName = '') {
-  if (!currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
-  editingItemId = null;
+  if (!state.currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
+  state.editingItemId = null;
   document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
   document.getElementById('item-name-full').value = prefillName;
@@ -388,9 +377,9 @@ function openAddItemModal(prefillName = '') {
 }
 
 function openEditItemModal(itemId) {
-  const item = allItems.find(i => i.id === itemId);
+  const item = state.allItems.find(i => i.id === itemId);
   if (!item) return;
-  editingItemId = itemId;
+  state.editingItemId = itemId;
   document.querySelector('#modal-add-item .modal-title').textContent = 'Edit Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="save"></i> Save Changes';
   document.getElementById('item-name-full').value = item.name  || '';
@@ -408,11 +397,11 @@ function openEditItemModal(itemId) {
 // ── Categories ─────────────────────────────────────────────────────────────────────────────
 function renderCategories() {
   const grid = document.getElementById('categories-grid');
-  if (allCategories.length === 0) {
+  if (state.allCategories.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="tag"></i></div><h3>No categories</h3><p>Add a category to organize your items.</p></div>`;
     createIcons(); return;
   }
-  grid.innerHTML = allCategories.map(cat => `
+  grid.innerHTML = state.allCategories.map(cat => `
     <div class="card"><div class="card-body" style="display:flex;align-items:center;justify-content:space-between;">
       <span style="font-size:var(--text-sm);font-weight:500;">${cat.emoji||''} ${escHtml(cat.name)}</span>
       <button class="icon-btn" data-delete-cat="${cat.id}" aria-label="Delete" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
@@ -424,11 +413,11 @@ function renderCategories() {
 // ── Stores ──────────────────────────────────────────────────────────────────────────────
 function renderStores() {
   const grid = document.getElementById('stores-grid');
-  if (allStores.length === 0) {
+  if (state.allStores.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="store"></i></div><h3>No stores</h3><p>Add your favorite grocery stores.</p></div>`;
     createIcons(); return;
   }
-  grid.innerHTML = allStores.map(store => `
+  grid.innerHTML = state.allStores.map(store => `
     <div class="card"><div class="card-body" style="display:flex;align-items:center;justify-content:space-between;">
       <div style="font-size:var(--text-sm);font-weight:600;">${escHtml(store.name)}</div>
       <button class="icon-btn" data-delete-store="${store.id}" aria-label="Delete" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
@@ -438,12 +427,12 @@ function renderStores() {
 }
 function populateStoreSelect() {
   document.getElementById('new-list-store').innerHTML = '<option value="">No default store</option>' +
-    allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+    state.allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
 }
 
 // ── Delete ──────────────────────────────────────────────────────────────────────────────
 function confirmDelete(type, id) {
-  pendingDelete = { type, id };
+  state.pendingDelete = { type, id };
   const titles = { list:'Delete List?', category:'Delete Category?', store:'Delete Store?', template:'Delete Template?' };
   const msgs   = { list:'This will permanently delete the list and all its items.', category:'This category will be removed.', store:'This store will be removed.', template:'This template will be permanently deleted.' };
   document.getElementById('confirm-title').textContent   = titles[type];
@@ -567,15 +556,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   onAuthStateChanged(auth, user => {
     if (user) {
-      currentUser = user;
+      state.currentUser = user;
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('app').style.display         = 'block';
       updateUserUI();
-      pendingListId = getHashListId();
+      state.pendingListId = getHashListId();
       subscribeToData();
       createIcons();
     } else {
-      currentUser = null;
+      state.currentUser = null;
       document.getElementById('app').style.display         = 'none';
       document.getElementById('auth-screen').style.display = 'flex';
       document.getElementById('auth-body').style.display    = 'block';
@@ -606,12 +595,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // List detail nav
   document.getElementById('back-to-lists').addEventListener('click', () => {
-    if (unsubItems) { unsubItems(); unsubItems = null; }
-    currentListId = null; setHashListId(null);
+    if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
+    state.currentListId = null; setHashListId(null);
     navigateTo('lists');
     document.getElementById('header-title').textContent = 'My Lists';
   });
-  document.getElementById('detail-delete-btn').addEventListener('click', () => { if (currentListId) confirmDelete('list', currentListId); });
+  document.getElementById('detail-delete-btn').addEventListener('click', () => { if (state.currentListId) confirmDelete('list', state.currentListId); });
 
   // Add Item button
   document.getElementById('add-item-quick-btn').addEventListener('click', () => openAddItemModal());
@@ -620,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('save-item-btn').addEventListener('click', async () => {
     const name = document.getElementById('item-name-full').value.trim();
     if (!name) { showToast('Item name is required', 'error'); return; }
-    if (!currentListId) { showToast('No list selected', 'error'); return; }
+    if (!state.currentListId) { showToast('No list selected', 'error'); return; }
     const tags = document.getElementById('item-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
     const data = {
       name,
@@ -632,22 +621,22 @@ document.addEventListener('DOMContentLoaded', () => {
       notes:    document.getElementById('item-notes').value.trim()
     };
     try {
-      if (editingItemId) {
-        await updateDoc(doc(itemsCol(currentListId), editingItemId), data);
+      if (state.editingItemId) {
+        await updateDoc(doc(itemsCol(state.currentListId), state.editingItemId), data);
         showToast('Item updated!', 'success');
       } else {
-        await addDoc(itemsCol(currentListId), { ...data, checked: false, createdAt: serverTimestamp() });
+        await addDoc(itemsCol(state.currentListId), { ...data, checked: false, createdAt: serverTimestamp() });
       }
       closeModal('modal-add-item');
-      editingItemId = null;
+      state.editingItemId = null;
       ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   });
   document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
 
-  // Reset editingItemId when modal is dismissed
+  // Reset state.editingItemId when modal is dismissed
   document.querySelectorAll('.modal-overlay').forEach(overlay =>
-    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); editingItemId = null; } })
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); state.editingItemId = null; } })
   );
 
   // Template editor
@@ -660,12 +649,12 @@ document.addEventListener('DOMContentLoaded', () => {
       name,
       emoji: document.getElementById('tpl-emoji').value.trim() || '📋',
       desc:  document.getElementById('tpl-desc').value.trim(),
-      items: tplEditorItems,
+      items: state.tplEditorItems,
       updatedAt: serverTimestamp()
     };
     try {
-      if (editingTemplateId) {
-        await updateDoc(doc(templatesCol(), editingTemplateId), data);
+      if (state.editingTemplateId) {
+        await updateDoc(doc(templatesCol(), state.editingTemplateId), data);
         showToast('Template saved!', 'success');
       } else {
         data.createdAt = serverTimestamp();
@@ -676,8 +665,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   });
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
-    if (!editingTemplateId) return;
-    pendingDelete = { type: 'template', id: editingTemplateId };
+    if (!state.editingTemplateId) return;
+    state.pendingDelete = { type: 'template', id: state.editingTemplateId };
     document.getElementById('confirm-title').textContent   = 'Delete Template?';
     document.getElementById('confirm-message').textContent = 'This template will be permanently deleted.';
     closeModal('modal-template-editor');
@@ -719,8 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Confirm dialog
   document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
-    if (!pendingDelete) return;
-    const { type, id } = pendingDelete;
+    if (!state.pendingDelete) return;
+    const { type, id } = state.pendingDelete;
     closeModal('modal-confirm');
     try {
       if (type === 'list') {
@@ -729,9 +718,9 @@ document.addEventListener('DOMContentLoaded', () => {
         itemSnap.docs.forEach(d => batch.delete(d.ref));
         batch.delete(doc(listsCol(), id));
         await batch.commit();
-        if (currentListId === id) {
-          if (unsubItems) { unsubItems(); unsubItems = null; }
-          currentListId = null; setHashListId(null); navigateTo('lists');
+        if (state.currentListId === id) {
+          if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
+          state.currentListId = null; setHashListId(null); navigateTo('lists');
           document.getElementById('header-title').textContent = 'My Lists';
         }
         showToast('List deleted', 'success');
@@ -746,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Template deleted', 'success');
       }
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    pendingDelete = null;
+    state.pendingDelete = null;
   });
 
   // Nav items
@@ -765,8 +754,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateUserUI() {
-  const name  = currentUser.displayName || currentUser.email || 'User';
-  const email = currentUser.email || '';
+  const name  = state.currentUser.displayName || state.currentUser.email || 'User';
+  const email = state.currentUser.email || '';
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   ['sidebar-avatar','settings-avatar'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
   const sName  = document.getElementById('sidebar-name');
@@ -780,7 +769,7 @@ function updateUserUI() {
 }
 
 async function toggleItem(itemId) {
-  const item = allItems.find(i => i.id === itemId);
-  if (!item || !currentListId) return;
-  try { await updateDoc(doc(itemsCol(currentListId), itemId), { checked: !item.checked }); } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  const item = state.allItems.find(i => i.id === itemId);
+  if (!item || !state.currentListId) return;
+  try { await updateDoc(doc(itemsCol(state.currentListId), itemId), { checked: !item.checked }); } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
