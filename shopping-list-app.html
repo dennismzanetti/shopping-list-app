@@ -116,7 +116,6 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
           <span class="progress-label" id="progress-label">0 of 0</span>
         </div>
-        <!-- Add Item button -->
         <div class="quick-add-bar">
           <button class="btn btn-primary" id="add-item-quick-btn" style="width:100%;justify-content:center;"><i data-lucide="plus"></i> Add Item</button>
         </div>
@@ -172,8 +171,6 @@
             <div class="card-header"><span style="font-weight:600;">Appearance</span></div>
             <div class="card-body"><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="dark-mode-toggle"><span class="toggle-slider"></span></label><span style="font-size:var(--text-sm);">Dark mode</span></div></div>
           </div>
-
-          <!-- Data / Import-Export -->
           <div class="card">
             <div class="card-header"><span style="font-weight:600;">Data</span></div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
@@ -188,7 +185,6 @@
               </div>
             </div>
           </div>
-
           <div class="card">
             <div class="card-header"><span style="font-weight:600;">Account</span></div>
             <div class="card-body"><button class="btn btn-danger" id="signout-btn" style="width:100%;justify-content:center;"><i data-lucide="log-out"></i> Sign Out</button></div>
@@ -267,20 +263,20 @@
 
 <!-- Modal: Add Template Items to List -->
 <div class="modal-overlay" id="modal-tpl-add-to-list">
-  <div class="modal" style="max-width:440px;">
+  <div class="modal" style="max-width:400px;">
     <div class="modal-header">
       <span class="modal-title">Add to List</span>
       <button class="icon-btn" onclick="closeModal('modal-tpl-add-to-list')" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
-    <div class="modal-body">
-      <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-4);">Choose a list to add the selected items to, or create a new one.</p>
-      <div id="tpl-list-picker" style="display:flex;flex-direction:column;gap:var(--space-2);max-height:220px;overflow-y:auto;margin-bottom:var(--space-3);"></div>
-      <label style="gap:var(--space-2);padding:var(--space-2) var(--space-3);border:1px dashed var(--color-border);border-radius:var(--radius-md);display:flex;align-items:center;cursor:pointer;">
-        <input type="radio" name="tpl-list-pick" id="tpl-list-pick-new" value="__new__">
-        <span style="font-size:var(--text-sm);color:var(--color-text-muted);white-space:nowrap;">＋ Create new list:</span>
-        <input class="form-input" id="tpl-new-list-name" type="text" placeholder="New list name…"
-               style="flex:1;margin-left:var(--space-2);padding:var(--space-1) var(--space-2);font-size:var(--text-sm);">
-      </label>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="tpl-list-select">Select a list</label>
+        <select class="form-select" id="tpl-list-select"></select>
+      </div>
+      <div class="form-group" id="tpl-new-list-row" style="margin-bottom:0;display:none;">
+        <label class="form-label" for="tpl-new-list-name">New list name *</label>
+        <input class="form-input" id="tpl-new-list-name" type="text" placeholder="e.g. Weekly Groceries">
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-tpl-add-to-list')">Cancel</button>

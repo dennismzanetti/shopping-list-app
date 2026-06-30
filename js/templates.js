@@ -38,25 +38,28 @@ export function openAddToListModal() {
   const items = getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items selected — check at least one item first', 'error'); return; }
 
-  const picker = document.getElementById('tpl-list-picker');
-  if (picker) {
-    if (state.allLists.length === 0) {
-      picker.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No lists yet — use "Create new list" below.</span>`;
-    } else {
-      picker.innerHTML = state.allLists.map((l, i) => {
-        const count = l.itemCount !== undefined ? `${l.itemCount} item${l.itemCount !== 1 ? 's' : ''}` : '';
-        return `<label style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;gap:var(--space-3);">
-          <input type="radio" name="tpl-list-pick" value="${escHtml(l.id)}" ${i === 0 ? 'checked' : ''}>
-          <span style="flex:1;font-size:var(--text-sm);">${escHtml(l.name)}</span>
-          ${count ? `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">${count}</span>` : ''}
-        </label>`;
-      }).join('');
-    }
+  const select = document.getElementById('tpl-list-select');
+  const newRow  = document.getElementById('tpl-new-list-row');
+  const newInput = document.getElementById('tpl-new-list-name');
+
+  if (select) {
+    select.innerHTML = state.allLists.map(l =>
+      `<option value="${escHtml(l.id)}">${escHtml(l.name)}</option>`
+    ).join('') + `<option value="__new__">➕ Create New List</option>`;
+
+    // Show/hide new-list name field
+    const toggle = () => {
+      const isNew = select.value === '__new__';
+      newRow.style.display = isNew ? '' : 'none';
+      if (isNew) setTimeout(() => newInput.focus(), 50);
+    };
+    select.onchange = toggle;
+    // Default: first list selected, new-list row hidden
+    select.value = state.allLists.length > 0 ? state.allLists[0].id : '__new__';
+    toggle();
   }
 
-  const newNameInput = document.getElementById('tpl-new-list-name');
-  if (newNameInput) newNameInput.value = '';
-
+  if (newInput) newInput.value = '';
   window.openModal('modal-tpl-add-to-list');
 }
 
@@ -70,11 +73,11 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
   const items = getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items selected', 'error'); return; }
 
-  const picked = document.querySelector('input[name="tpl-list-pick"]:checked');
-  if (!picked) { window.showToast('Please select a list', 'error'); return; }
+  const select = document.getElementById('tpl-list-select');
+  if (!select) { window.showToast('Could not find list selector', 'error'); return; }
+  let listId = select.value;
 
-  let listId = picked.value;
-
+  // Create new list if needed
   if (listId === '__new__') {
     const newName = document.getElementById('tpl-new-list-name').value.trim();
     if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
@@ -84,6 +87,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
   }
 
+  // Batch-write items to the chosen list
   try {
     const batch = writeBatch(db);
     items.forEach(it => {
