@@ -21,7 +21,6 @@ import {
   saveItem as _saveItem
 } from './js/items.js';
 import { navigateTo, closeSidebar, initNav } from './js/nav.js';
-import { loadAboutCommits, loadBuildMeta } from './js/about.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────────
 function getHashListId() {
@@ -209,6 +208,7 @@ function renderTplEditorItems() {
       <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
   }).join('');
+
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit)); })
   );
@@ -244,7 +244,7 @@ function openTplItemModal(idx) {
   document.getElementById('tpl-item-name').value  = it ? it.name  : '';
   document.getElementById('tpl-item-qty').value   = it ? it.qty   : '';
   document.getElementById('tpl-item-unit').value  = it ? it.unit  : '';
-  document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ') : '';
+  document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ')  : '';
   document.getElementById('tpl-item-notes').value = it ? it.notes : '';
   const tplCatSel = document.getElementById('tpl-item-category');
   if (tplCatSel) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
@@ -285,6 +285,230 @@ function confirmDelete(type, id) {
   openModal('modal-confirm');
 }
 
+// ── Export ───────────────────────────────────────────────────────────────────────────────
+async function exportData() {
+  try {
+    showToast('Preparing export…', 'info');
+    // Fetch all lists + their items
+    const listsSnap = await getDocs(query(listsCol(), orderBy('createdAt', 'desc')));
+    const lists = await Promise.all(listsSnap.docs.map(async ld => {
+      const listData = { id: ld.id, ...ld.data() };
+      // Convert Firestore Timestamps to ISO strings for JSON serialisation
+      if (listData.createdAt?.toDate) listData.createdAt = listData.createdAt.toDate().toISOString();
+      const itemsSnap = await getDocs(itemsCol(ld.id));
+      listData.items = itemsSnap.docs.map(id => {
+        const d = { id: id.id, ...id.data() };
+        if (d.createdAt?.toDate) d.createdAt = d.createdAt.toDate().toISOString();
+        if (d.updatedAt?.toDate) d.updatedAt = d.updatedAt.toDate().toISOString();
+        return d;
+      });
+      return listData;
+    }));
+
+    const catsSnap  = await getDocs(query(categoriesCol(), orderBy('createdAt')));
+    const categories = catsSnap.docs.map(d => {
+      const obj = { id: d.id, ...d.data() };
+      if (obj.createdAt?.toDate) obj.createdAt = obj.createdAt.toDate().toISOString();
+      return obj;
+    });
+
+    const storesSnap = await getDocs(query(storesCol(), orderBy('createdAt')));
+    const stores = storesSnap.docs.map(d => {
+      const obj = { id: d.id, ...d.data() };
+      if (obj.createdAt?.toDate) obj.createdAt = obj.createdAt.toDate().toISOString();
+      return obj;
+    });
+
+    const tplsSnap  = await getDocs(query(templatesCol(), orderBy('createdAt')));
+    const templates = tplsSnap.docs.map(d => {
+      const obj = { id: d.id, ...d.data() };
+      if (obj.createdAt?.toDate) obj.createdAt = obj.createdAt.toDate().toISOString();
+      if (obj.updatedAt?.toDate) obj.updatedAt = obj.updatedAt.toDate().toISOString();
+      return obj;
+    });
+
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      lists,
+      categories,
+      stores,
+      templates
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href     = url;
+    a.download = `shoplist-backup-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Export downloaded!', 'success');
+  } catch (e) {
+    showToast('Export failed: ' + e.message, 'error');
+  }
+}
+
+// ── Import ───────────────────────────────────────────────────────────────────────────────
+let pendingImportData = null;
+
+function handleImportFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.lists || !data.categories || !data.stores || !data.templates) {
+        showToast('Invalid backup file — missing required data.', 'error');
+        return;
+      }
+      const listCount = data.lists.length;
+      const itemCount = data.lists.reduce((sum, l) => sum + (l.items?.length || 0), 0);
+      const catCount  = data.categories.length;
+      const storeCount = data.stores.length;
+      const tplCount  = data.templates.length;
+      pendingImportData = data;
+      state.pendingDelete = { type: 'import' };
+      document.getElementById('confirm-title').textContent = 'Replace All Data?';
+      document.getElementById('confirm-message').textContent =
+        `This will permanently delete all current lists, items, categories, stores, and templates, ` +
+        `then restore from the backup (${listCount} list${listCount !== 1 ? 's' : ''}, ` +
+        `${itemCount} item${itemCount !== 1 ? 's' : ''}, ` +
+        `${catCount} categor${catCount !== 1 ? 'ies' : 'y'}, ` +
+        `${storeCount} store${storeCount !== 1 ? 's' : ''}, ` +
+        `${tplCount} template${tplCount !== 1 ? 's' : ''}). This cannot be undone.`;
+      document.getElementById('confirm-ok-btn').textContent = 'Replace & Import';
+      openModal('modal-confirm');
+    } catch {
+      showToast('Could not parse file — make sure it is a valid ShopList JSON backup.', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function performImport(data) {
+  showToast('Importing… please wait.', 'info');
+  try {
+    // 1. Delete all existing data
+    const deleteInBatches = async (snap) => {
+      const BATCH_SIZE = 400;
+      for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        snap.docs.slice(i, i + BATCH_SIZE).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+    };
+
+    // Delete lists + items
+    const listsSnap = await getDocs(listsCol());
+    for (const ld of listsSnap.docs) {
+      const itemsSnap = await getDocs(itemsCol(ld.id));
+      await deleteInBatches(itemsSnap);
+    }
+    await deleteInBatches(listsSnap);
+
+    const catsSnap   = await getDocs(categoriesCol());
+    await deleteInBatches(catsSnap);
+    const storesSnap = await getDocs(storesCol());
+    await deleteInBatches(storesSnap);
+    const tplsSnap   = await getDocs(templatesCol());
+    await deleteInBatches(tplsSnap);
+
+    // 2. Write imported data
+    const WRITE_BATCH_SIZE = 400;
+    let batch = writeBatch(db);
+    let opCount = 0;
+
+    const flush = async () => { await batch.commit(); batch = writeBatch(db); opCount = 0; };
+    const maybeFlush = async () => { if (++opCount >= WRITE_BATCH_SIZE) await flush(); };
+
+    // Categories
+    for (const cat of (data.categories || [])) {
+      const { id, ...fields } = cat;
+      fields.createdAt = serverTimestamp();
+      batch.set(doc(categoriesCol(), id), fields);
+      await maybeFlush();
+    }
+
+    // Stores
+    for (const store of (data.stores || [])) {
+      const { id, ...fields } = store;
+      fields.createdAt = serverTimestamp();
+      batch.set(doc(storesCol(), id), fields);
+      await maybeFlush();
+    }
+
+    // Templates
+    for (const tpl of (data.templates || [])) {
+      const { id, ...fields } = tpl;
+      fields.createdAt = serverTimestamp();
+      fields.updatedAt = serverTimestamp();
+      batch.set(doc(templatesCol(), id), fields);
+      await maybeFlush();
+    }
+
+    // Lists + items
+    for (const list of (data.lists || [])) {
+      const { id: listId, items, ...listFields } = list;
+      listFields.createdAt = serverTimestamp();
+      batch.set(doc(listsCol(), listId), listFields);
+      await maybeFlush();
+      for (const item of (items || [])) {
+        const { id: itemId, ...itemFields } = item;
+        itemFields.createdAt = serverTimestamp();
+        itemFields.updatedAt = serverTimestamp();
+        batch.set(doc(itemsCol(listId), itemId), itemFields);
+        await maybeFlush();
+      }
+    }
+
+    await flush();
+    showToast('Import complete!', 'success');
+  } catch (e) {
+    showToast('Import failed: ' + e.message, 'error');
+  }
+}
+
+// ── About — live commit history ──────────────────────────────────────────────────────────
+async function loadAboutCommits() {
+  const tbody = document.getElementById('about-commits-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-muted);"><span class="spinner" style="margin:0 auto;"></span></td></tr>`;
+  const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
+  try {
+    const res = await fetch('https://api.github.com/repos/dennismzanetti/shopping-list-app/commits?per_page=50', {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const commits = await res.json();
+    const human = commits.filter(c => {
+      const login = (c.author?.login || c.committer?.login || '').toLowerCase();
+      return !login.endsWith('[bot]') && login !== 'github-actions' && login !== 'dependabot';
+    }).slice(0, 10);
+    if (human.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-muted);">No commits found.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = human.map(c => {
+      const sha      = c.sha;
+      const msg      = escHtml((c.commit.message || '').split('\n')[0]);
+      const dateRaw  = c.commit.author?.date || c.commit.committer?.date || '';
+      const dateStr  = dateRaw
+        ? new Date(dateRaw).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' })
+        : '—';
+      const commitLink = `${repoUrl}/commit/${sha}`;
+      return `<tr>
+        <td class="col-date">${dateStr}</td>
+        <td class="col-sha"><span class="commit-sha-pill"><a href="${commitLink}" target="_blank" rel="noopener noreferrer">${escHtml(sha)}</a></span></td>
+        <td class="col-msg">${msg}</td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-error);">Could not load commits: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
 // ── Modals ──────────────────────────────────────────────────────────────────────────────
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open'); createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el) el.classList.remove('open'); };
@@ -302,10 +526,30 @@ function showToast(msg, type = 'info') {
 }
 window.showToast = showToast;
 
+// ── Build meta ───────────────────────────────────────────────────────────────────────────
+async function loadBuildMeta() {
+  const el = document.getElementById('build-meta');
+  if (!el) return;
+  const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
+  try {
+    const res = await fetch('./version.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error();
+    const v = await res.json();
+    const fullSha = v.sha || '';
+    const url     = v.commitUrl || repoUrl;
+    el.innerHTML  = fullSha
+      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${escHtml(fullSha)}</a>`
+      : `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
+  } catch {
+    el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
+  }
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
+
   initNav({ onSettings: loadAboutCommits });
 
   // Auth
@@ -455,13 +699,34 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('new-store-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-store-btn').click(); });
 
+  // Export
+  document.getElementById('export-data-btn').addEventListener('click', exportData);
+
+  // Import
+  document.getElementById('import-data-btn').addEventListener('click', () => {
+    const input = document.getElementById('import-file-input');
+    input.value = '';
+    input.click();
+  });
+  document.getElementById('import-file-input').addEventListener('change', e => {
+    handleImportFile(e.target.files[0]);
+  });
+
   // Confirm dialog
   document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
     if (!state.pendingDelete) return;
     const { type, id } = state.pendingDelete;
     closeModal('modal-confirm');
+    // Reset confirm button label after close
+    document.getElementById('confirm-ok-btn').textContent = 'Delete';
     try {
-      if (type === 'list') {
+      if (type === 'import') {
+        if (pendingImportData) {
+          const dataToImport = pendingImportData;
+          pendingImportData = null;
+          await performImport(dataToImport);
+        }
+      } else if (type === 'list') {
         const itemSnap = await getDocs(itemsCol(id));
         const batch = writeBatch(db);
         itemSnap.docs.forEach(d => batch.delete(d.ref));

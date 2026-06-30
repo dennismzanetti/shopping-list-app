@@ -182,6 +182,23 @@
             <div class="card-header"><span style="font-weight:600;">Appearance</span></div>
             <div class="card-body"><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="dark-mode-toggle"><span class="toggle-slider"></span></label><span style="font-size:var(--text-sm);">Dark mode</span></div></div>
           </div>
+
+          <!-- Data / Import-Export -->
+          <div class="card">
+            <div class="card-header"><span style="font-weight:600;">Data</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <div>
+                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3);">Export all your data — lists, items, categories, stores, and templates — as a JSON backup file.</p>
+                <button class="btn btn-ghost" id="export-data-btn" style="gap:var(--space-2);"><i data-lucide="upload"></i> Export Data</button>
+              </div>
+              <div style="border-top:1px solid var(--color-divider);padding-top:var(--space-4);">
+                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3);">Restore from a previously exported JSON file. <strong style="color:var(--color-warning);">This will permanently replace all current lists, items, categories, stores, and templates.</strong></p>
+                <button class="btn btn-ghost" id="import-data-btn" style="gap:var(--space-2);"><i data-lucide="download"></i> Import Data</button>
+                <input type="file" id="import-file-input" accept=".json" style="display:none;">
+              </div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-header"><span style="font-weight:600;">Account</span></div>
             <div class="card-body"><button class="btn btn-danger" id="signout-btn" style="width:100%;justify-content:center;"><i data-lucide="log-out"></i> Sign Out</button></div>
