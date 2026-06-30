@@ -67,7 +67,7 @@ function getCheckedTplItems() {
   ).map(cb => state.tplEditorItems[parseInt(cb.dataset.idx)]);
 }
 
-export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db }) {
+export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, updateDoc, getDocs, writeBatch, doc, serverTimestamp, db }) {
   const items = getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items selected', 'error'); return; }
 
@@ -79,7 +79,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     const newName = document.getElementById('tpl-new-list-name').value.trim();
     if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
     try {
-      const ref = await addDoc(listsCol(), { name: newName, createdAt: serverTimestamp(), itemCount: 0 });
+      const ref = await addDoc(listsCol(), { name: newName, createdAt: serverTimestamp(), itemCount: 0, checkedCount: 0 });
       listId = ref.id;
     } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
   }
@@ -91,6 +91,14 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
       batch.set(ref, { ...it, checked: false, createdAt: serverTimestamp() });
     });
     await batch.commit();
+
+    // Refresh itemCount and checkedCount on the list document
+    const itemsSnap = await getDocs(itemsCol(listId));
+    await updateDoc(doc(listsCol(), listId), {
+      itemCount: itemsSnap.size,
+      checkedCount: itemsSnap.docs.filter(d => d.data().checked).length
+    });
+
     window.showToast(`${items.length} item${items.length !== 1 ? 's' : ''} added to list!`, 'success');
     window.closeModal('modal-tpl-add-to-list');
     window.closeModal('modal-template-editor');
@@ -162,8 +170,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
 
   const itemRows = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
-    const catObj = state.allCategories.find(c => c.name === it.category);
-    const cat   = it.category ? `<span title="${escHtml(it.category)}" style="font-size:var(--text-sm);line-height:1;">${catObj?.emoji || '🏷️'}</span>` : '';
+    const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
@@ -279,7 +286,7 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
 }
 
 // ── initTemplates — wires all template UI listeners ────────────────────────────────────────
-export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+export function initTemplates({ templatesCol, addDoc, updateDoc, getDocs, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                                  listsCol, itemsCol, writeBatch, db }) {
 
   document.getElementById('new-template-btn').addEventListener('click', () =>
@@ -323,7 +330,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
   document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
 
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
-    addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
+    addSelectedItemsToList({ listsCol, itemsCol, addDoc, updateDoc, getDocs, writeBatch, doc, serverTimestamp, db })
   );
 
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
