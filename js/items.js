@@ -1,10 +1,10 @@
 import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
 import {
-  doc, updateDoc, addDoc, serverTimestamp
+  doc, updateDoc, addDoc, deleteDoc, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
-// ── Item Store Checkboxes ─────────────────────────────────────────────────────────────
+// ── Item Store Checkboxes ───────────────────────────────────────────────────────
 export function populateItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('item-store-checkboxes');
   if (!container) return;
@@ -23,7 +23,7 @@ export function getSelectedStores() {
   ).map(cb => cb.value);
 }
 
-// ── Render Items ─────────────────────────────────────────────────────────────────────────
+// ── Render Items ─────────────────────────────────────────────────────────────────────
 export function renderItems(onToggle, onEdit) {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
@@ -63,12 +63,13 @@ export function renderItems(onToggle, onEdit) {
   createIcons();
 }
 
-// ── Add / Edit Item Modals ───────────────────────────────────────────────────────────
+// ── Add / Edit Item Modals ─────────────────────────────────────────────────────
 export function openAddItemModal(buildCategoryOptions) {
   if (!state.currentListId) { window.showToast('No list selected — please open a list first', 'error'); return; }
   state.editingItemId = null;
   document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
+  document.getElementById('delete-item-btn').style.display = 'none';
   document.getElementById('item-name-full').value = '';
   document.getElementById('item-qty').value   = '';
   document.getElementById('item-unit').value  = '';
@@ -87,6 +88,7 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   state.editingItemId = itemId;
   document.querySelector('#modal-add-item .modal-title').textContent = 'Edit Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="save"></i> Save Changes';
+  document.getElementById('delete-item-btn').style.display = 'inline-flex';
   document.getElementById('item-name-full').value = item.name  || '';
   document.getElementById('item-qty').value        = item.qty   || '';
   document.getElementById('item-unit').value       = item.unit  || '';
@@ -99,7 +101,7 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
 }
 
-// ── Toggle Item ──────────────────────────────────────────────────────────────────────────
+// ── Toggle Item ──────────────────────────────────────────────────────────────────────
 export async function toggleItem(itemId, { itemsCol }) {
   const item = state.allItems.find(i => i.id === itemId);
   if (!item || !state.currentListId) return;
@@ -108,7 +110,19 @@ export async function toggleItem(itemId, { itemsCol }) {
   } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
 }
 
-// ── Save Item (add OR edit) ─────────────────────────────────────────────────────────
+// ── Delete Item ─────────────────────────────────────────────────────────────────────
+export async function deleteItem({ itemsCol }) {
+  const itemId = state.editingItemId;
+  if (!itemId || !state.currentListId) return;
+  try {
+    await deleteDoc(doc(itemsCol(state.currentListId), itemId));
+    window.closeModal('modal-add-item');
+    state.editingItemId = null;
+    window.showToast('Item deleted', 'success');
+  } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
+}
+
+// ── Save Item (add OR edit) ───────────────────────────────────────────────────────
 export async function saveItem({ itemsCol, getSelectedStores: getStores }) {
   const name = document.getElementById('item-name-full').value.trim();
   if (!name) { window.showToast('Item name is required', 'error'); return; }

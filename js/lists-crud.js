@@ -1,56 +1,63 @@
+// lists-crud.js — wires New List modal, list detail header, and item action buttons
 import { state } from './state.js';
-import { renderLists } from './lists.js';
+import { createIcons } from './utils.js';
+import {
+  saveItem as _saveItem,
+  deleteItem as _deleteItem,
+  getSelectedStores
+} from './items.js';
 
-// ── New List ─────────────────────────────────────────────────────────────────
 export function initNewList({ listsCol, addDoc, serverTimestamp, openList, confirmDelete }) {
-  document.getElementById('new-list-btn').addEventListener('click', () =>
-    window.openModal('modal-new-list')
-  );
+  const newListBtn  = document.getElementById('new-list-btn');
+  const emptyBtn    = document.getElementById('empty-new-list-btn');
+  const createBtn   = document.getElementById('create-list-btn');
 
-  document.getElementById('search-lists').addEventListener('input', () =>
-    renderLists(openList, confirmDelete)
-  );
-
-  const createList = async () => {
-    const name = document.getElementById('new-list-name').value.trim();
-    if (!name) { window.showToast('Please enter a list name', 'error'); return; }
-    try {
-      await addDoc(listsCol(), {
-        name,
-        storeName: document.getElementById('new-list-store').value || '',
-        itemCount: 0,
-        checkedCount: 0,
-        createdAt: serverTimestamp()
-      });
-      window.closeModal('modal-new-list');
-      document.getElementById('new-list-name').value  = '';
-      document.getElementById('new-list-store').value = '';
-      window.showToast(`"${name}" created!`, 'success');
-    } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
+  const openModal = () => {
+    document.getElementById('new-list-name').value = '';
+    window.openModal('modal-new-list');
+    setTimeout(() => document.getElementById('new-list-name').focus(), 50);
   };
+  if (newListBtn) newListBtn.addEventListener('click', openModal);
+  if (emptyBtn)   emptyBtn.addEventListener('click', openModal);
 
-  document.getElementById('create-list-btn').addEventListener('click', createList);
-  document.getElementById('new-list-name').addEventListener('keydown', e => { if (e.key === 'Enter') createList(); });
+  if (createBtn) createBtn.addEventListener('click', async () => {
+    const name = document.getElementById('new-list-name').value.trim();
+    if (!name) { window.showToast('List name is required', 'error'); return; }
+    const storeEl = document.getElementById('new-list-store');
+    const store   = storeEl ? storeEl.value : '';
+    try {
+      const ref = await addDoc(listsCol(), { name, store, createdAt: serverTimestamp(), itemCount: 0, checkedCount: 0 });
+      window.closeModal('modal-new-list');
+      openList(ref.id);
+    } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
+  });
+
+  document.getElementById('new-list-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('create-list-btn').click();
+  });
 }
 
-// ── List Detail Nav ──────────────────────────────────────────────────────────
 export function initListDetail({ confirmDelete, navigateTo, setHashListId }) {
   document.getElementById('back-to-lists').addEventListener('click', () => {
-    if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
     state.currentListId = null;
     setHashListId(null);
     navigateTo('lists');
-    document.getElementById('header-title').textContent = 'My Lists';
   });
-
   document.getElementById('detail-delete-btn').addEventListener('click', () => {
     if (state.currentListId) confirmDelete('list', state.currentListId);
   });
 }
 
-// ── Item Buttons ─────────────────────────────────────────────────────────────
 export function initItemButtons({ openAddItemModal, saveItem, itemsCol, getSelectedStores }) {
   document.getElementById('add-item-quick-btn').addEventListener('click', () => openAddItemModal());
-  document.getElementById('save-item-btn').addEventListener('click',  () => saveItem({ itemsCol, getSelectedStores }));
-  document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') saveItem({ itemsCol, getSelectedStores }); });
+  document.getElementById('save-item-btn').addEventListener('click', () =>
+    _saveItem({ itemsCol, getSelectedStores })
+  );
+  document.getElementById('delete-item-btn').addEventListener('click', () =>
+    _deleteItem({ itemsCol })
+  );
+  document.getElementById('item-name-full').addEventListener('keydown', e => {
+    if (e.key === 'Enter') _saveItem({ itemsCol, getSelectedStores });
+  });
+  createIcons();
 }
