@@ -259,11 +259,8 @@ function renderTemplates() {
     const more = items.length - preview.length;
     const chips = preview.map(it => `<span class="template-item-chip">${escHtml(it.name || it)}</span>`).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
-    return `<div class="template-card" data-tpl-id="${t.id}">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-        <div class="template-card-emoji">${t.emoji || '📋'}</div>
-        <button class="icon-btn template-card-edit-btn" data-edit-tpl="${t.id}" aria-label="Edit template" title="Edit template"><i data-lucide="pencil"></i></button>
-      </div>
+    return `<div class="template-card" data-tpl-id="${t.id}" style="cursor:pointer;" title="Edit template">
+      <div class="template-card-emoji">${t.emoji || '📋'}</div>
       <div><div class="template-card-title">${escHtml(t.name)}</div><div class="template-card-desc">${escHtml(t.desc || '')}</div></div>
       <div class="template-card-items">${chips}${moreChip}</div>
       <div class="template-card-footer">
@@ -271,7 +268,9 @@ function renderTemplates() {
       </div>
     </div>`;
   }).join('');
-  grid.querySelectorAll('[data-edit-tpl]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openTemplateEditor(btn.dataset.editTpl); }));
+  grid.querySelectorAll('.template-card').forEach(card =>
+    card.addEventListener('click', () => openTemplateEditor(card.dataset.tplId))
+  );
   createIcons();
 }
 
