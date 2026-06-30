@@ -8,6 +8,7 @@ import {
 import { escHtml, toArray, createIcons } from './js/utils.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
+import { seedDefaultsIfNeeded, seedTemplatesIfNeeded } from './js/seed.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────
 function getHashListId() {
