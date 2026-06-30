@@ -45,14 +45,14 @@ function subscribeToData() {
 
   state.unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
     state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderCategories();
+    renderCategories(state.allCategories, confirmDelete);
     populateCategorySelects();
   });
 
   state.unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
     state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderStores(allStores, confirmDelete);
-    populateStoreSelect(allStores);
+    renderStores(state.allStores, confirmDelete);
+    populateStoreSelect(state.allStores);
   });
 
   state.unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
@@ -382,22 +382,6 @@ function openEditItemModal(itemId) {
   populateItemStoreCheckboxes(toArray(item.stores));
   openModal('modal-add-item');
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
-}
-
-// ── Categories ─────────────────────────────────────────────────────────────────────────────
-function renderCategories() {
-  const grid = document.getElementById('categories-grid');
-  if (state.allCategories.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="tag"></i></div><h3>No categories</h3><p>Add a category to organize your items.</p></div>`;
-    createIcons(); return;
-  }
-  grid.innerHTML = state.allCategories.map(cat => `
-    <div class="card"><div class="card-body" style="display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:var(--text-sm);font-weight:500;">${cat.emoji||''} ${escHtml(cat.name)}</span>
-      <button class="icon-btn" data-delete-cat="${cat.id}" aria-label="Delete" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
-    </div></div>`).join('');
-  grid.querySelectorAll('[data-delete-cat]').forEach(btn => btn.addEventListener('click', () => confirmDelete('category', btn.dataset.deleteCat)));
-  createIcons();
 }
 
 // ── Delete ──────────────────────────────────────────────────────────────────────────────
