@@ -4,17 +4,19 @@
 //
 // Usage in shopping-list.js:
 //   import { seedDefaultsIfNeeded, seedTemplatesIfNeeded, SEED_TEMPLATES } from './js/seed.js';
+//   seedDefaultsIfNeeded(currentUser);
+//   seedTemplatesIfNeeded(currentUser);
 
 import { db } from './firebase.js';
 import {
   collection, doc, getDocs, writeBatch, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
-// Resolved at call time via the shared currentUser reference
-const uid           = () => window.__app.currentUser.uid;
-const categoriesCol = () => collection(db, 'users', uid(), 'categories');
-const storesCol     = () => collection(db, 'users', uid(), 'stores');
-const templatesCol  = () => collection(db, 'users', uid(), 'templates');
+// Accept user as a parameter — no global state needed
+const uid           = (user) => user.uid;
+const categoriesCol = (user) => collection(db, 'users', uid(user), 'categories');
+const storesCol     = (user) => collection(db, 'users', uid(user), 'stores');
+const templatesCol  = (user) => collection(db, 'users', uid(user), 'templates');
 
 // ── Default categories ───────────────────────────────────────────────────────
 const DEFAULT_CATEGORIES = [
@@ -130,33 +132,33 @@ export const SEED_TEMPLATES = [
 // ── Seed functions ───────────────────────────────────────────────────────────
 
 // Seeds default categories and stores in a single batch if both are empty.
-export async function seedDefaultsIfNeeded() {
+export async function seedDefaultsIfNeeded(user) {
   const [catSnap, storeSnap] = await Promise.all([
-    getDocs(categoriesCol()),
-    getDocs(storesCol())
+    getDocs(categoriesCol(user)),
+    getDocs(storesCol(user))
   ]);
   const batch = writeBatch(db);
   let dirty = false;
   if (catSnap.empty) {
     DEFAULT_CATEGORIES.forEach(cat =>
-      batch.set(doc(categoriesCol()), { ...cat, createdAt: serverTimestamp() }));
+      batch.set(doc(categoriesCol(user)), { ...cat, createdAt: serverTimestamp() }));
     dirty = true;
   }
   if (storeSnap.empty) {
     DEFAULT_STORES.forEach(name =>
-      batch.set(doc(storesCol()), { name, createdAt: serverTimestamp() }));
+      batch.set(doc(storesCol(user)), { name, createdAt: serverTimestamp() }));
     dirty = true;
   }
   if (dirty) await batch.commit();
 }
 
 // Seeds default templates if the templates collection is empty.
-export async function seedTemplatesIfNeeded() {
-  const snap = await getDocs(templatesCol());
+export async function seedTemplatesIfNeeded(user) {
+  const snap = await getDocs(templatesCol(user));
   if (snap.empty) {
     const batch = writeBatch(db);
     SEED_TEMPLATES.forEach(t =>
-      batch.set(doc(templatesCol()), { ...t, createdAt: serverTimestamp() }));
+      batch.set(doc(templatesCol(user)), { ...t, createdAt: serverTimestamp() }));
     await batch.commit();
   }
 }
