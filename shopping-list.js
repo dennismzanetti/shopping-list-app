@@ -491,7 +491,6 @@ async function loadAboutCommits() {
     }
     tbody.innerHTML = human.map(c => {
       const sha      = c.sha;
-      const shortSha = sha.slice(0, 7);
       const msg      = escHtml((c.commit.message || '').split('\n')[0]);
       const dateRaw  = c.commit.author?.date || c.commit.committer?.date || '';
       const dateStr  = dateRaw
@@ -500,7 +499,7 @@ async function loadAboutCommits() {
       const commitLink = `${repoUrl}/commit/${sha}`;
       return `<tr>
         <td class="col-date">${dateStr}</td>
-        <td class="col-sha"><span class="commit-sha-pill" title="${escHtml(sha)}"><a href="${commitLink}" target="_blank" rel="noopener noreferrer">${shortSha}</a></span></td>
+        <td class="col-sha"><span class="commit-sha-pill"><a href="${commitLink}" target="_blank" rel="noopener noreferrer">${escHtml(sha)}</a></span></td>
         <td class="col-msg">${msg}</td>
       </tr>`;
     }).join('');
@@ -535,10 +534,10 @@ async function loadBuildMeta() {
     const res = await fetch('./version.json', { cache: 'no-store' });
     if (!res.ok) throw new Error();
     const v = await res.json();
-    const shortSha = (v.sha || '').slice(0, 7);
-    const url      = v.commitUrl || repoUrl;
-    el.innerHTML   = shortSha
-      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${shortSha}</a>`
+    const fullSha = v.sha || '';
+    const url     = v.commitUrl || repoUrl;
+    el.innerHTML  = fullSha
+      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${escHtml(fullSha)}</a>`
       : `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
   } catch {
     el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
