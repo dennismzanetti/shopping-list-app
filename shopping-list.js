@@ -22,9 +22,10 @@ import {
 import { navigateTo, initNav } from './js/nav.js';
 import { loadAboutCommits, loadBuildMeta } from './js/about.js';
 import { renderTemplates, openTemplateEditor, initTemplates } from './js/templates.js';
-import { initExportImport, performImport, getAndClearPendingImport } from './js/export-import.js';
+import { initExportImport } from './js/export-import.js';
 import { initCategoriesStores } from './js/categories-stores.js';
 import { initNewList, initListDetail, initItemButtons } from './js/lists-crud.js';
+import { confirmDelete, initConfirm } from './js/confirm.js';
 
 // ── Hash helpers ─────────────────────────────────────────────────────────────
 function getHashListId() {
@@ -43,7 +44,7 @@ const categoriesCol = () => collection(db, 'users', uid(), 'categories');
 const storesCol     = () => collection(db, 'users', uid(), 'stores');
 const templatesCol  = () => collection(db, 'users', uid(), 'templates');
 
-const firestoreDeps = () => ({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy, writeBatch, doc, serverTimestamp });
+const firestoreDeps = () => ({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy, writeBatch, doc, serverTimestamp, deleteDoc });
 
 // ── Local wrappers ────────────────────────────────────────────────────────────
 function openList(listId) {
@@ -126,16 +127,6 @@ function populateCategorySelects() {
   if (tplSel)  tplSel.innerHTML  = buildCategoryOptions();
 }
 
-// ── Confirm / delete ──────────────────────────────────────────────────────────
-function confirmDelete(type, id) {
-  state.pendingDelete = { type, id };
-  const titles = { list:'Delete List?', category:'Delete Category?', store:'Delete Store?', template:'Delete Template?' };
-  const msgs   = { list:'This will permanently delete the list and all its items.', category:'This category will be removed.', store:'This store will be removed.', template:'This template will be permanently deleted.' };
-  document.getElementById('confirm-title').textContent   = titles[type];
-  document.getElementById('confirm-message').textContent = msgs[type];
-  window.openModal('modal-confirm');
-}
-
 // ── Modals / toast ────────────────────────────────────────────────────────────
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open');    createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el)   el.classList.remove('open'); };
@@ -157,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
   initNav({ onSettings: loadAboutCommits });
+  initConfirm({ ...firestoreDeps(), setHashListId });
   initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete });
   initExportImport(firestoreDeps());
   initCategoriesStores({ categoriesCol, storesCol, addDoc, serverTimestamp });
@@ -206,39 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.modal-overlay').forEach(overlay =>
     overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); state.editingItemId = null; } })
   );
-
-  // Confirm dialog
-  document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
-    if (!state.pendingDelete) return;
-    const { type, id } = state.pendingDelete;
-    window.closeModal('modal-confirm');
-    document.getElementById('confirm-ok-btn').textContent = 'Delete';
-    try {
-      if (type === 'import') {
-        const data = getAndClearPendingImport();
-        if (data) await performImport(data, firestoreDeps());
-      } else if (type === 'list') {
-        const itemSnap = await getDocs(itemsCol(id));
-        const batch = writeBatch(db);
-        itemSnap.docs.forEach(d => batch.delete(d.ref));
-        batch.delete(doc(listsCol(), id));
-        await batch.commit();
-        if (state.currentListId === id) {
-          if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
-          state.currentListId = null; setHashListId(null); navigateTo('lists');
-          document.getElementById('header-title').textContent = 'My Lists';
-        }
-        showToast('List deleted', 'success');
-      } else if (type === 'category') {
-        await deleteDoc(doc(categoriesCol(), id)); showToast('Category deleted', 'success');
-      } else if (type === 'store') {
-        await deleteDoc(doc(storesCol(), id)); showToast('Store deleted', 'success');
-      } else if (type === 'template') {
-        await deleteDoc(doc(templatesCol(), id)); showToast('Template deleted', 'success');
-      }
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    state.pendingDelete = null;
-  });
 
   loadBuildMeta();
 });
