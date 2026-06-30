@@ -169,7 +169,7 @@
       <!-- Settings View -->
       <div class="view" id="view-settings">
         <div class="page-header"><div><h1 class="page-title">Settings</h1><p class="page-subtitle">Account &amp; preferences</p></div></div>
-        <div style="max-width:520px;display:flex;flex-direction:column;gap:var(--space-4);">
+        <div style="max-width:720px;display:flex;flex-direction:column;gap:var(--space-4);">
           <div class="card">
             <div class="card-header"><span style="font-weight:600;">Profile</span></div>
             <div class="card-body" style="display:flex;align-items:center;gap:var(--space-4);">
@@ -184,6 +184,26 @@
           <div class="card">
             <div class="card-header"><span style="font-weight:600;">Account</span></div>
             <div class="card-body"><button class="btn btn-danger" id="signout-btn" style="width:100%;justify-content:center;"><i data-lucide="log-out"></i> Sign Out</button></div>
+          </div>
+          <div class="card" id="about-card">
+            <div class="card-header">
+              <span style="font-weight:600;">About</span>
+              <span id="about-loading" style="font-size:var(--text-xs);color:var(--color-text-faint);">Loading…</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <table class="about-commit-table">
+                <thead>
+                  <tr>
+                    <th class="col-date">Date &amp; Time</th>
+                    <th class="col-sha">SHA</th>
+                    <th class="col-msg">Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="about-commit-tbody">
+                  <tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-xs);">Loading commits…</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
