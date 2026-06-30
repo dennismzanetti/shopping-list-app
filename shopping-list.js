@@ -423,12 +423,10 @@ function renderLists() {
   grid.innerHTML = filtered.map(list => {
     const total = list.itemCount || 0, checked = list.checkedCount || 0;
     const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
-    const isDone = total > 0 && checked === total;
-    const badge = isDone ? `<span class="badge badge-success">Done</span>` : `<span class="badge badge-primary">Active</span>`;
     const storeName = list.storeName ? `<span>${list.storeName}</span>` : '';
     return `<div class="list-card" data-id="${list.id}">
       <div class="list-card-actions"><button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error)"><i data-lucide="trash-2"></i></button></div>
-      <div class="list-card-header"><div><div class="list-card-title">${escHtml(list.name)}</div><div class="list-card-meta">${storeName}<span>${total} item${total !== 1 ? 's' : ''}</span><span>${checked} checked</span></div></div>${badge}</div>
+      <div class="list-card-header"><div><div class="list-card-title">${escHtml(list.name)}</div><div class="list-card-meta">${storeName}<span>${total} item${total !== 1 ? 's' : ''}</span><span>${checked} checked</span></div></div></div>
       <div class="list-card-progress"><div class="list-card-progress-bar" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
