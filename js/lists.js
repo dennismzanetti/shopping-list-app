@@ -1,5 +1,8 @@
 import { escHtml, createIcons } from './utils.js';
 import { state } from './state.js';
+import {
+  query, orderBy
+} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
 // ── Lists ──────────────────────────────────────────────────────────────────────────────
 export function renderLists(onOpen, onDelete) {
@@ -40,7 +43,7 @@ export function renderLists(onOpen, onDelete) {
 }
 
 // ── List Detail ───────────────────────────────────────────────────────────────────────────
-export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsCol, orderBy, renderItems, updateListCounts }) {
+export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsCol, renderItems, updateListCounts }) {
   state.currentListId = listId;
   setHashListId(listId);
   const list = state.allLists.find(l => l.id === listId);
