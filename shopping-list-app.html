@@ -64,19 +64,6 @@
         <div class="nav-section-label">Account</div>
         <div class="nav-item" data-view="settings"><i data-lucide="settings"></i>Settings</div>
       </nav>
-      <div class="sidebar-footer">
-        <div class="user-chip" data-view="settings">
-          <div class="user-avatar" id="sidebar-avatar">U</div>
-          <div class="user-info">
-            <div class="user-name" id="sidebar-name">—</div>
-            <div class="user-email" id="sidebar-email">—</div>
-          </div>
-          <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;"></i>
-        </div>
-        <footer class="build-footer">
-          <small id="build-meta"><a href="https://github.com/dennismzanetti/shopping-list-app" target="_blank" rel="noopener noreferrer">View source</a></small>
-        </footer>
-      </div>
     </aside>
 
     <header class="app-header">
@@ -86,6 +73,9 @@
       </div>
       <div class="header-actions">
         <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+        <button class="icon-btn" id="header-user-btn" aria-label="Account" data-view="settings">
+          <div class="user-avatar" id="header-avatar" style="width:28px;height:28px;font-size:var(--text-xs);">U</div>
+        </button>
       </div>
     </header>
 
