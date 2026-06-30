@@ -20,6 +20,7 @@ import {
   toggleItem as _toggleItem,
   saveItem as _saveItem
 } from './js/items.js';
+import { navigateTo, closeSidebar, initNav } from './js/nav.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────────
 function getHashListId() {
@@ -60,10 +61,10 @@ function openEditItemModal(itemId) {
 }
 
 function teardownSubscriptions() {
-  if (state.unsubLists) { state.unsubLists(); state.unsubLists = null; }
-  if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
-  if (state.unsubCategories) { state.unsubCategories(); state.unsubCategories = null; }
-  if (state.unsubStores) { state.unsubStores(); state.unsubStores = null; }
+  if (state.unsubLists)     { state.unsubLists();     state.unsubLists     = null; }
+  if (state.unsubItems)     { state.unsubItems();     state.unsubItems     = null; }
+  if (state.unsubCategories){ state.unsubCategories();state.unsubCategories= null; }
+  if (state.unsubStores)    { state.unsubStores();    state.unsubStores    = null; }
   if (state.unsubTemplates) { state.unsubTemplates(); state.unsubTemplates = null; }
   state.allLists = []; state.allItems = []; state.allCategories = []; state.allStores = []; state.allTemplates = [];
 }
@@ -284,24 +285,6 @@ function confirmDelete(type, id) {
   openModal('modal-confirm');
 }
 
-// ── Navigation ───────────────────────────────────────────────────────────────────────────
-const viewTitles = { lists:'My Lists', 'list-detail':'', templates:'Templates', categories:'Categories', stores:'Stores', settings:'Settings' };
-function navigateTo(view) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
-  const target = document.getElementById('view-' + view);
-  if (target) target.classList.add('active');
-  document.querySelectorAll(`[data-view="${view}"]`).forEach(n => n.classList.add('active'));
-  if (viewTitles[view]) document.getElementById('header-title').textContent = viewTitles[view];
-  if (view === 'settings') loadAboutCommits();
-  closeSidebar();
-  createIcons();
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebar-backdrop').classList.remove('open');
-}
-
 // ── About — live commit history ──────────────────────────────────────────────────────────
 async function loadAboutCommits() {
   const tbody = document.getElementById('about-commits-tbody');
@@ -381,6 +364,8 @@ async function loadBuildMeta() {
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
+
+  initNav({ onSettings: loadAboutCommits });
 
   // Auth
   document.getElementById('google-signin-btn').addEventListener('click', async () => {
@@ -560,18 +545,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
     state.pendingDelete = null;
   });
-
-  // Nav items
-  document.querySelectorAll('.nav-item[data-view], .bottom-nav-item[data-view]').forEach(item =>
-    item.addEventListener('click', () => navigateTo(item.dataset.view))
-  );
-
-  // Sidebar toggle
-  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('mobile-open');
-    document.getElementById('sidebar-backdrop').classList.toggle('open');
-  });
-  document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
 
   loadBuildMeta();
 });
