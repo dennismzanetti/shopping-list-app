@@ -5,7 +5,7 @@ import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
-import { escHtml, toArray, createIcons } from './js/utils.js';
+import { escHtml, createIcons } from './js/utils.js';
 import { renderCategories, renderStores, populateStoreSelect } from './js/categories.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
@@ -15,18 +15,18 @@ import {
   renderItems as _renderItems,
   openAddItemModal as _openAddItemModal,
   openEditItemModal as _openEditItemModal,
-  populateItemStoreCheckboxes,
   getSelectedStores,
   toggleItem as _toggleItem,
   saveItem as _saveItem
 } from './js/items.js';
-import { navigateTo, closeSidebar, initNav } from './js/nav.js';
+import { navigateTo, initNav } from './js/nav.js';
 import { loadAboutCommits, loadBuildMeta } from './js/about.js';
 import { renderTemplates, openTemplateEditor, initTemplates } from './js/templates.js';
 import { initExportImport, performImport, getAndClearPendingImport } from './js/export-import.js';
 import { initCategoriesStores } from './js/categories-stores.js';
+import { initNewList, initListDetail, initItemButtons } from './js/lists-crud.js';
 
-// ── Hash-based list restore ──────────────────────────────────────────────────
+// ── Hash helpers ─────────────────────────────────────────────────────────────
 function getHashListId() {
   const m = window.location.hash.match(/^#list\/(.+)$/);
   return m ? m[1] : null;
@@ -35,7 +35,7 @@ function setHashListId(listId) {
   history.replaceState(null, '', listId ? `#list/${listId}` : '#');
 }
 
-// ── Firestore Helpers ────────────────────────────────────────────────────────
+// ── Firestore helpers ─────────────────────────────────────────────────────────
 const uid           = () => state.currentUser.uid;
 const listsCol      = () => collection(db, 'users', uid(), 'lists');
 const itemsCol      = listId => collection(db, 'users', uid(), 'lists', listId, 'items');
@@ -45,7 +45,7 @@ const templatesCol  = () => collection(db, 'users', uid(), 'templates');
 
 const firestoreDeps = () => ({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy, writeBatch, doc, serverTimestamp });
 
-// ── Local wrappers ───────────────────────────────────────────────────────────
+// ── Local wrappers ────────────────────────────────────────────────────────────
 function openList(listId) {
   _openList(listId, { navigateTo, setHashListId, onSnapshot, itemsCol, renderItems, updateListCounts });
 }
@@ -111,7 +111,7 @@ function subscribeToData() {
   });
 }
 
-// ── Category Selects ─────────────────────────────────────────────────────────
+// ── Category selects ──────────────────────────────────────────────────────────
 function buildCategoryOptions(selectedCategory = '') {
   const blank = `<option value="">-- No category --</option>`;
   const opts  = state.allCategories.map(c =>
@@ -119,7 +119,6 @@ function buildCategoryOptions(selectedCategory = '') {
   ).join('');
   return blank + opts;
 }
-
 function populateCategorySelects() {
   const itemSel = document.getElementById('item-category');
   const tplSel  = document.getElementById('tpl-item-category');
@@ -127,7 +126,7 @@ function populateCategorySelects() {
   if (tplSel)  tplSel.innerHTML  = buildCategoryOptions();
 }
 
-// ── Delete ───────────────────────────────────────────────────────────────────
+// ── Confirm / delete ──────────────────────────────────────────────────────────
 function confirmDelete(type, id) {
   state.pendingDelete = { type, id };
   const titles = { list:'Delete List?', category:'Delete Category?', store:'Delete Store?', template:'Delete Template?' };
@@ -137,11 +136,10 @@ function confirmDelete(type, id) {
   window.openModal('modal-confirm');
 }
 
-// ── Modals ───────────────────────────────────────────────────────────────────
+// ── Modals / toast ────────────────────────────────────────────────────────────
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open');    createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el)   el.classList.remove('open'); };
 
-// ── Toast ────────────────────────────────────────────────────────────────────
 function showToast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -154,7 +152,7 @@ function showToast(msg, type = 'info') {
 }
 window.showToast = showToast;
 
-// ── Bootstrap ────────────────────────────────────────────────────────────────
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
@@ -162,6 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete });
   initExportImport(firestoreDeps());
   initCategoriesStores({ categoriesCol, storesCol, addDoc, serverTimestamp });
+  initNewList({ listsCol, addDoc, serverTimestamp, openList, confirmDelete });
+  initListDetail({ confirmDelete, navigateTo, setHashListId });
+  initItemButtons({ openAddItemModal, saveItem: _saveItem, itemsCol, getSelectedStores });
 
   // Auth
   document.getElementById('google-signin-btn').addEventListener('click', async () => {
@@ -174,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Sign-in failed: ' + e.message, 'error');
     }
   });
-
   document.getElementById('signout-btn').addEventListener('click', async () => {
     await signOut(auth); showToast('Signed out', 'info');
   });
@@ -202,37 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('dark-mode-toggle').addEventListener('change', toggleTheme);
 
-  // New list
-  document.getElementById('new-list-btn').addEventListener('click', () => window.openModal('modal-new-list'));
-  document.getElementById('search-lists').addEventListener('input', () => renderLists(openList, confirmDelete));
-  document.getElementById('create-list-btn').addEventListener('click', async () => {
-    const name = document.getElementById('new-list-name').value.trim();
-    if (!name) { showToast('Please enter a list name', 'error'); return; }
-    try {
-      await addDoc(listsCol(), { name, storeName: document.getElementById('new-list-store').value || '', itemCount: 0, checkedCount: 0, createdAt: serverTimestamp() });
-      window.closeModal('modal-new-list');
-      document.getElementById('new-list-name').value  = '';
-      document.getElementById('new-list-store').value = '';
-      showToast(`"${name}" created!`, 'success');
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
-  });
-  document.getElementById('new-list-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('create-list-btn').click(); });
-
-  // List detail nav
-  document.getElementById('back-to-lists').addEventListener('click', () => {
-    if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
-    state.currentListId = null; setHashListId(null);
-    navigateTo('lists');
-    document.getElementById('header-title').textContent = 'My Lists';
-  });
-  document.getElementById('detail-delete-btn').addEventListener('click', () => { if (state.currentListId) confirmDelete('list', state.currentListId); });
-
-  // Add / Save item
-  document.getElementById('add-item-quick-btn').addEventListener('click', () => openAddItemModal());
-  document.getElementById('save-item-btn').addEventListener('click', () => _saveItem({ itemsCol, getSelectedStores }));
-  document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') _saveItem({ itemsCol, getSelectedStores }); });
-
-  // Dismiss modals
+  // Dismiss modals on backdrop click
   document.querySelectorAll('.modal-overlay').forEach(overlay =>
     overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); state.editingItemId = null; } })
   );
