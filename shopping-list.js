@@ -10,8 +10,9 @@ import { renderCategories, renderStores, populateStoreSelect } from './js/catego
 import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
 import { seedDefaultsIfNeeded, seedTemplatesIfNeeded } from './js/seed.js';
+import { renderLists, openList as _openList, updateListCounts as _updateListCounts } from './js/lists.js';
 
-// ── Hash-based list restore ─────────────────────────────────────────────────────────
+// ── Hash-based list restore ─────────────────────────────────────────────────────────────
 function getHashListId() {
   const m = window.location.hash.match(/^#list\/(.+)$/);
   return m ? m[1] : null;
@@ -20,13 +21,30 @@ function setHashListId(listId) {
   history.replaceState(null, '', listId ? `#list/${listId}` : '#');
 }
 
-// ── Firestore Helpers ──────────────────────────────────────────────────────────────────
+// ── Firestore Helpers ──────────────────────────────────────────────────────────────────────
 const uid = () => state.currentUser.uid;
 const listsCol = () => collection(db, 'users', uid(), 'lists');
 const itemsCol = (listId) => collection(db, 'users', uid(), 'lists', listId, 'items');
 const categoriesCol = () => collection(db, 'users', uid(), 'categories');
 const storesCol = () => collection(db, 'users', uid(), 'stores');
 const templatesCol = () => collection(db, 'users', uid(), 'templates');
+
+// ── Lists wrappers (pass deps as callbacks) ────────────────────────────────────────────
+function openList(listId) {
+  _openList(listId, {
+    navigateTo,
+    setHashListId,
+    onSnapshot,
+    itemsCol,
+    orderBy,
+    renderItems,
+    updateListCounts
+  });
+}
+
+function updateListCounts(listId) {
+  _updateListCounts(listId, { listsCol, updateDoc, doc });
+}
 
 function teardownSubscriptions() {
   if (state.unsubLists) { state.unsubLists(); state.unsubLists = null; }
@@ -57,7 +75,7 @@ function subscribeToData() {
 
   state.unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
     state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderLists();
+    renderLists(openList, confirmDelete);
     document.getElementById('badge-lists').textContent = state.allLists.length;
     if (state.listsFirstLoad) {
       state.listsFirstLoad = false;
@@ -243,58 +261,7 @@ function saveTplItem() {
   renderTplEditorItems();
 }
 
-// ── Lists ──────────────────────────────────────────────────────────────────────────────
-function renderLists() {
-  const grid = document.getElementById('lists-grid');
-  const q = document.getElementById('search-lists').value.toLowerCase();
-  const filtered = state.allLists.filter(l => l.name.toLowerCase().includes(q));
-  document.getElementById('lists-subtitle').textContent = state.allLists.length === 1 ? '1 list' : `${state.allLists.length} lists`;
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
-      <div class="empty-state-icon"><i data-lucide="shopping-cart"></i></div>
-      <h3>${q ? 'No matching lists' : 'No lists yet'}</h3>
-      <p>${q ? 'Try a different search.' : 'Create your first shopping list to get started.'}</p>
-      ${!q ? '<button class="btn btn-primary" id="empty-new-list-btn"><i data-lucide="plus"></i> New List</button>' : ''}
-    </div>`;
-    document.getElementById('empty-new-list-btn')?.addEventListener('click', () => openModal('modal-new-list'));
-    createIcons(); return;
-  }
-
-  grid.innerHTML = filtered.map(list => {
-    const total = list.itemCount || 0, checked = list.checkedCount || 0;
-    const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
-    const storeName = list.storeName ? `<span>${list.storeName}</span>` : '';
-    return `<div class="list-card" data-id="${list.id}">
-      <div class="list-card-actions"><button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error)"><i data-lucide="trash-2"></i></button></div>
-      <div class="list-card-header"><div><div class="list-card-title">${escHtml(list.name)}</div><div class="list-card-meta">${storeName}<span>${total} item${total !== 1 ? 's' : ''}</span><span>${checked} checked</span></div></div></div>
-      <div class="list-card-progress"><div class="list-card-progress-bar" style="width:${pct}%"></div></div>
-    </div>`;
-  }).join('');
-
-  grid.querySelectorAll('.list-card').forEach(card => card.addEventListener('click', e => { if (e.target.closest('[data-delete-list]')) return; openList(card.dataset.id); }));
-  grid.querySelectorAll('[data-delete-list]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); confirmDelete('list', btn.dataset.deleteList); }));
-  createIcons();
-}
-
-// ── List Detail ───────────────────────────────────────────────────────────────────────────
-function openList(listId) {
-  state.currentListId = listId;
-  setHashListId(listId);
-  const list = state.allLists.find(l => l.id === listId);
-  if (!list) return;
-  document.getElementById('detail-list-name').textContent = list.name;
-  document.getElementById('detail-list-store').textContent = list.storeName ? `📍 ${list.storeName}` : '';
-  document.getElementById('header-title').textContent = list.name;
-  navigateTo('list-detail');
-  if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
-  state.unsubItems = onSnapshot(query(itemsCol(listId), orderBy('createdAt')), snap => {
-    state.allItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderItems();
-    updateListCounts(listId);
-  });
-}
-
+// ── Items ──────────────────────────────────────────────────────────────────────────────
 function renderItems() {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
@@ -332,10 +299,6 @@ function renderItems() {
   list_.querySelectorAll('[data-toggle]').forEach(el     => el.addEventListener('click',  ()  => toggleItem(el.dataset.toggle)));
   list_.querySelectorAll('[data-edit-item]').forEach(btn => btn.addEventListener('click', ()  => openEditItemModal(btn.dataset.editItem)));
   createIcons();
-}
-
-async function updateListCounts(listId) {
-  try { await updateDoc(doc(listsCol(), listId), { itemCount: state.allItems.length, checkedCount: state.allItems.filter(i=>i.checked).length }); } catch {}
 }
 
 // ── Item Store Checkboxes ─────────────────────────────────────────────────────────────
@@ -533,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // New list
   document.getElementById('new-list-btn').addEventListener('click', () => openModal('modal-new-list'));
-  document.getElementById('search-lists').addEventListener('input', renderLists);
+  document.getElementById('search-lists').addEventListener('input', () => renderLists(openList, confirmDelete));
   document.getElementById('create-list-btn').addEventListener('click', async () => {
     const name = document.getElementById('new-list-name').value.trim();
     if (!name) { showToast('Please enter a list name', 'error'); return; }
