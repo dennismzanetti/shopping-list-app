@@ -21,6 +21,7 @@ import {
   saveItem as _saveItem
 } from './js/items.js';
 import { navigateTo, closeSidebar, initNav } from './js/nav.js';
+import { loadAboutCommits, loadBuildMeta } from './js/about.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────────
 function getHashListId() {
@@ -208,7 +209,6 @@ function renderTplEditorItems() {
       <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
   }).join('');
-
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit)); })
   );
@@ -244,7 +244,7 @@ function openTplItemModal(idx) {
   document.getElementById('tpl-item-name').value  = it ? it.name  : '';
   document.getElementById('tpl-item-qty').value   = it ? it.qty   : '';
   document.getElementById('tpl-item-unit').value  = it ? it.unit  : '';
-  document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ')  : '';
+  document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ') : '';
   document.getElementById('tpl-item-notes').value = it ? it.notes : '';
   const tplCatSel = document.getElementById('tpl-item-category');
   if (tplCatSel) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
@@ -285,45 +285,6 @@ function confirmDelete(type, id) {
   openModal('modal-confirm');
 }
 
-// ── About — live commit history ──────────────────────────────────────────────────────────
-async function loadAboutCommits() {
-  const tbody = document.getElementById('about-commits-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-muted);"><span class="spinner" style="margin:0 auto;"></span></td></tr>`;
-  const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
-  try {
-    const res = await fetch('https://api.github.com/repos/dennismzanetti/shopping-list-app/commits?per_page=50', {
-      headers: { 'Accept': 'application/vnd.github+json' }
-    });
-    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-    const commits = await res.json();
-    const human = commits.filter(c => {
-      const login = (c.author?.login || c.committer?.login || '').toLowerCase();
-      return !login.endsWith('[bot]') && login !== 'github-actions' && login !== 'dependabot';
-    }).slice(0, 10);
-    if (human.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-muted);">No commits found.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = human.map(c => {
-      const sha      = c.sha;
-      const msg      = escHtml((c.commit.message || '').split('\n')[0]);
-      const dateRaw  = c.commit.author?.date || c.commit.committer?.date || '';
-      const dateStr  = dateRaw
-        ? new Date(dateRaw).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' })
-        : '—';
-      const commitLink = `${repoUrl}/commit/${sha}`;
-      return `<tr>
-        <td class="col-date">${dateStr}</td>
-        <td class="col-sha"><span class="commit-sha-pill"><a href="${commitLink}" target="_blank" rel="noopener noreferrer">${escHtml(sha)}</a></span></td>
-        <td class="col-msg">${msg}</td>
-      </tr>`;
-    }).join('');
-  } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-error);">Could not load commits: ${escHtml(e.message)}</td></tr>`;
-  }
-}
-
 // ── Modals ──────────────────────────────────────────────────────────────────────────────
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open'); createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el) el.classList.remove('open'); };
@@ -341,30 +302,10 @@ function showToast(msg, type = 'info') {
 }
 window.showToast = showToast;
 
-// ── Build meta ───────────────────────────────────────────────────────────────────────────
-async function loadBuildMeta() {
-  const el = document.getElementById('build-meta');
-  if (!el) return;
-  const repoUrl = 'https://github.com/dennismzanetti/shopping-list-app';
-  try {
-    const res = await fetch('./version.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error();
-    const v = await res.json();
-    const fullSha = v.sha || '';
-    const url     = v.commitUrl || repoUrl;
-    el.innerHTML  = fullSha
-      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${escHtml(fullSha)}</a>`
-      : `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
-  } catch {
-    el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
-  }
-}
-
 // ── Bootstrap ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
-
   initNav({ onSettings: loadAboutCommits });
 
   // Auth
