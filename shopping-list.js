@@ -41,90 +41,90 @@ function setHashListId(listId) {
 const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
     items:[
-      {name:'Milk',qty:'1',unit:'gal',stores:[],tags:[],notes:''},
-      {name:'Eggs',qty:'1',unit:'doz',stores:[],tags:[],notes:''},
-      {name:'Bread',qty:'1',unit:'loaf',stores:[],tags:[],notes:''},
-      {name:'Butter',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Cheese',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Chicken breast',qty:'2',unit:'lbs',stores:[],tags:[],notes:''},
-      {name:'Pasta',qty:'1',unit:'box',stores:[],tags:[],notes:''},
-      {name:'Rice',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Olive oil',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Bananas',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Spinach',qty:'',unit:'',stores:[],tags:[],notes:''}
+      {name:'Milk',qty:'1',unit:'gal',category:'',stores:[],tags:[],notes:''},
+      {name:'Eggs',qty:'1',unit:'doz',category:'',stores:[],tags:[],notes:''},
+      {name:'Bread',qty:'1',unit:'loaf',category:'',stores:[],tags:[],notes:''},
+      {name:'Butter',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Cheese',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Chicken breast',qty:'2',unit:'lbs',category:'',stores:[],tags:[],notes:''},
+      {name:'Pasta',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
+      {name:'Rice',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Olive oil',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Bananas',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Spinach',qty:'',unit:'',category:'',stores:[],tags:[],notes:''}
     ] },
   { emoji:'🥩', name:'BBQ & Grilling', desc:'Everything you need for a backyard cookout',
     items:[
-      {name:'Burgers',qty:'2',unit:'lbs',stores:[],tags:[],notes:''},
-      {name:'Hot dogs',qty:'1',unit:'pkg',stores:[],tags:[],notes:''},
-      {name:'Chicken wings',qty:'3',unit:'lbs',stores:[],tags:[],notes:''},
-      {name:'Buns',qty:'1',unit:'pkg',stores:[],tags:[],notes:''},
-      {name:'Ketchup',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Mustard',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'BBQ sauce',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Corn on the cob',qty:'6',unit:'',stores:[],tags:[],notes:''}
+      {name:'Burgers',qty:'2',unit:'lbs',category:'',stores:[],tags:[],notes:''},
+      {name:'Hot dogs',qty:'1',unit:'pkg',category:'',stores:[],tags:[],notes:''},
+      {name:'Chicken wings',qty:'3',unit:'lbs',category:'',stores:[],tags:[],notes:''},
+      {name:'Buns',qty:'1',unit:'pkg',category:'',stores:[],tags:[],notes:''},
+      {name:'Ketchup',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Mustard',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'BBQ sauce',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Corn on the cob',qty:'6',unit:'',category:'',stores:[],tags:[],notes:''}
     ] },
   { emoji:'🎉', name:'Party Supplies', desc:'Stock up for a gathering or celebration',
     items:[
-      {name:'Chips & dip',qty:'',unit:'',stores:[],tags:['snacks'],notes:''},
-      {name:'Soda',qty:'2',unit:'cases',stores:[],tags:['beverages'],notes:''},
-      {name:'Ice',qty:'2',unit:'bags',stores:[],tags:[],notes:''},
-      {name:'Plates',qty:'50',unit:'',stores:[],tags:['supplies'],notes:''},
-      {name:'Cups',qty:'50',unit:'',stores:[],tags:['supplies'],notes:''},
-      {name:'Napkins',qty:'1',unit:'pkg',stores:[],tags:['supplies'],notes:''}
+      {name:'Chips & dip',qty:'',unit:'',category:'',stores:[],tags:['snacks'],notes:''},
+      {name:'Soda',qty:'2',unit:'cases',category:'',stores:[],tags:['beverages'],notes:''},
+      {name:'Ice',qty:'2',unit:'bags',category:'',stores:[],tags:[],notes:''},
+      {name:'Plates',qty:'50',unit:'',category:'',stores:[],tags:['supplies'],notes:''},
+      {name:'Cups',qty:'50',unit:'',category:'',stores:[],tags:['supplies'],notes:''},
+      {name:'Napkins',qty:'1',unit:'pkg',category:'',stores:[],tags:['supplies'],notes:''}
     ] },
   { emoji:'🏠', name:'Household Basics', desc:'Cleaning and home essentials',
     items:[
-      {name:'Paper towels',qty:'6',unit:'rolls',stores:[],tags:['cleaning'],notes:''},
-      {name:'Toilet paper',qty:'12',unit:'rolls',stores:[],tags:[],notes:''},
-      {name:'Dish soap',qty:'1',unit:'bottle',stores:[],tags:['cleaning'],notes:''},
-      {name:'Laundry detergent',qty:'',unit:'',stores:[],tags:['cleaning'],notes:''},
-      {name:'Trash bags',qty:'1',unit:'box',stores:[],tags:[],notes:''},
-      {name:'Sponges',qty:'',unit:'',stores:[],tags:['cleaning'],notes:''}
+      {name:'Paper towels',qty:'6',unit:'rolls',category:'',stores:[],tags:['cleaning'],notes:''},
+      {name:'Toilet paper',qty:'12',unit:'rolls',category:'',stores:[],tags:[],notes:''},
+      {name:'Dish soap',qty:'1',unit:'bottle',category:'',stores:[],tags:['cleaning'],notes:''},
+      {name:'Laundry detergent',qty:'',unit:'',category:'',stores:[],tags:['cleaning'],notes:''},
+      {name:'Trash bags',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
+      {name:'Sponges',qty:'',unit:'',category:'',stores:[],tags:['cleaning'],notes:''}
     ] },
   { emoji:'🥗', name:'Healthy Eating', desc:'Fresh produce and wholesome staples',
     items:[
-      {name:'Kale',qty:'1',unit:'bunch',stores:[],tags:['produce','organic'],notes:''},
-      {name:'Spinach',qty:'1',unit:'bag',stores:[],tags:['produce'],notes:''},
-      {name:'Broccoli',qty:'1',unit:'head',stores:[],tags:['produce'],notes:''},
-      {name:'Avocados',qty:'4',unit:'',stores:[],tags:['produce'],notes:''},
-      {name:'Blueberries',qty:'1',unit:'pint',stores:[],tags:['produce'],notes:''},
-      {name:'Greek yogurt',qty:'',unit:'',stores:[],tags:['dairy'],notes:''},
-      {name:'Quinoa',qty:'1',unit:'bag',stores:[],tags:[],notes:''},
-      {name:'Salmon',qty:'1',unit:'lb',stores:[],tags:['seafood'],notes:''},
-      {name:'Almonds',qty:'1',unit:'bag',stores:[],tags:['snacks'],notes:''}
+      {name:'Kale',qty:'1',unit:'bunch',category:'',stores:[],tags:['produce','organic'],notes:''},
+      {name:'Spinach',qty:'1',unit:'bag',category:'',stores:[],tags:['produce'],notes:''},
+      {name:'Broccoli',qty:'1',unit:'head',category:'',stores:[],tags:['produce'],notes:''},
+      {name:'Avocados',qty:'4',unit:'',category:'',stores:[],tags:['produce'],notes:''},
+      {name:'Blueberries',qty:'1',unit:'pint',category:'',stores:[],tags:['produce'],notes:''},
+      {name:'Greek yogurt',qty:'',unit:'',category:'',stores:[],tags:['dairy'],notes:''},
+      {name:'Quinoa',qty:'1',unit:'bag',category:'',stores:[],tags:[],notes:''},
+      {name:'Salmon',qty:'1',unit:'lb',category:'',stores:[],tags:['seafood'],notes:''},
+      {name:'Almonds',qty:'1',unit:'bag',category:'',stores:[],tags:['snacks'],notes:''}
     ] },
   { emoji:'🍝', name:'Pasta Night', desc:'Ingredients for a classic Italian dinner',
     items:[
-      {name:'Spaghetti',qty:'1',unit:'box',stores:[],tags:[],notes:''},
-      {name:'Marinara sauce',qty:'1',unit:'jar',stores:[],tags:[],notes:''},
-      {name:'Ground beef',qty:'1',unit:'lb',stores:[],tags:[],notes:''},
-      {name:'Parmesan cheese',qty:'',unit:'',stores:[],tags:['dairy'],notes:''},
-      {name:'Garlic',qty:'1',unit:'head',stores:[],tags:['produce'],notes:''},
-      {name:'Olive oil',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Fresh basil',qty:'1',unit:'bunch',stores:[],tags:['produce'],notes:''}
+      {name:'Spaghetti',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
+      {name:'Marinara sauce',qty:'1',unit:'jar',category:'',stores:[],tags:[],notes:''},
+      {name:'Ground beef',qty:'1',unit:'lb',category:'',stores:[],tags:[],notes:''},
+      {name:'Parmesan cheese',qty:'',unit:'',category:'',stores:[],tags:['dairy'],notes:''},
+      {name:'Garlic',qty:'1',unit:'head',category:'',stores:[],tags:['produce'],notes:''},
+      {name:'Olive oil',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Fresh basil',qty:'1',unit:'bunch',category:'',stores:[],tags:['produce'],notes:''}
     ] },
   { emoji:'🥞', name:'Breakfast Week', desc:'Morning staples to start every day right',
     items:[
-      {name:'Eggs',qty:'2',unit:'doz',stores:[],tags:[],notes:''},
-      {name:'Bacon',qty:'1',unit:'pkg',stores:[],tags:[],notes:''},
-      {name:'Bread',qty:'1',unit:'loaf',stores:[],tags:[],notes:''},
-      {name:'Butter',qty:'',unit:'',stores:[],tags:[],notes:''},
-      {name:'Milk',qty:'1',unit:'gal',stores:[],tags:['dairy'],notes:''},
-      {name:'Orange juice',qty:'1',unit:'jug',stores:[],tags:['beverages'],notes:''},
-      {name:'Coffee',qty:'1',unit:'bag',stores:[],tags:['beverages'],notes:''},
-      {name:'Oats',qty:'1',unit:'box',stores:[],tags:[],notes:''},
-      {name:'Maple syrup',qty:'',unit:'',stores:[],tags:[],notes:''}
+      {name:'Eggs',qty:'2',unit:'doz',category:'',stores:[],tags:[],notes:''},
+      {name:'Bacon',qty:'1',unit:'pkg',category:'',stores:[],tags:[],notes:''},
+      {name:'Bread',qty:'1',unit:'loaf',category:'',stores:[],tags:[],notes:''},
+      {name:'Butter',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
+      {name:'Milk',qty:'1',unit:'gal',category:'',stores:[],tags:['dairy'],notes:''},
+      {name:'Orange juice',qty:'1',unit:'jug',category:'',stores:[],tags:['beverages'],notes:''},
+      {name:'Coffee',qty:'1',unit:'bag',category:'',stores:[],tags:['beverages'],notes:''},
+      {name:'Oats',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
+      {name:'Maple syrup',qty:'',unit:'',category:'',stores:[],tags:[],notes:''}
     ] },
   { emoji:'🎒', name:'Back to School', desc:'Lunches and snacks for busy school days',
     items:[
-      {name:'Sandwich bread',qty:'1',unit:'loaf',stores:[],tags:[],notes:''},
-      {name:'Peanut butter',qty:'1',unit:'jar',stores:[],tags:[],notes:''},
-      {name:'Jelly',qty:'1',unit:'jar',stores:[],tags:[],notes:''},
-      {name:'Apple',qty:'6',unit:'',stores:[],tags:['produce'],notes:''},
-      {name:'Granola bars',qty:'1',unit:'box',stores:[],tags:['snacks'],notes:''},
-      {name:'Juice boxes',qty:'1',unit:'box',stores:[],tags:['beverages'],notes:''},
-      {name:'String cheese',qty:'1',unit:'pkg',stores:[],tags:['dairy'],notes:''}
+      {name:'Sandwich bread',qty:'1',unit:'loaf',category:'',stores:[],tags:[],notes:''},
+      {name:'Peanut butter',qty:'1',unit:'jar',category:'',stores:[],tags:[],notes:''},
+      {name:'Jelly',qty:'1',unit:'jar',category:'',stores:[],tags:[],notes:''},
+      {name:'Apple',qty:'6',unit:'',category:'',stores:[],tags:['produce'],notes:''},
+      {name:'Granola bars',qty:'1',unit:'box',category:'',stores:[],tags:['snacks'],notes:''},
+      {name:'Juice boxes',qty:'1',unit:'box',category:'',stores:[],tags:['beverages'],notes:''},
+      {name:'String cheese',qty:'1',unit:'pkg',category:'',stores:[],tags:['dairy'],notes:''}
     ] }
 ];
 
@@ -204,6 +204,7 @@ function subscribeToData() {
   unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
     allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCategories();
+    populateCategorySelects();
   });
 
   unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
@@ -223,6 +224,22 @@ function subscribeToData() {
       if (restoreId && allLists.find(l => l.id === restoreId)) openList(restoreId);
     }
   });
+}
+
+// ── Category Selects ────────────────────────────────────────────────────────────────────
+function buildCategoryOptions(selectedCategory = '') {
+  const blank = `<option value="">-- No category --</option>`;
+  const opts = allCategories.map(c =>
+    `<option value="${escHtml(c.name)}" ${c.name === selectedCategory ? 'selected' : ''}>${c.emoji ? c.emoji + ' ' : ''}${escHtml(c.name)}</option>`
+  ).join('');
+  return blank + opts;
+}
+
+function populateCategorySelects(selectedItem = '', selectedTplItem = '') {
+  const itemSel = document.getElementById('item-category');
+  const tplSel  = document.getElementById('tpl-item-category');
+  if (itemSel) itemSel.innerHTML = buildCategoryOptions(selectedItem);
+  if (tplSel)  tplSel.innerHTML  = buildCategoryOptions(selectedTplItem);
 }
 
 // ── Templates ────────────────────────────────────────────────────────────────────────
@@ -276,14 +293,15 @@ function openTemplateEditor(tplId) {
 }
 
 function normaliseItem(it) {
-  if (typeof it === 'string') return { name: it, qty: '', unit: '', stores: [], tags: [], notes: '' };
+  if (typeof it === 'string') return { name: it, qty: '', unit: '', category: '', stores: [], tags: [], notes: '' };
   return {
-    name:   it.name   || '',
-    qty:    it.qty    || '',
-    unit:   it.unit   || '',
-    stores: toArray(it.stores),
-    tags:   toArray(it.tags),
-    notes:  it.notes  || ''
+    name:     it.name     || '',
+    qty:      it.qty      || '',
+    unit:     it.unit     || '',
+    category: it.category || '',
+    stores:   toArray(it.stores),
+    tags:     toArray(it.tags),
+    notes:    it.notes    || ''
   };
 }
 
@@ -298,10 +316,11 @@ function renderTplEditorItems() {
   }
   container.innerHTML = tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
+    const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
-    const meta  = [qty, store, tags, notes].filter(Boolean).join('');
+    const meta  = [qty, cat, store, tags, notes].filter(Boolean).join('');
     return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;" title="Click to edit">
       <div class="item-info" style="flex:1;min-width:0;">
         <div class="item-name">${escHtml(it.name || '(unnamed)')}</div>
@@ -349,6 +368,9 @@ function openTplItemModal(idx) {
   document.getElementById('tpl-item-unit').value  = it ? it.unit  : '';
   document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ')  : '';
   document.getElementById('tpl-item-notes').value = it ? it.notes : '';
+  // Populate category select with current selection
+  const tplCatSel = document.getElementById('tpl-item-category');
+  if (tplCatSel) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
   populateTplItemStoreCheckboxes(it ? toArray(it.stores) : []);
   openModal('modal-tpl-item');
   setTimeout(() => document.getElementById('tpl-item-name').focus(), 50);
@@ -360,11 +382,12 @@ function saveTplItem() {
   if (!name) { showToast('Item name is required', 'error'); return; }
   const item = {
     name,
-    qty:    document.getElementById('tpl-item-qty').value.trim(),
-    unit:   document.getElementById('tpl-item-unit').value.trim(),
-    stores: getTplItemSelectedStores(),
-    tags:   document.getElementById('tpl-item-tags').value.split(',').map(s => s.trim()).filter(Boolean),
-    notes:  document.getElementById('tpl-item-notes').value.trim()
+    qty:      document.getElementById('tpl-item-qty').value.trim(),
+    unit:     document.getElementById('tpl-item-unit').value.trim(),
+    category: document.getElementById('tpl-item-category').value,
+    stores:   getTplItemSelectedStores(),
+    tags:     document.getElementById('tpl-item-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+    notes:    document.getElementById('tpl-item-notes').value.trim()
   };
   if (tplItemEditingIdx >= 0) {
     tplEditorItems[tplItemEditingIdx] = item;
@@ -443,10 +466,11 @@ function renderItems() {
 
   const renderGroup = items => items.map(item => {
     const qty        = item.qty ? `<span class="item-qty-badge">${escHtml(item.qty)}${item.unit ? ' '+escHtml(item.unit) : ''}</span>` : '';
+    const cat        = item.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(item.category)}</span>` : '';
     const storeChips = toArray(item.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tagChips   = toArray(item.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes      = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';
-    const meta       = [qty, storeChips, tagChips, notes].filter(Boolean).join('');
+    const meta       = [qty, cat, storeChips, tagChips, notes].filter(Boolean).join('');
     return `<div class="item-row${item.checked ? ' checked' : ''}" data-item-id="${item.id}">
       <div class="item-checkbox${item.checked ? ' checked' : ''}" data-toggle="${item.id}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -492,6 +516,8 @@ function openAddItemModal(prefillName = '') {
   document.getElementById('item-unit').value  = '';
   document.getElementById('item-tags').value  = '';
   document.getElementById('item-notes').value = '';
+  const catSel = document.getElementById('item-category');
+  if (catSel) catSel.innerHTML = buildCategoryOptions('');
   populateItemStoreCheckboxes();
   openModal('modal-add-item');
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
@@ -508,6 +534,8 @@ function openEditItemModal(itemId) {
   document.getElementById('item-unit').value       = item.unit  || '';
   document.getElementById('item-tags').value       = toArray(item.tags).join(', ');
   document.getElementById('item-notes').value      = item.notes || '';
+  const catSel = document.getElementById('item-category');
+  if (catSel) catSel.innerHTML = buildCategoryOptions(item.category || '');
   populateItemStoreCheckboxes(toArray(item.stores));
   openModal('modal-add-item');
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
@@ -692,11 +720,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tags = document.getElementById('item-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
     const data = {
       name,
-      qty:    document.getElementById('item-qty').value.trim(),
-      unit:   document.getElementById('item-unit').value.trim(),
-      stores: getSelectedStores(),
+      qty:      document.getElementById('item-qty').value.trim(),
+      unit:     document.getElementById('item-unit').value.trim(),
+      category: document.getElementById('item-category').value,
+      stores:   getSelectedStores(),
       tags,
-      notes:  document.getElementById('item-notes').value.trim()
+      notes:    document.getElementById('item-notes').value.trim()
     };
     try {
       if (editingItemId) {
@@ -802,48 +831,4 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('header-title').textContent = 'My Lists';
         }
         showToast('List deleted', 'success');
-      } else if (type === 'category') { await deleteDoc(doc(categoriesCol(), id)); showToast('Category deleted', 'success'); }
-      else if (type === 'template')  { await deleteDoc(doc(templatesCol(),  id)); showToast('Template deleted', 'success'); }
-      else if (type === 'store')     { await deleteDoc(doc(storesCol(),     id)); showToast('Store deleted',    'success'); }
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    pendingDelete = null;
-  });
-
-  // Navigation
-  document.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => { const v = el.dataset.view; if (v !== 'list-detail') navigateTo(v); }));
-  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('mobile-open');
-    document.getElementById('sidebar-backdrop').classList.toggle('open');
-  });
-  document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
-
-  loadBuildMeta();
-  createIcons();
-});
-
-function updateUserUI() {
-  if (!currentUser) return;
-  const initials = (currentUser.displayName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  ['sidebar-avatar', 'settings-avatar'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (currentUser.photoURL) el.innerHTML = `<img src="${currentUser.photoURL}" alt="Avatar">`;
-    else el.textContent = initials;
-  });
-  document.getElementById('sidebar-name').textContent  = currentUser.displayName || 'User';
-  document.getElementById('sidebar-email').textContent = currentUser.email || '';
-  document.getElementById('settings-name').textContent  = currentUser.displayName || 'User';
-  document.getElementById('settings-email').textContent = currentUser.email || '';
-}
-
-async function toggleItem(itemId) {
-  const item = allItems.find(i => i.id === itemId);
-  if (!item || !currentListId) return;
-  try { await updateDoc(doc(itemsCol(currentListId), itemId), { checked: !item.checked }); }
-  catch (e) { showToast('Error: ' + e.message, 'error'); }
-}
-async function deleteItem(itemId) {
-  if (!currentListId) return;
-  try { await deleteDoc(doc(itemsCol(currentListId), itemId)); }
-  catch (e) { showToast('Error: ' + e.message, 'error'); }
-}
+      } else if (type === 'c

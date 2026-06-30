@@ -250,6 +250,10 @@
         <div class="form-group"><label class="form-label" for="tpl-item-unit">Unit</label><input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs, oz, pkg"></div>
       </div>
       <div class="form-group">
+        <label class="form-label" for="tpl-item-category">Category <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
+        <select class="form-select" id="tpl-item-category"></select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
         <div class="store-checkboxes" id="tpl-item-store-checkboxes"></div>
       </div>
@@ -277,7 +281,7 @@
   </div>
 </div>
 
-<!-- Modal: Add Item -->
+<!-- Modal: Add / Edit Item -->
 <div class="modal-overlay" id="modal-add-item">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">Add Item</span><button class="icon-btn" onclick="closeModal('modal-add-item')" aria-label="Close"><i data-lucide="x"></i></button></div>
@@ -286,6 +290,10 @@
       <div class="form-row">
         <div class="form-group"><label class="form-label" for="item-qty">Quantity</label><input class="form-input" id="item-qty" type="text" placeholder="e.g. 2"></div>
         <div class="form-group"><label class="form-label" for="item-unit">Unit</label><input class="form-input" id="item-unit" type="text" placeholder="e.g. lbs, oz, pkg"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="item-category">Category <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
+        <select class="form-select" id="item-category"></select>
       </div>
       <div class="form-group">
         <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
