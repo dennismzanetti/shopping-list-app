@@ -33,7 +33,7 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
-// ── Add-to-List picker modal ────────────────────────────────────────────────────
+// ── Add-to-List picker modal ──────────────────────────────────────────────────────
 export function openAddToListModal() {
   const items = getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items selected — check at least one item first', 'error'); return; }
@@ -47,14 +47,12 @@ export function openAddToListModal() {
       `<option value="${escHtml(l.id)}">${escHtml(l.name)}</option>`
     ).join('') + `<option value="__new__">➕ Create New List</option>`;
 
-    // Show/hide new-list name field
     const toggle = () => {
       const isNew = select.value === '__new__';
       newRow.style.display = isNew ? '' : 'none';
       if (isNew) setTimeout(() => newInput.focus(), 50);
     };
     select.onchange = toggle;
-    // Default: first list selected, new-list row hidden
     select.value = state.allLists.length > 0 ? state.allLists[0].id : '__new__';
     toggle();
   }
@@ -77,7 +75,6 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
   if (!select) { window.showToast('Could not find list selector', 'error'); return; }
   let listId = select.value;
 
-  // Create new list if needed
   if (listId === '__new__') {
     const newName = document.getElementById('tpl-new-list-name').value.trim();
     if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
@@ -87,7 +84,6 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
   }
 
-  // Batch-write items to the chosen list
   try {
     const batch = writeBatch(db);
     items.forEach(it => {
@@ -101,7 +97,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
   } catch (e) { window.showToast('Error adding items: ' + e.message, 'error'); }
 }
 
-// ── Render grid ──────────────────────────────────────────────────────────────
+// ── Render grid ──────────────────────────────────────────────────────────────────
 export function renderTemplates(onEdit) {
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
@@ -132,7 +128,7 @@ export function renderTemplates(onEdit) {
   createIcons();
 }
 
-// ── Editor ───────────────────────────────────────────────────────────────────
+// ── Editor ───────────────────────────────────────────────────────────────────────
 export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.editingTemplateId = tplId || null;
   const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
@@ -151,11 +147,20 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   if (!container) return;
   const count = state.tplEditorItems.length;
   document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+
   if (count === 0) {
     container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet — click "Add Item" below</div>`;
     return;
   }
-  container.innerHTML = state.tplEditorItems.map((it, i) => {
+
+  // Select All header row
+  const selectAllRow = `<div id="tpl-select-all-row" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-1);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-1);">
+    <input type="checkbox" id="tpl-select-all" style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;" aria-label="Select all items">
+    <span style="font-size:var(--text-xs);color:var(--color-text-muted);user-select:none;cursor:pointer;" id="tpl-select-all-label">Select all</span>
+    <span id="tpl-select-all-count" style="font-size:var(--text-xs);color:var(--color-text-faint);margin-left:auto;"></span>
+  </div>`;
+
+  const itemRows = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
     const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
@@ -174,6 +179,45 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item" style="color:var(--color-error);"><i data-lucide="x"></i></button>
     </div>`;
   }).join('');
+
+  container.innerHTML = selectAllRow + itemRows;
+
+  // Wire up Select All logic
+  const selectAllCb = container.querySelector('#tpl-select-all');
+  const selectAllLabel = container.querySelector('#tpl-select-all-label');
+  const countLabel = container.querySelector('#tpl-select-all-count');
+  const itemCbs = () => Array.from(container.querySelectorAll('input.tpl-item-select'));
+
+  function updateSelectAllState() {
+    const all = itemCbs();
+    const checkedCount = all.filter(cb => cb.checked).length;
+    countLabel.textContent = checkedCount > 0 ? `${checkedCount} of ${all.length} selected` : '';
+    if (checkedCount === 0) {
+      selectAllCb.checked = false;
+      selectAllCb.indeterminate = false;
+    } else if (checkedCount === all.length) {
+      selectAllCb.checked = true;
+      selectAllCb.indeterminate = false;
+    } else {
+      selectAllCb.checked = false;
+      selectAllCb.indeterminate = true;
+    }
+  }
+
+  selectAllCb.addEventListener('change', () => {
+    itemCbs().forEach(cb => { cb.checked = selectAllCb.checked; });
+    updateSelectAllState();
+  });
+  selectAllLabel.addEventListener('click', () => {
+    selectAllCb.checked = !selectAllCb.checked;
+    selectAllCb.dispatchEvent(new Event('change'));
+  });
+
+  container.querySelectorAll('input.tpl-item-select').forEach(cb =>
+    cb.addEventListener('change', updateSelectAllState)
+  );
+
+  // Edit / remove / row-click handlers
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
   );
@@ -190,10 +234,11 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       openTplItemModal(parseInt(row.dataset.tplItemIdx), { buildCategoryOptions });
     })
   );
+
   createIcons();
 }
 
-// ── Template Item sub-modal ───────────────────────────────────────────────────
+// ── Template Item sub-modal ───────────────────────────────────────────────────────────────
 export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
   state.tplItemEditingIdx = idx;
   const it = idx >= 0 ? state.tplEditorItems[idx] : null;
@@ -232,7 +277,7 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
   renderTplEditorItems({ buildCategoryOptions });
 }
 
-// ── initTemplates — wires all template UI listeners ──────────────────────────
+// ── initTemplates — wires all template UI listeners ────────────────────────────────────────
 export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                                  listsCol, itemsCol, writeBatch, db }) {
 
