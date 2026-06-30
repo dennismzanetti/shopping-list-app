@@ -1,40 +1,52 @@
-// js/templates.js
-// Template list, template editor, and template-item modal.
-//
-// Depends on globals still in shopping-list.js during migration:
-//   allTemplates, allStores, allCategories, tplEditorItems, tplItemEditingIdx,
-//   editingTemplateId, templatesCol, buildCategoryOptions,
-//   openModal, closeModal, showToast, createIcons, escHtml, toArray
-
-import { db } from './firebase.js';
-import {
-  collection, doc, addDoc, updateDoc, deleteDoc,
-  onSnapshot, query, orderBy, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 import { escHtml, toArray, createIcons } from './utils.js';
+import { state } from './state.js';
 
-// ── Subscription ────────────────────────────────────────────────────────────
-export function subscribeToTemplates(templatesCol, onUpdate) {
-  return onSnapshot(query(templatesCol(), orderBy('createdAt')), snap => {
-    const templates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    onUpdate(templates);
-  });
+// ── Helpers ──────────────────────────────────────────────────────────────────
+export function normaliseItem(it) {
+  if (typeof it === 'string') return { name: it, qty: '', unit: '', category: '', stores: [], tags: [], notes: '' };
+  return {
+    name:     it.name     || '',
+    qty:      it.qty      || '',
+    unit:     it.unit     || '',
+    category: it.category || '',
+    stores:   toArray(it.stores),
+    tags:     toArray(it.tags),
+    notes:    it.notes    || ''
+  };
 }
 
-// ── Render grid ─────────────────────────────────────────────────────────────
-export function renderTemplates(allTemplates, allCategories, onEdit) {
+function populateTplItemStoreCheckboxes(selectedStores = []) {
+  const container = document.getElementById('tpl-item-store-checkboxes');
+  if (!container) return;
+  if (state.allStores.length === 0) {
+    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
+    return;
+  }
+  container.innerHTML = state.allStores.map(s =>
+    `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name) ? 'checked' : ''}><span>${escHtml(s.name)}</span></label>`
+  ).join('');
+}
+
+function getTplItemSelectedStores() {
+  return Array.from(
+    document.getElementById('tpl-item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []
+  ).map(cb => cb.value);
+}
+
+// ── Render grid ──────────────────────────────────────────────────────────────
+export function renderTemplates(onEdit) {
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
-  if (allTemplates.length === 0) {
+  if (state.allTemplates.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="layout-template"></i></div><h3>No templates yet</h3><p>Create a template to quickly start new lists.</p></div>`;
     createIcons(); return;
   }
-  grid.innerHTML = allTemplates.map(t => {
+  grid.innerHTML = state.allTemplates.map(t => {
     const items   = t.items || [];
     const preview = items.slice(0, 5);
     const more    = items.length - preview.length;
     const chips   = preview.map(it => {
-      const cat    = allCategories.find(c => c.name === (it.category || ''));
+      const cat    = state.allCategories.find(c => c.name === (it.category || ''));
       const prefix = cat?.emoji ? cat.emoji + ' ' : '';
       return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
     }).join('');
@@ -52,44 +64,30 @@ export function renderTemplates(allTemplates, allCategories, onEdit) {
   createIcons();
 }
 
-// ── Normalise item shape ─────────────────────────────────────────────────────
-export function normaliseItem(it) {
-  if (typeof it === 'string') return { name: it, qty: '', unit: '', category: '', stores: [], tags: [], notes: '' };
-  return {
-    name:     it.name     || '',
-    qty:      it.qty      || '',
-    unit:     it.unit     || '',
-    category: it.category || '',
-    stores:   toArray(it.stores),
-    tags:     toArray(it.tags),
-    notes:    it.notes    || ''
-  };
-}
-
-// ── Template editor modal ────────────────────────────────────────────────────
-export function openTemplateEditor(tplId, allTemplates, tplEditorItemsRef, buildCategoryOptions) {
-  const tpl = tplId ? allTemplates.find(t => t.id === tplId) : null;
-  document.getElementById('tpl-editor-title').textContent             = tpl ? 'Edit Template' : 'New Template';
-  document.getElementById('tpl-emoji').value                          = tpl ? (tpl.emoji || '') : '';
-  document.getElementById('tpl-name').value                           = tpl ? tpl.name          : '';
-  document.getElementById('tpl-desc').value                           = tpl ? (tpl.desc  || '') : '';
-  document.getElementById('tpl-delete-btn').style.display             = tpl ? 'inline-flex' : 'none';
-  tplEditorItemsRef.items = tpl ? (tpl.items || []).map(normaliseItem) : [];
-  renderTplEditorItems(tplEditorItemsRef.items);
+// ── Editor ───────────────────────────────────────────────────────────────────
+export function openTemplateEditor(tplId, { buildCategoryOptions }) {
+  state.editingTemplateId = tplId || null;
+  const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
+  document.getElementById('tpl-editor-title').textContent     = tpl ? 'Edit Template' : 'New Template';
+  document.getElementById('tpl-emoji').value                  = tpl ? (tpl.emoji || '') : '';
+  document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
+  document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
+  document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
+  state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
+  renderTplEditorItems({ buildCategoryOptions });
   window.openModal('modal-template-editor');
 }
 
-// ── Render items inside editor ───────────────────────────────────────────────
-export function renderTplEditorItems(tplEditorItems) {
+export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   const container = document.getElementById('tpl-editor-items');
   if (!container) return;
-  const count = tplEditorItems.length;
+  const count = state.tplEditorItems.length;
   document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
   if (count === 0) {
     container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet — click "Add Item" below</div>`;
     return;
   }
-  container.innerHTML = tplEditorItems.map((it, i) => {
+  container.innerHTML = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
     const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
@@ -106,54 +104,45 @@ export function renderTplEditorItems(tplEditorItems) {
     </div>`;
   }).join('');
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
-    btn.addEventListener('click', e => { e.stopPropagation(); window.openTplItemModal(parseInt(btn.dataset.tplItemEdit)); })
+    btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
   );
   container.querySelectorAll('[data-tpl-item-remove]').forEach(btn =>
-    btn.addEventListener('click', e => { e.stopPropagation(); tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1); renderTplEditorItems(tplEditorItems); })
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      state.tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1);
+      renderTplEditorItems({ buildCategoryOptions });
+    })
   );
   container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
-    row.addEventListener('click', e => { if (e.target.closest('button')) return; window.openTplItemModal(parseInt(row.dataset.tplItemIdx)); })
+    row.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      openTplItemModal(parseInt(row.dataset.tplItemIdx), { buildCategoryOptions });
+    })
   );
   createIcons();
 }
 
-// ── Template item modal ──────────────────────────────────────────────────────
-export function populateTplItemStoreCheckboxes(allStores, selectedStores = []) {
-  const container = document.getElementById('tpl-item-store-checkboxes');
-  if (!container) return;
-  if (allStores.length === 0) {
-    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
-    return;
-  }
-  container.innerHTML = allStores.map(s =>
-    `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name) ? 'checked' : ''}><span>${escHtml(s.name)}</span></label>`
-  ).join('');
-}
-
-export function getTplItemSelectedStores() {
-  return Array.from(
-    document.getElementById('tpl-item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []
-  ).map(cb => cb.value);
-}
-
-export function openTplItemModal(idx, tplEditorItems, allStores, buildCategoryOptions) {
-  const it = idx >= 0 ? tplEditorItems[idx] : null;
+// ── Template Item sub-modal ───────────────────────────────────────────────────
+export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
+  state.tplItemEditingIdx = idx;
+  const it = idx >= 0 ? state.tplEditorItems[idx] : null;
   document.getElementById('tpl-item-modal-title').textContent = it ? 'Edit Item' : 'Add Item';
-  document.getElementById('tpl-item-name').value  = it ? it.name  : '';
-  document.getElementById('tpl-item-qty').value   = it ? it.qty   : '';
-  document.getElementById('tpl-item-unit').value  = it ? it.unit  : '';
-  document.getElementById('tpl-item-tags').value  = it ? toArray(it.tags).join(', ')  : '';
-  document.getElementById('tpl-item-notes').value = it ? it.notes : '';
+  document.getElementById('tpl-item-name').value              = it ? it.name  : '';
+  document.getElementById('tpl-item-qty').value               = it ? it.qty   : '';
+  document.getElementById('tpl-item-unit').value              = it ? it.unit  : '';
+  document.getElementById('tpl-item-tags').value              = it ? toArray(it.tags).join(', ') : '';
+  document.getElementById('tpl-item-notes').value             = it ? it.notes : '';
   const tplCatSel = document.getElementById('tpl-item-category');
-  if (tplCatSel) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
-  populateTplItemStoreCheckboxes(allStores, it ? toArray(it.stores) : []);
+  if (tplCatSel && buildCategoryOptions) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
+  populateTplItemStoreCheckboxes(it ? toArray(it.stores) : []);
   window.openModal('modal-tpl-item');
   setTimeout(() => document.getElementById('tpl-item-name').focus(), 50);
 }
+window.closeTplItemModal = () => window.closeModal('modal-tpl-item');
 
-export function saveTplItem(tplEditorItems, tplItemEditingIdx) {
+export function saveTplItem({ buildCategoryOptions } = {}) {
   const name = document.getElementById('tpl-item-name').value.trim();
-  if (!name) { window.showToast('Item name is required', 'error'); return false; }
+  if (!name) { window.showToast('Item name is required', 'error'); return; }
   const item = {
     name,
     qty:      document.getElementById('tpl-item-qty').value.trim(),
@@ -163,12 +152,59 @@ export function saveTplItem(tplEditorItems, tplItemEditingIdx) {
     tags:     document.getElementById('tpl-item-tags').value.split(',').map(s => s.trim()).filter(Boolean),
     notes:    document.getElementById('tpl-item-notes').value.trim()
   };
-  if (tplItemEditingIdx >= 0) {
-    tplEditorItems[tplItemEditingIdx] = item;
+  if (state.tplItemEditingIdx >= 0) {
+    state.tplEditorItems[state.tplItemEditingIdx] = item;
   } else {
-    tplEditorItems.push(item);
+    state.tplEditorItems.push(item);
   }
   window.closeModal('modal-tpl-item');
-  renderTplEditorItems(tplEditorItems);
-  return true;
+  renderTplEditorItems({ buildCategoryOptions });
+}
+
+// ── initTemplates — wires all template UI listeners ──────────────────────────
+export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete }) {
+
+  document.getElementById('new-template-btn').addEventListener('click', () =>
+    openTemplateEditor(null, { buildCategoryOptions })
+  );
+
+  document.getElementById('tpl-add-item-btn').addEventListener('click', () =>
+    openTplItemModal(-1, { buildCategoryOptions })
+  );
+
+  document.getElementById('tpl-item-save-btn').addEventListener('click', () =>
+    saveTplItem({ buildCategoryOptions })
+  );
+  document.getElementById('tpl-item-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveTplItem({ buildCategoryOptions });
+  });
+
+  document.getElementById('tpl-save-btn').addEventListener('click', async () => {
+    const name = document.getElementById('tpl-name').value.trim();
+    if (!name) { window.showToast('Template name is required', 'error'); return; }
+    const data = {
+      name,
+      emoji: document.getElementById('tpl-emoji').value.trim() || '📋',
+      desc:  document.getElementById('tpl-desc').value.trim(),
+      items: state.tplEditorItems,
+      updatedAt: serverTimestamp()
+    };
+    try {
+      if (state.editingTemplateId) {
+        await updateDoc(doc(templatesCol(), state.editingTemplateId), data);
+        window.showToast('Template saved!', 'success');
+      } else {
+        data.createdAt = serverTimestamp();
+        await addDoc(templatesCol(), data);
+        window.showToast(`"${name}" template created!`, 'success');
+      }
+      window.closeModal('modal-template-editor');
+    } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
+  });
+
+  document.getElementById('tpl-delete-btn').addEventListener('click', () => {
+    if (!state.editingTemplateId) return;
+    window.closeModal('modal-template-editor');
+    confirmDelete('template', state.editingTemplateId);
+  });
 }
