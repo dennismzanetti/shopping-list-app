@@ -27,7 +27,7 @@ import { initCategoriesStores } from './js/categories-stores.js';
 import { initNewList, initListDetail, initItemButtons } from './js/lists-crud.js';
 import { confirmDelete, initConfirm } from './js/confirm.js';
 
-// ── Hash helpers ─────────────────────────────────────────────────────────────
+// ── Hash helpers ───────────────────────────────────────────────────────────────────
 function getHashListId() {
   const m = window.location.hash.match(/^#list\/(.+)$/);
   return m ? m[1] : null;
@@ -36,7 +36,7 @@ function setHashListId(listId) {
   history.replaceState(null, '', listId ? `#list/${listId}` : '#');
 }
 
-// ── Firestore helpers ─────────────────────────────────────────────────────────
+// ── Firestore helpers ─────────────────────────────────────────────────────────────────
 const uid           = () => state.currentUser.uid;
 const listsCol      = () => collection(db, 'users', uid(), 'lists');
 const itemsCol      = listId => collection(db, 'users', uid(), 'lists', listId, 'items');
@@ -46,7 +46,7 @@ const templatesCol  = () => collection(db, 'users', uid(), 'templates');
 
 const firestoreDeps = () => ({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy, writeBatch, doc, serverTimestamp, deleteDoc });
 
-// ── Local wrappers ────────────────────────────────────────────────────────────
+// ── Local wrappers ────────────────────────────────────────────────────────────────
 function openList(listId) {
   _openList(listId, { navigateTo, setHashListId, onSnapshot, itemsCol, renderItems, updateListCounts });
 }
@@ -112,7 +112,7 @@ function subscribeToData() {
   });
 }
 
-// ── Category selects ──────────────────────────────────────────────────────────
+// ── Category selects ──────────────────────────────────────────────────────────────────
 function buildCategoryOptions(selectedCategory = '') {
   const blank = `<option value="">-- No category --</option>`;
   const opts  = state.allCategories.map(c =>
@@ -127,7 +127,7 @@ function populateCategorySelects() {
   if (tplSel)  tplSel.innerHTML  = buildCategoryOptions();
 }
 
-// ── Modals / toast ────────────────────────────────────────────────────────────
+// ── Modals / toast ────────────────────────────────────────────────────────────────
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open');    createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el)   el.classList.remove('open'); };
 
@@ -143,13 +143,14 @@ function showToast(msg, type = 'info') {
 }
 window.showToast = showToast;
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
+// ── Bootstrap ───────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
   initNav({ onSettings: loadAboutCommits });
   initConfirm({ ...firestoreDeps(), setHashListId });
-  initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete });
+  initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+                  listsCol, itemsCol, writeBatch, db });
   initExportImport(firestoreDeps());
   initCategoriesStores({ categoriesCol, storesCol, addDoc, serverTimestamp });
   initNewList({ listsCol, addDoc, serverTimestamp, openList, confirmDelete });
