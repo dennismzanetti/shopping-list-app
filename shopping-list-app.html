@@ -108,16 +108,14 @@
             <h1 class="page-title" id="detail-list-name">List Name</h1>
             <p class="page-subtitle" id="detail-list-store"></p>
           </div>
-          <div style="display:flex;gap:var(--space-2);">
-            <button class="btn btn-ghost" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete List</button>
+          <div style="display:flex;gap:var(--space-2);align-items:center;">
+            <button class="btn btn-primary btn-sm" id="add-item-quick-btn"><i data-lucide="plus"></i> Add Item</button>
+            <button class="btn btn-ghost btn-sm" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete List</button>
           </div>
         </div>
         <div class="progress-summary" id="progress-summary">
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
           <span class="progress-label" id="progress-label">0 of 0</span>
-        </div>
-        <div class="quick-add-bar">
-          <button class="btn btn-primary" id="add-item-quick-btn" style="width:100%;justify-content:center;"><i data-lucide="plus"></i> Add Item</button>
         </div>
         <div id="items-container">
           <div class="empty-state" id="items-empty">
