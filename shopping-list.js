@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   syncThemeUI();
   initNav({ onSettings: loadAboutCommits });
   initConfirm({ ...firestoreDeps(), setHashListId });
-  initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+  initTemplates({ templatesCol, addDoc, updateDoc, getDocs, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                   listsCol, itemsCol, writeBatch, db });
   initExportImport(firestoreDeps());
   initCategoriesStores({ categoriesCol, storesCol, addDoc, serverTimestamp });
