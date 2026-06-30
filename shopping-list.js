@@ -49,8 +49,8 @@ let state.listsFirstLoad = true;
 
 function subscribeToData() {
   state.listsFirstLoad = true;
-  seedDefaultsIfNeeded();
-  seedTemplatesIfNeeded();
+  seedDefaultsIfNeeded(state.currentUser);
+  seedTemplatesIfNeeded(state.currentUser);
   subscribeToTemplates();
 
   state.unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
