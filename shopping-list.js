@@ -261,7 +261,11 @@ function renderTemplates() {
     const items = t.items || [];
     const preview = items.slice(0, 5);
     const more = items.length - preview.length;
-    const chips = preview.map(it => `<span class="template-item-chip">${escHtml(it.name || it)}</span>`).join('');
+    const chips = preview.map(it => {
+      const cat = allCategories.find(c => c.name === (it.category || ''));
+      const prefix = cat?.emoji ? cat.emoji + ' ' : '';
+      return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
+    }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
     return `<div class="template-card" data-tpl-id="${t.id}" style="cursor:pointer;" title="Edit template">
       <div class="template-card-emoji">${t.emoji || '📋'}</div>
@@ -831,4 +835,52 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('header-title').textContent = 'My Lists';
         }
         showToast('List deleted', 'success');
-      } else if (type === 'c
+      } else if (type === 'category') {
+        await deleteDoc(doc(categoriesCol(), id));
+        showToast('Category deleted', 'success');
+      } else if (type === 'store') {
+        await deleteDoc(doc(storesCol(), id));
+        showToast('Store deleted', 'success');
+      } else if (type === 'template') {
+        await deleteDoc(doc(templatesCol(), id));
+        showToast('Template deleted', 'success');
+      }
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    pendingDelete = null;
+  });
+
+  // Nav items
+  document.querySelectorAll('.nav-item[data-view], .bottom-nav-item[data-view]').forEach(item =>
+    item.addEventListener('click', () => navigateTo(item.dataset.view))
+  );
+
+  // Sidebar toggle
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('sidebar-backdrop').classList.toggle('open');
+  });
+  document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
+
+  loadBuildMeta();
+});
+
+function updateUserUI() {
+  const name  = currentUser.displayName || currentUser.email || 'User';
+  const email = currentUser.email || '';
+  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  ['sidebar-avatar','settings-avatar'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
+  const sName  = document.getElementById('sidebar-name');
+  const sEmail = document.getElementById('sidebar-email');
+  const stName  = document.getElementById('settings-name');
+  const stEmail = document.getElementById('settings-email');
+  if (sName)  sName.textContent  = name;
+  if (sEmail) sEmail.textContent = email;
+  if (stName)  stName.textContent  = name;
+  if (stEmail) stEmail.textContent = email;
+}
+
+async function toggleItem(itemId) {
+  const item = allItems.find(i => i.id === itemId);
+  if (!item || !currentListId) return;
+  try { await updateDoc(doc(itemsCol(currentListId), itemId), { checked: !item.checked }); } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
