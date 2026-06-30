@@ -5,10 +5,7 @@ import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDocs
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
-
-function createIcons() {
-  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-}
+import { escHtml, toArray, createIcons } from './js/utils.js';
 
 // ── State ───────────────────────────────────────────────────────────────────────────
 let currentUser = null;
@@ -130,16 +127,6 @@ const SEED_TEMPLATES = [
       {name:'String cheese',qty:'1',unit:'pkg',stores:[],tags:['dairy'],notes:''}
     ] }
 ];
-
-// ── Utility ──────────────────────────────────────────────────────────────────────────
-function escHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function toArray(val) {
-  if (Array.isArray(val)) return val.filter(Boolean);
-  if (typeof val === 'string' && val.trim()) return val.split(',').map(s => s.trim()).filter(Boolean);
-  return [];
-}
 
 // ── Theme ────────────────────────────────────────────────────────────────────────────
 function syncThemeUI() {
