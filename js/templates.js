@@ -33,22 +33,32 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
-// ── Add-to-List helpers ───────────────────────────────────────────────────────
-function renderAddToListSection() {
+// ── Add-to-List picker modal ────────────────────────────────────────────────────
+export function openAddToListModal() {
+  const items = getCheckedTplItems();
+  if (items.length === 0) { window.showToast('No items selected — check at least one item first', 'error'); return; }
+
   const picker = document.getElementById('tpl-list-picker');
-  if (!picker) return;
-  if (state.allLists.length === 0) {
-    picker.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No lists yet — use "Create new list" below.</span>`;
-    return;
+  if (picker) {
+    if (state.allLists.length === 0) {
+      picker.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No lists yet — use "Create new list" below.</span>`;
+    } else {
+      picker.innerHTML = state.allLists.map((l, i) => {
+        const count = l.itemCount !== undefined ? `${l.itemCount} item${l.itemCount !== 1 ? 's' : ''}` : '';
+        return `<label style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;gap:var(--space-3);">
+          <input type="radio" name="tpl-list-pick" value="${escHtml(l.id)}" ${i === 0 ? 'checked' : ''}>
+          <span style="flex:1;font-size:var(--text-sm);">${escHtml(l.name)}</span>
+          ${count ? `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">${count}</span>` : ''}
+        </label>`;
+      }).join('');
+    }
   }
-  picker.innerHTML = state.allLists.map((l, i) => {
-    const count = l.itemCount !== undefined ? `${l.itemCount} item${l.itemCount !== 1 ? 's' : ''}` : '';
-    return `<label class="store-checkbox-label" style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;gap:var(--space-3);">
-      <input type="radio" name="tpl-list-pick" value="${escHtml(l.id)}" ${i === 0 ? 'checked' : ''}>
-      <span style="flex:1;font-size:var(--text-sm);">${escHtml(l.name)}</span>
-      ${count ? `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">${count}</span>` : ''}
-    </label>`;
-  }).join('');
+
+  // Reset new-list input
+  const newNameInput = document.getElementById('tpl-new-list-name');
+  if (newNameInput) newNameInput.value = '';
+
+  window.openModal('modal-tpl-add-to-list');
 }
 
 function getCheckedTplItems() {
@@ -85,6 +95,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     });
     await batch.commit();
     window.showToast(`${items.length} item${items.length !== 1 ? 's' : ''} added to list!`, 'success');
+    window.closeModal('modal-tpl-add-to-list');
     window.closeModal('modal-template-editor');
   } catch (e) { window.showToast('Error adding items: ' + e.message, 'error'); }
 }
@@ -131,7 +142,6 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
-  renderAddToListSection();
   window.openModal('modal-template-editor');
 }
 
@@ -263,7 +273,11 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });
 
-  document.getElementById('tpl-add-to-list-btn').addEventListener('click', () =>
+  // Open the list-picker modal when Add to List is clicked
+  document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
+
+  // Confirm button inside the picker modal
+  document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
     addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
   );
 

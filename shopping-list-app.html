@@ -265,28 +265,36 @@
           </button>
         </div>
       </div>
-
-      <!-- ── Add to List ────────────────────────────────────────────────── -->
-      <div id="tpl-add-to-list-section" style="margin-top:var(--space-5);">
-        <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3);">
-          <div style="flex:1;height:1px;background:var(--color-divider);"></div>
-          <span style="font-size:var(--text-xs);color:var(--color-text-faint);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;">Add to List</span>
-          <div style="flex:1;height:1px;background:var(--color-divider);"></div>
-        </div>
-        <div id="tpl-list-picker" style="display:flex;flex-direction:column;gap:var(--space-2);max-height:180px;overflow-y:auto;margin-bottom:var(--space-3);"></div>
-        <label class="store-checkbox-label" style="gap:var(--space-2);padding:var(--space-2) var(--space-3);border:1px dashed var(--color-border);border-radius:var(--radius-md);display:flex;align-items:center;cursor:pointer;">
-          <input type="radio" name="tpl-list-pick" id="tpl-list-pick-new" value="__new__">
-          <span style="font-size:var(--text-sm);color:var(--color-text-muted);white-space:nowrap;">＋ Create new list:</span>
-          <input class="form-input" id="tpl-new-list-name" type="text" placeholder="New list name…"
-                 style="flex:1;margin-left:var(--space-2);padding:var(--space-1) var(--space-2);font-size:var(--text-sm);">
-        </label>
-      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger" id="tpl-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
       <button class="btn btn-ghost" onclick="closeModal('modal-template-editor')">Cancel</button>
       <button class="btn btn-primary" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
       <button class="btn btn-primary" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Template Items to List -->
+<div class="modal-overlay" id="modal-tpl-add-to-list">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <span class="modal-title">Add to List</span>
+      <button class="icon-btn" onclick="closeModal('modal-tpl-add-to-list')" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-4);">Choose a list to add the selected items to, or create a new one.</p>
+      <div id="tpl-list-picker" style="display:flex;flex-direction:column;gap:var(--space-2);max-height:220px;overflow-y:auto;margin-bottom:var(--space-3);"></div>
+      <label style="gap:var(--space-2);padding:var(--space-2) var(--space-3);border:1px dashed var(--color-border);border-radius:var(--radius-md);display:flex;align-items:center;cursor:pointer;">
+        <input type="radio" name="tpl-list-pick" id="tpl-list-pick-new" value="__new__">
+        <span style="font-size:var(--text-sm);color:var(--color-text-muted);white-space:nowrap;">＋ Create new list:</span>
+        <input class="form-input" id="tpl-new-list-name" type="text" placeholder="New list name…"
+               style="flex:1;margin-left:var(--space-2);padding:var(--space-1) var(--space-2);font-size:var(--text-sm);">
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-tpl-add-to-list')">Cancel</button>
+      <button class="btn btn-primary" id="tpl-atl-confirm-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
     </div>
   </div>
 </div>
