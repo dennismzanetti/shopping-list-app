@@ -8,7 +8,6 @@ import {
 import { escHtml, toArray, createIcons } from './js/utils.js';
 import { seedDefaultsIfNeeded, seedTemplatesIfNeeded, SEED_TEMPLATES } from './js/seed.js';
 import { syncThemeUI, toggleTheme } from './js/theme.js';
-import { auth, db, provider } from './js/firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 import {
