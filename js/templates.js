@@ -33,7 +33,43 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
-// ── Add-to-List picker modal ────────────────────────────────────────────────────
+// ── Emoji Picker ──────────────────────────────────────────────────────────────
+function initEmojiPicker() {
+  const btn     = document.getElementById('tpl-emoji-btn');
+  const hidden  = document.getElementById('tpl-emoji');
+  const popover = document.getElementById('emoji-picker-popover');
+  if (!btn || !hidden || !popover) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = popover.classList.contains('open');
+    popover.classList.toggle('open', !isOpen);
+  });
+
+  popover.querySelectorAll('.emoji-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const emoji = opt.dataset.emoji;
+      hidden.value  = emoji;
+      btn.textContent = emoji;
+      popover.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('emoji-picker-wrap')?.contains(e.target)) {
+      popover.classList.remove('open');
+    }
+  });
+}
+
+export function setEmojiPickerValue(emoji) {
+  const btn    = document.getElementById('tpl-emoji-btn');
+  const hidden = document.getElementById('tpl-emoji');
+  if (btn)    btn.textContent = emoji || '🛒';
+  if (hidden) hidden.value   = emoji || '';
+}
+
+// ── Add-to-List picker modal ──────────────────────────────────────────────────────
 export function openAddToListModal() {
   const items = getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items selected — check at least one item first', 'error'); return; }
@@ -67,7 +103,7 @@ function getCheckedTplItems() {
   ).map(cb => state.tplEditorItems[parseInt(cb.dataset.idx)]);
 }
 
-export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, updateDoc, getDocs, writeBatch, doc, serverTimestamp, db }) {
+export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db }) {
   const items = getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items selected', 'error'); return; }
 
@@ -79,7 +115,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, updat
     const newName = document.getElementById('tpl-new-list-name').value.trim();
     if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
     try {
-      const ref = await addDoc(listsCol(), { name: newName, createdAt: serverTimestamp(), itemCount: 0, checkedCount: 0 });
+      const ref = await addDoc(listsCol(), { name: newName, createdAt: serverTimestamp(), itemCount: 0 });
       listId = ref.id;
     } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
   }
@@ -91,21 +127,13 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, updat
       batch.set(ref, { ...it, checked: false, createdAt: serverTimestamp() });
     });
     await batch.commit();
-
-    // Refresh itemCount and checkedCount on the list document
-    const itemsSnap = await getDocs(itemsCol(listId));
-    await updateDoc(doc(listsCol(), listId), {
-      itemCount: itemsSnap.size,
-      checkedCount: itemsSnap.docs.filter(d => d.data().checked).length
-    });
-
     window.showToast(`${items.length} item${items.length !== 1 ? 's' : ''} added to list!`, 'success');
     window.closeModal('modal-tpl-add-to-list');
     window.closeModal('modal-template-editor');
   } catch (e) { window.showToast('Error adding items: ' + e.message, 'error'); }
 }
 
-// ── Render grid ──────────────────────────────────────────────────────────────
+// ── Render grid ──────────────────────────────────────────────────────────────────
 export function renderTemplates(onEdit) {
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
@@ -136,12 +164,12 @@ export function renderTemplates(onEdit) {
   createIcons();
 }
 
-// ── Editor ───────────────────────────────────────────────────────────────────
+// ── Editor ───────────────────────────────────────────────────────────────────────
 export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.editingTemplateId = tplId || null;
   const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
-  document.getElementById('tpl-editor-title').textContent     = tpl ? 'Template' : 'New Template';
-  document.getElementById('tpl-emoji').value                  = tpl ? (tpl.emoji || '') : '';
+  document.getElementById('tpl-editor-title').textContent = tpl ? 'Template' : 'New Template';
+  setEmojiPickerValue(tpl ? (tpl.emoji || '') : '');
   document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
@@ -161,35 +189,22 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     return;
   }
 
-  // Build unique category list for filter dropdown
-  const categories = [...new Set(
-    state.tplEditorItems.map(it => it.category || '').filter(Boolean)
-  )].sort();
-
-  const filterSelect = categories.length > 0
-    ? `<select id="tpl-item-filter" aria-label="Filter by category"
-         style="font-size:var(--text-xs);padding:2px var(--space-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-text-muted);cursor:pointer;max-width:130px;">
-        <option value="">All categories</option>
-        ${categories.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
-      </select>`
-    : '';
-
-  // Select All + filter header row
+  // Select All header row
   const selectAllRow = `<div id="tpl-select-all-row" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-1);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-1);">
     <input type="checkbox" id="tpl-select-all" style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;" aria-label="Select all items">
     <span style="font-size:var(--text-xs);color:var(--color-text-muted);user-select:none;cursor:pointer;" id="tpl-select-all-label">Select all</span>
-    <span id="tpl-select-all-count" style="font-size:var(--text-xs);color:var(--color-text-faint);"></span>
-    <div style="margin-left:auto;">${filterSelect}</div>
+    <span id="tpl-select-all-count" style="font-size:var(--text-xs);color:var(--color-text-faint);margin-left:auto;"></span>
   </div>`;
 
   const itemRows = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
-    const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
+    const catObj = state.allCategories.find(c => c.name === it.category);
+    const cat   = it.category ? `<span title="${escHtml(it.category)}" style="font-size:var(--text-sm);line-height:1;">${catObj?.emoji || '🏷️'}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
     const meta  = [qty, cat, store, tags, notes].filter(Boolean).join('');
-    return `<div class="item-row" data-tpl-item-idx="${i}" data-tpl-item-cat="${escHtml(it.category || '')}" style="cursor:pointer;" title="Click to edit">
+    return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;" title="Click to edit">
       <input type="checkbox" class="tpl-item-select" data-idx="${i}"
              style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"
              aria-label="Select ${escHtml(it.name || 'item')} for Add to List">
@@ -204,26 +219,20 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
 
   container.innerHTML = selectAllRow + itemRows;
 
-  // ── Helpers for visible rows/checkboxes
-  const allItemRows = () => Array.from(container.querySelectorAll('[data-tpl-item-idx]'));
-  const visibleCbs  = () => Array.from(container.querySelectorAll('input.tpl-item-select')).filter(cb =>
-    cb.closest('[data-tpl-item-idx]')?.style.display !== 'none'
-  );
-
-  // ── Select All state
-  const selectAllCb    = container.querySelector('#tpl-select-all');
+  // Wire up Select All logic
+  const selectAllCb = container.querySelector('#tpl-select-all');
   const selectAllLabel = container.querySelector('#tpl-select-all-label');
-  const countLabel     = container.querySelector('#tpl-select-all-count');
-  const filterEl       = container.querySelector('#tpl-item-filter');
+  const countLabel = container.querySelector('#tpl-select-all-count');
+  const itemCbs = () => Array.from(container.querySelectorAll('input.tpl-item-select'));
 
   function updateSelectAllState() {
-    const visible = visibleCbs();
-    const checkedCount = visible.filter(cb => cb.checked).length;
-    countLabel.textContent = checkedCount > 0 ? `${checkedCount} of ${visible.length} selected` : '';
+    const all = itemCbs();
+    const checkedCount = all.filter(cb => cb.checked).length;
+    countLabel.textContent = checkedCount > 0 ? `${checkedCount} of ${all.length} selected` : '';
     if (checkedCount === 0) {
       selectAllCb.checked = false;
       selectAllCb.indeterminate = false;
-    } else if (checkedCount === visible.length) {
+    } else if (checkedCount === all.length) {
       selectAllCb.checked = true;
       selectAllCb.indeterminate = false;
     } else {
@@ -232,28 +241,20 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     }
   }
 
-  function applyFilter() {
-    const val = filterEl ? filterEl.value : '';
-    allItemRows().forEach(row => {
-      row.style.display = (!val || (row.dataset.tplItemCat || '') === val) ? '' : 'none';
-    });
-    updateSelectAllState();
-  }
-
   selectAllCb.addEventListener('change', () => {
-    visibleCbs().forEach(cb => { cb.checked = selectAllCb.checked; });
+    itemCbs().forEach(cb => { cb.checked = selectAllCb.checked; });
     updateSelectAllState();
   });
   selectAllLabel.addEventListener('click', () => {
     selectAllCb.checked = !selectAllCb.checked;
     selectAllCb.dispatchEvent(new Event('change'));
   });
-  if (filterEl) filterEl.addEventListener('change', applyFilter);
+
   container.querySelectorAll('input.tpl-item-select').forEach(cb =>
     cb.addEventListener('change', updateSelectAllState)
   );
 
-  // ── Edit / remove / row-click handlers
+  // Edit / remove / row-click handlers
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
   );
@@ -274,7 +275,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   createIcons();
 }
 
-// ── Template Item sub-modal ──────────────────────────────────────────────────
+// ── Template Item sub-modal ───────────────────────────────────────────────────────────────
 export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
   state.tplItemEditingIdx = idx;
   const it = idx >= 0 ? state.tplEditorItems[idx] : null;
@@ -313,9 +314,11 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
   renderTplEditorItems({ buildCategoryOptions });
 }
 
-// ── initTemplates — wires all template UI listeners ─────────────────────────
-export function initTemplates({ templatesCol, addDoc, updateDoc, getDocs, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+// ── initTemplates — wires all template UI listeners ────────────────────────────────────────
+export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                                  listsCol, itemsCol, writeBatch, db }) {
+
+  initEmojiPicker();
 
   document.getElementById('new-template-btn').addEventListener('click', () =>
     openTemplateEditor(null, { buildCategoryOptions })
@@ -358,7 +361,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, getDocs, delete
   document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
 
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
-    addSelectedItemsToList({ listsCol, itemsCol, addDoc, updateDoc, getDocs, writeBatch, doc, serverTimestamp, db })
+    addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
   );
 
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
