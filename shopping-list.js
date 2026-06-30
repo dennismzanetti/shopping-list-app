@@ -47,38 +47,6 @@ const categoriesCol = () => collection(db, 'users', uid(), 'categories');
 const storesCol = () => collection(db, 'users', uid(), 'stores');
 const templatesCol = () => collection(db, 'users', uid(), 'templates');
 
-async function seedDefaultsIfNeeded() {
-  const catSnap = await getDocs(categoriesCol());
-  if (catSnap.empty) {
-    const defaults = [
-      { name: 'Produce', emoji: '🥦' }, { name: 'Dairy', emoji: '🧀' },
-      { name: 'Meat & Seafood', emoji: '🥩' }, { name: 'Bakery', emoji: '🍞' },
-      { name: 'Frozen', emoji: '🧊' }, { name: 'Beverages', emoji: '🥤' },
-      { name: 'Snacks', emoji: '🍿' }, { name: 'Household', emoji: '🧹' },
-      { name: 'Personal Care', emoji: '🧴' }, { name: 'Other', emoji: '📦' },
-    ];
-    const batch = writeBatch(db);
-    defaults.forEach(cat => batch.set(doc(categoriesCol()), { ...cat, createdAt: serverTimestamp() }));
-    await batch.commit();
-  }
-  const storeSnap = await getDocs(storesCol());
-  if (storeSnap.empty) {
-    const defaults = ['Walmart','Target','Whole Foods','Costco',"Trader Joe's",'Stop & Shop',"Shaw's",'Market Basket'];
-    const batch = writeBatch(db);
-    defaults.forEach(name => batch.set(doc(storesCol()), { name, createdAt: serverTimestamp() }));
-    await batch.commit();
-  }
-}
-
-async function seedTemplatesIfNeeded() {
-  const snap = await getDocs(templatesCol());
-  if (snap.empty) {
-    const batch = writeBatch(db);
-    SEED_TEMPLATES.forEach(t => batch.set(doc(templatesCol()), { ...t, createdAt: serverTimestamp() }));
-    await batch.commit();
-  }
-}
-
 function teardownSubscriptions() {
   if (unsubLists) { unsubLists(); unsubLists = null; }
   if (unsubItems) { unsubItems(); unsubItems = null; }
