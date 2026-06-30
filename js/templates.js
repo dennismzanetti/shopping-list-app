@@ -135,7 +135,7 @@ export function renderTemplates(onEdit) {
 export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.editingTemplateId = tplId || null;
   const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
-  document.getElementById('tpl-editor-title').textContent     = tpl ? 'Edit Template' : 'New Template';
+  document.getElementById('tpl-editor-title').textContent     = tpl ? 'Template' : 'New Template';
   document.getElementById('tpl-emoji').value                  = tpl ? (tpl.emoji || '') : '';
   document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
