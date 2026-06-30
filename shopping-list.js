@@ -268,40 +268,11 @@ function renderTemplates() {
       <div class="template-card-items">${chips}${moreChip}</div>
       <div class="template-card-footer">
         <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
-        <button class="btn btn-primary" data-use-tpl="${t.id}"><i data-lucide="plus"></i> Use Template</button>
       </div>
     </div>`;
   }).join('');
-  grid.querySelectorAll('[data-use-tpl]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); useTemplate(btn.dataset.useTpl); }));
   grid.querySelectorAll('[data-edit-tpl]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openTemplateEditor(btn.dataset.editTpl); }));
   createIcons();
-}
-
-async function useTemplate(tplId) {
-  const tpl = allTemplates.find(t => t.id === tplId);
-  if (!tpl || !currentUser) return;
-  const items = tpl.items || [];
-  try {
-    const listRef = await addDoc(listsCol(), { name: tpl.name, storeName: '', itemCount: items.length, checkedCount: 0, createdAt: serverTimestamp() });
-    const batch = writeBatch(db);
-    items.forEach(it => {
-      const name = typeof it === 'string' ? it : (it.name || '');
-      batch.set(doc(itemsCol(listRef.id)), {
-        name,
-        qty:    typeof it === 'object' ? (it.qty   || '') : '',
-        unit:   typeof it === 'object' ? (it.unit  || '') : '',
-        stores: toArray(typeof it === 'object' ? it.stores : []),
-        tags:   toArray(typeof it === 'object' ? it.tags   : []),
-        notes:  typeof it === 'object' ? (it.notes || '') : '',
-        checked: false,
-        createdAt: serverTimestamp()
-      });
-    });
-    await batch.commit();
-    showToast(`"${tpl.name}" created with ${items.length} items!`, 'success');
-    navigateTo('lists');
-    setTimeout(() => openList(listRef.id), 300);
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 // ── Template Editor ──────────────────────────────────────────────────────────────────────
@@ -726,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('detail-delete-btn').addEventListener('click', () => { if (currentListId) confirmDelete('list', currentListId); });
 
-  // Add Item button (replaces quick-add bar)
+  // Add Item button
   document.getElementById('add-item-quick-btn').addEventListener('click', () => openAddItemModal());
 
   // Save item (add OR edit)
