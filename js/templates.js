@@ -54,7 +54,6 @@ export function openAddToListModal() {
     }
   }
 
-  // Reset new-list input
   const newNameInput = document.getElementById('tpl-new-list-name');
   if (newNameInput) newNameInput.value = '';
 
@@ -76,7 +75,6 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
 
   let listId = picked.value;
 
-  // Create new list if needed
   if (listId === '__new__') {
     const newName = document.getElementById('tpl-new-list-name').value.trim();
     if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
@@ -86,7 +84,6 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
   }
 
-  // Batch-write items to the chosen list
   try {
     const batch = writeBatch(db);
     items.forEach(it => {
@@ -162,7 +159,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
     const meta  = [qty, cat, store, tags, notes].filter(Boolean).join('');
     return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;" title="Click to edit">
-      <input type="checkbox" class="tpl-item-select" data-idx="${i}" checked
+      <input type="checkbox" class="tpl-item-select" data-idx="${i}"
              style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"
              aria-label="Select ${escHtml(it.name || 'item')} for Add to List">
       <div class="item-info" style="flex:1;min-width:0;">
@@ -273,10 +270,8 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });
 
-  // Open the list-picker modal when Add to List is clicked
   document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
 
-  // Confirm button inside the picker modal
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
     addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
   );
