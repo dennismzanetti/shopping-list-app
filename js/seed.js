@@ -20,16 +20,25 @@ const templatesCol  = (user) => collection(db, 'users', uid(user), 'templates');
 
 // ── Default categories ───────────────────────────────────────────────────────
 const DEFAULT_CATEGORIES = [
-  { name:'Produce',        emoji:'🥦' },
-  { name:'Dairy',          emoji:'🧀' },
-  { name:'Meat & Seafood', emoji:'🥩' },
-  { name:'Bakery',         emoji:'🍞' },
-  { name:'Frozen',         emoji:'🧊' },
-  { name:'Beverages',      emoji:'🥤' },
-  { name:'Snacks',         emoji:'🍿' },
-  { name:'Household',      emoji:'🧹' },
-  { name:'Personal Care',  emoji:'🧴' },
-  { name:'Other',          emoji:'📦' },
+  { name:'Produce',            emoji:'🥦' },
+  { name:'Dairy',              emoji:'🧀' },
+  { name:'Meat & Seafood',     emoji:'🥩' },
+  { name:'Bakery',             emoji:'🍞' },
+  { name:'Frozen',             emoji:'🧊' },
+  { name:'Beverages',          emoji:'🥤' },
+  { name:'Snacks',             emoji:'🍿' },
+  { name:'Household',          emoji:'🧹' },
+  { name:'Personal Care',      emoji:'🧴' },
+  { name:'Pantry & Dry Goods', emoji:'🫙' },
+  { name:'Canned Goods',       emoji:'🥫' },
+  { name:'Condiments & Sauces',emoji:'🧂' },
+  { name:'Deli',               emoji:'🥪' },
+  { name:'Breakfast & Cereal', emoji:'🥣' },
+  { name:'Alcohol & Wine',     emoji:'🍷' },
+  { name:'Baby & Kids',        emoji:'👶' },
+  { name:'Pet Supplies',       emoji:'🐾' },
+  { name:'Health & Pharmacy',  emoji:'💊' },
+  { name:'Other',              emoji:'📦' },
 ];
 
 // ── Default stores ───────────────────────────────────────────────────────────
@@ -42,113 +51,123 @@ const DEFAULT_STORES = [
 export const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
     items:[
-      {name:'Milk',qty:'1',unit:'gal',category:'',stores:[],tags:[],notes:''},
-      {name:'Eggs',qty:'1',unit:'doz',category:'',stores:[],tags:[],notes:''},
-      {name:'Bread',qty:'1',unit:'loaf',category:'',stores:[],tags:[],notes:''},
-      {name:'Butter',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Cheese',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Chicken breast',qty:'2',unit:'lbs',category:'',stores:[],tags:[],notes:''},
-      {name:'Pasta',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
-      {name:'Rice',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Olive oil',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Bananas',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Spinach',qty:'',unit:'',category:'',stores:[],tags:[],notes:''}
+      {name:'Milk',qty:'1',unit:'gal',category:'Dairy',stores:[],tags:[],notes:''},
+      {name:'Eggs',qty:'1',unit:'doz',category:'Dairy',stores:[],tags:[],notes:''},
+      {name:'Bread',qty:'1',unit:'loaf',category:'Bakery',stores:[],tags:[],notes:''},
+      {name:'Butter',qty:'',unit:'',category:'Dairy',stores:[],tags:[],notes:''},
+      {name:'Cheese',qty:'',unit:'',category:'Dairy',stores:[],tags:[],notes:''},
+      {name:'Chicken breast',qty:'2',unit:'lbs',category:'Meat & Seafood',stores:[],tags:[],notes:''},
+      {name:'Pasta',qty:'1',unit:'box',category:'Pantry & Dry Goods',stores:[],tags:[],notes:''},
+      {name:'Rice',qty:'',unit:'',category:'Pantry & Dry Goods',stores:[],tags:[],notes:''},
+      {name:'Olive oil',qty:'',unit:'',category:'Condiments & Sauces',stores:[],tags:[],notes:''},
+      {name:'Bananas',qty:'',unit:'',category:'Produce',stores:[],tags:[],notes:''},
+      {name:'Spinach',qty:'',unit:'',category:'Produce',stores:[],tags:[],notes:''}
     ] },
   { emoji:'🥩', name:'BBQ & Grilling', desc:'Everything you need for a backyard cookout',
     items:[
-      {name:'Burgers',qty:'2',unit:'lbs',category:'',stores:[],tags:[],notes:''},
-      {name:'Hot dogs',qty:'1',unit:'pkg',category:'',stores:[],tags:[],notes:''},
-      {name:'Chicken wings',qty:'3',unit:'lbs',category:'',stores:[],tags:[],notes:''},
-      {name:'Buns',qty:'1',unit:'pkg',category:'',stores:[],tags:[],notes:''},
-      {name:'Ketchup',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Mustard',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'BBQ sauce',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Corn on the cob',qty:'6',unit:'',category:'',stores:[],tags:[],notes:''}
+      {name:'Burgers',qty:'2',unit:'lbs',category:'Meat & Seafood',stores:[],tags:[],notes:''},
+      {name:'Hot dogs',qty:'1',unit:'pkg',category:'Meat & Seafood',stores:[],tags:[],notes:''},
+      {name:'Chicken wings',qty:'3',unit:'lbs',category:'Meat & Seafood',stores:[],tags:[],notes:''},
+      {name:'Buns',qty:'1',unit:'pkg',category:'Bakery',stores:[],tags:[],notes:''},
+      {name:'Ketchup',qty:'',unit:'',category:'Condiments & Sauces',stores:[],tags:[],notes:''},
+      {name:'Mustard',qty:'',unit:'',category:'Condiments & Sauces',stores:[],tags:[],notes:''},
+      {name:'BBQ sauce',qty:'',unit:'',category:'Condiments & Sauces',stores:[],tags:[],notes:''},
+      {name:'Corn on the cob',qty:'6',unit:'',category:'Produce',stores:[],tags:[],notes:''}
     ] },
   { emoji:'🎉', name:'Party Supplies', desc:'Stock up for a gathering or celebration',
     items:[
-      {name:'Chips & dip',qty:'',unit:'',category:'',stores:[],tags:['snacks'],notes:''},
-      {name:'Soda',qty:'2',unit:'cases',category:'',stores:[],tags:['beverages'],notes:''},
-      {name:'Ice',qty:'2',unit:'bags',category:'',stores:[],tags:[],notes:''},
-      {name:'Plates',qty:'50',unit:'',category:'',stores:[],tags:['supplies'],notes:''},
-      {name:'Cups',qty:'50',unit:'',category:'',stores:[],tags:['supplies'],notes:''},
-      {name:'Napkins',qty:'1',unit:'pkg',category:'',stores:[],tags:['supplies'],notes:''}
+      {name:'Chips & dip',qty:'',unit:'',category:'Snacks',stores:[],tags:['snacks'],notes:''},
+      {name:'Soda',qty:'2',unit:'cases',category:'Beverages',stores:[],tags:['beverages'],notes:''},
+      {name:'Ice',qty:'2',unit:'bags',category:'Frozen',stores:[],tags:[],notes:''},
+      {name:'Plates',qty:'50',unit:'',category:'Household',stores:[],tags:['supplies'],notes:''},
+      {name:'Cups',qty:'50',unit:'',category:'Household',stores:[],tags:['supplies'],notes:''},
+      {name:'Napkins',qty:'1',unit:'pkg',category:'Household',stores:[],tags:['supplies'],notes:''}
     ] },
   { emoji:'🏠', name:'Household Basics', desc:'Cleaning and home essentials',
     items:[
-      {name:'Paper towels',qty:'6',unit:'rolls',category:'',stores:[],tags:['cleaning'],notes:''},
-      {name:'Toilet paper',qty:'12',unit:'rolls',category:'',stores:[],tags:[],notes:''},
-      {name:'Dish soap',qty:'1',unit:'bottle',category:'',stores:[],tags:['cleaning'],notes:''},
-      {name:'Laundry detergent',qty:'',unit:'',category:'',stores:[],tags:['cleaning'],notes:''},
-      {name:'Trash bags',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
-      {name:'Sponges',qty:'',unit:'',category:'',stores:[],tags:['cleaning'],notes:''}
+      {name:'Paper towels',qty:'6',unit:'rolls',category:'Household',stores:[],tags:['cleaning'],notes:''},
+      {name:'Toilet paper',qty:'12',unit:'rolls',category:'Household',stores:[],tags:[],notes:''},
+      {name:'Dish soap',qty:'1',unit:'bottle',category:'Household',stores:[],tags:['cleaning'],notes:''},
+      {name:'Laundry detergent',qty:'',unit:'',category:'Household',stores:[],tags:['cleaning'],notes:''},
+      {name:'Trash bags',qty:'1',unit:'box',category:'Household',stores:[],tags:[],notes:''},
+      {name:'Sponges',qty:'',unit:'',category:'Household',stores:[],tags:['cleaning'],notes:''}
     ] },
   { emoji:'🥗', name:'Healthy Eating', desc:'Fresh produce and wholesome staples',
     items:[
-      {name:'Kale',qty:'1',unit:'bunch',category:'',stores:[],tags:['produce','organic'],notes:''},
-      {name:'Spinach',qty:'1',unit:'bag',category:'',stores:[],tags:['produce'],notes:''},
-      {name:'Broccoli',qty:'1',unit:'head',category:'',stores:[],tags:['produce'],notes:''},
-      {name:'Avocados',qty:'4',unit:'',category:'',stores:[],tags:['produce'],notes:''},
-      {name:'Blueberries',qty:'1',unit:'pint',category:'',stores:[],tags:['produce'],notes:''},
-      {name:'Greek yogurt',qty:'',unit:'',category:'',stores:[],tags:['dairy'],notes:''},
-      {name:'Quinoa',qty:'1',unit:'bag',category:'',stores:[],tags:[],notes:''},
-      {name:'Salmon',qty:'1',unit:'lb',category:'',stores:[],tags:['seafood'],notes:''},
-      {name:'Almonds',qty:'1',unit:'bag',category:'',stores:[],tags:['snacks'],notes:''}
+      {name:'Kale',qty:'1',unit:'bunch',category:'Produce',stores:[],tags:['produce','organic'],notes:''},
+      {name:'Spinach',qty:'1',unit:'bag',category:'Produce',stores:[],tags:['produce'],notes:''},
+      {name:'Broccoli',qty:'1',unit:'head',category:'Produce',stores:[],tags:['produce'],notes:''},
+      {name:'Avocados',qty:'4',unit:'',category:'Produce',stores:[],tags:['produce'],notes:''},
+      {name:'Blueberries',qty:'1',unit:'pint',category:'Produce',stores:[],tags:['produce'],notes:''},
+      {name:'Greek yogurt',qty:'',unit:'',category:'Dairy',stores:[],tags:['dairy'],notes:''},
+      {name:'Quinoa',qty:'1',unit:'bag',category:'Pantry & Dry Goods',stores:[],tags:[],notes:''},
+      {name:'Salmon',qty:'1',unit:'lb',category:'Meat & Seafood',stores:[],tags:['seafood'],notes:''},
+      {name:'Almonds',qty:'1',unit:'bag',category:'Snacks',stores:[],tags:['snacks'],notes:''}
     ] },
   { emoji:'🍝', name:'Pasta Night', desc:'Ingredients for a classic Italian dinner',
     items:[
-      {name:'Spaghetti',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
-      {name:'Marinara sauce',qty:'1',unit:'jar',category:'',stores:[],tags:[],notes:''},
-      {name:'Ground beef',qty:'1',unit:'lb',category:'',stores:[],tags:[],notes:''},
-      {name:'Parmesan cheese',qty:'',unit:'',category:'',stores:[],tags:['dairy'],notes:''},
-      {name:'Garlic',qty:'1',unit:'head',category:'',stores:[],tags:['produce'],notes:''},
-      {name:'Olive oil',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Fresh basil',qty:'1',unit:'bunch',category:'',stores:[],tags:['produce'],notes:''}
+      {name:'Spaghetti',qty:'1',unit:'box',category:'Pantry & Dry Goods',stores:[],tags:[],notes:''},
+      {name:'Marinara sauce',qty:'1',unit:'jar',category:'Canned Goods',stores:[],tags:[],notes:''},
+      {name:'Ground beef',qty:'1',unit:'lb',category:'Meat & Seafood',stores:[],tags:[],notes:''},
+      {name:'Parmesan cheese',qty:'',unit:'',category:'Dairy',stores:[],tags:['dairy'],notes:''},
+      {name:'Garlic',qty:'1',unit:'head',category:'Produce',stores:[],tags:['produce'],notes:''},
+      {name:'Olive oil',qty:'',unit:'',category:'Condiments & Sauces',stores:[],tags:[],notes:''},
+      {name:'Fresh basil',qty:'1',unit:'bunch',category:'Produce',stores:[],tags:['produce'],notes:''}
     ] },
   { emoji:'🥞', name:'Breakfast Week', desc:'Morning staples to start every day right',
     items:[
-      {name:'Eggs',qty:'2',unit:'doz',category:'',stores:[],tags:[],notes:''},
-      {name:'Bacon',qty:'1',unit:'pkg',category:'',stores:[],tags:[],notes:''},
-      {name:'Bread',qty:'1',unit:'loaf',category:'',stores:[],tags:[],notes:''},
-      {name:'Butter',qty:'',unit:'',category:'',stores:[],tags:[],notes:''},
-      {name:'Milk',qty:'1',unit:'gal',category:'',stores:[],tags:['dairy'],notes:''},
-      {name:'Orange juice',qty:'1',unit:'jug',category:'',stores:[],tags:['beverages'],notes:''},
-      {name:'Coffee',qty:'1',unit:'bag',category:'',stores:[],tags:['beverages'],notes:''},
-      {name:'Oats',qty:'1',unit:'box',category:'',stores:[],tags:[],notes:''},
-      {name:'Maple syrup',qty:'',unit:'',category:'',stores:[],tags:[],notes:''}
+      {name:'Eggs',qty:'2',unit:'doz',category:'Dairy',stores:[],tags:[],notes:''},
+      {name:'Bacon',qty:'1',unit:'pkg',category:'Meat & Seafood',stores:[],tags:[],notes:''},
+      {name:'Bread',qty:'1',unit:'loaf',category:'Bakery',stores:[],tags:[],notes:''},
+      {name:'Butter',qty:'',unit:'',category:'Dairy',stores:[],tags:[],notes:''},
+      {name:'Milk',qty:'1',unit:'gal',category:'Dairy',stores:[],tags:['dairy'],notes:''},
+      {name:'Orange juice',qty:'1',unit:'jug',category:'Beverages',stores:[],tags:['beverages'],notes:''},
+      {name:'Coffee',qty:'1',unit:'bag',category:'Beverages',stores:[],tags:['beverages'],notes:''},
+      {name:'Oats',qty:'1',unit:'box',category:'Breakfast & Cereal',stores:[],tags:[],notes:''},
+      {name:'Maple syrup',qty:'',unit:'',category:'Condiments & Sauces',stores:[],tags:[],notes:''}
     ] },
   { emoji:'🎒', name:'Back to School', desc:'Lunches and snacks for busy school days',
     items:[
-      {name:'Sandwich bread',qty:'1',unit:'loaf',category:'',stores:[],tags:[],notes:''},
-      {name:'Peanut butter',qty:'1',unit:'jar',category:'',stores:[],tags:[],notes:''},
-      {name:'Jelly',qty:'1',unit:'jar',category:'',stores:[],tags:[],notes:''},
-      {name:'Apple',qty:'6',unit:'',category:'',stores:[],tags:['produce'],notes:''},
-      {name:'Granola bars',qty:'1',unit:'box',category:'',stores:[],tags:['snacks'],notes:''},
-      {name:'Juice boxes',qty:'1',unit:'box',category:'',stores:[],tags:['beverages'],notes:''},
-      {name:'String cheese',qty:'1',unit:'pkg',category:'',stores:[],tags:['dairy'],notes:''}
+      {name:'Sandwich bread',qty:'1',unit:'loaf',category:'Bakery',stores:[],tags:[],notes:''},
+      {name:'Peanut butter',qty:'1',unit:'jar',category:'Pantry & Dry Goods',stores:[],tags:[],notes:''},
+      {name:'Jelly',qty:'1',unit:'jar',category:'Condiments & Sauces',stores:[],tags:[],notes:''},
+      {name:'Apple',qty:'6',unit:'',category:'Produce',stores:[],tags:['produce'],notes:''},
+      {name:'Granola bars',qty:'1',unit:'box',category:'Snacks',stores:[],tags:['snacks'],notes:''},
+      {name:'Juice boxes',qty:'1',unit:'box',category:'Beverages',stores:[],tags:['beverages'],notes:''},
+      {name:'String cheese',qty:'1',unit:'pkg',category:'Dairy',stores:[],tags:['dairy'],notes:''}
     ] }
 ];
 
 // ── Seed functions ───────────────────────────────────────────────────────────
 
-// Seeds default categories and stores in a single batch if both are empty.
+// Seeds default categories and stores.
+// For categories: upserts — adds any DEFAULT_CATEGORIES not already present by name.
+// For stores: only seeds if the collection is empty.
 export async function seedDefaultsIfNeeded(user) {
   const [catSnap, storeSnap] = await Promise.all([
     getDocs(categoriesCol(user)),
     getDocs(storesCol(user))
   ]);
+
   const batch = writeBatch(db);
   let dirty = false;
-  if (catSnap.empty) {
-    DEFAULT_CATEGORIES.forEach(cat =>
-      batch.set(doc(categoriesCol(user)), { ...cat, createdAt: serverTimestamp() }));
-    dirty = true;
-  }
+
+  // Upsert categories: add any that don't already exist by name
+  const existingCatNames = new Set(catSnap.docs.map(d => d.data().name));
+  DEFAULT_CATEGORIES.forEach(cat => {
+    if (!existingCatNames.has(cat.name)) {
+      batch.set(doc(categoriesCol(user)), { ...cat, createdAt: serverTimestamp() });
+      dirty = true;
+    }
+  });
+
+  // Stores: only seed if empty
   if (storeSnap.empty) {
     DEFAULT_STORES.forEach(name =>
       batch.set(doc(storesCol(user)), { name, createdAt: serverTimestamp() }));
     dirty = true;
   }
+
   if (dirty) await batch.commit();
 }
 
