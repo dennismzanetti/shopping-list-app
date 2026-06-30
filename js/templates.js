@@ -162,7 +162,8 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
 
   const itemRows = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
-    const cat   = it.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(it.category)}</span>` : '';
+    const catObj = state.allCategories.find(c => c.name === it.category);
+    const cat   = it.category ? `<span title="${escHtml(it.category)}" style="font-size:var(--text-sm);line-height:1;">${catObj?.emoji || '🏷️'}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
