@@ -157,6 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initListDetail({ confirmDelete, navigateTo, setHashListId });
   initItemButtons({ openAddItemModal, saveItem: _saveItem, itemsCol, getSelectedStores });
 
+  // Header user button → navigate to settings
+  const headerUserBtn = document.getElementById('header-user-btn');
+  if (headerUserBtn) {
+    headerUserBtn.addEventListener('click', () => navigateTo('settings'));
+  }
+
   // Auth
   document.getElementById('google-signin-btn').addEventListener('click', async () => {
     document.getElementById('auth-body').style.display    = 'none';
@@ -207,7 +213,7 @@ function updateUserUI() {
   const name     = state.currentUser.displayName || state.currentUser.email || 'User';
   const email    = state.currentUser.email || '';
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  ['sidebar-avatar','settings-avatar'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
-  ['sidebar-name','settings-name'].forEach(id   => { const el = document.getElementById(id); if (el) el.textContent = name;  });
-  ['sidebar-email','settings-email'].forEach(id  => { const el = document.getElementById(id); if (el) el.textContent = email; });
+  ['header-avatar', 'settings-avatar'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
+  ['settings-name'].forEach(id  => { const el = document.getElementById(id); if (el) el.textContent = name;  });
+  ['settings-email'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = email; });
 }
