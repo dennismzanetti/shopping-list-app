@@ -24,6 +24,7 @@ import { navigateTo, closeSidebar, initNav } from './js/nav.js';
 import { loadAboutCommits, loadBuildMeta } from './js/about.js';
 import { renderTemplates, openTemplateEditor, initTemplates } from './js/templates.js';
 import { initExportImport, performImport, getAndClearPendingImport } from './js/export-import.js';
+import { initCategoriesStores } from './js/categories-stores.js';
 
 // ── Hash-based list restore ──────────────────────────────────────────────────
 function getHashListId() {
@@ -35,12 +36,12 @@ function setHashListId(listId) {
 }
 
 // ── Firestore Helpers ────────────────────────────────────────────────────────
-const uid          = () => state.currentUser.uid;
-const listsCol     = () => collection(db, 'users', uid(), 'lists');
-const itemsCol     = listId => collection(db, 'users', uid(), 'lists', listId, 'items');
+const uid           = () => state.currentUser.uid;
+const listsCol      = () => collection(db, 'users', uid(), 'lists');
+const itemsCol      = listId => collection(db, 'users', uid(), 'lists', listId, 'items');
 const categoriesCol = () => collection(db, 'users', uid(), 'categories');
-const storesCol    = () => collection(db, 'users', uid(), 'stores');
-const templatesCol = () => collection(db, 'users', uid(), 'templates');
+const storesCol     = () => collection(db, 'users', uid(), 'stores');
+const templatesCol  = () => collection(db, 'users', uid(), 'templates');
 
 const firestoreDeps = () => ({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy, writeBatch, doc, serverTimestamp });
 
@@ -160,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav({ onSettings: loadAboutCommits });
   initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete });
   initExportImport(firestoreDeps());
+  initCategoriesStores({ categoriesCol, storesCol, addDoc, serverTimestamp });
 
   // Auth
   document.getElementById('google-signin-btn').addEventListener('click', async () => {
@@ -234,35 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.modal-overlay').forEach(overlay =>
     overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); state.editingItemId = null; } })
   );
-
-  // Categories
-  document.getElementById('new-category-btn').addEventListener('click', () => window.openModal('modal-new-category'));
-  document.getElementById('save-category-btn').addEventListener('click', async () => {
-    const name = document.getElementById('new-category-name').value.trim();
-    if (!name) { showToast('Category name is required', 'error'); return; }
-    try {
-      await addDoc(categoriesCol(), { name, emoji: document.getElementById('new-category-emoji').value.trim(), createdAt: serverTimestamp() });
-      window.closeModal('modal-new-category');
-      document.getElementById('new-category-name').value  = '';
-      document.getElementById('new-category-emoji').value = '';
-      showToast(`"${name}" added!`, 'success');
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
-  });
-  document.getElementById('new-category-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-category-btn').click(); });
-
-  // Stores
-  document.getElementById('new-store-btn').addEventListener('click', () => window.openModal('modal-new-store'));
-  document.getElementById('save-store-btn').addEventListener('click', async () => {
-    const name = document.getElementById('new-store-name').value.trim();
-    if (!name) { showToast('Store name is required', 'error'); return; }
-    try {
-      await addDoc(storesCol(), { name, createdAt: serverTimestamp() });
-      window.closeModal('modal-new-store');
-      document.getElementById('new-store-name').value = '';
-      showToast(`"${name}" added!`, 'success');
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
-  });
-  document.getElementById('new-store-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-store-btn').click(); });
 
   // Confirm dialog
   document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
