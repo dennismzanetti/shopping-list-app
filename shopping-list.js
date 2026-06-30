@@ -11,6 +11,15 @@ import { syncThemeUI, toggleTheme } from './js/theme.js';
 import { state } from './js/state.js';
 import { seedDefaultsIfNeeded, seedTemplatesIfNeeded } from './js/seed.js';
 import { renderLists, openList as _openList, updateListCounts as _updateListCounts } from './js/lists.js';
+import {
+  renderItems as _renderItems,
+  openAddItemModal as _openAddItemModal,
+  openEditItemModal as _openEditItemModal,
+  populateItemStoreCheckboxes,
+  getSelectedStores,
+  toggleItem as _toggleItem,
+  saveItem as _saveItem
+} from './js/items.js';
 
 // ── Hash-based list restore ─────────────────────────────────────────────────────────────
 function getHashListId() {
@@ -29,21 +38,25 @@ const categoriesCol = () => collection(db, 'users', uid(), 'categories');
 const storesCol = () => collection(db, 'users', uid(), 'stores');
 const templatesCol = () => collection(db, 'users', uid(), 'templates');
 
-// ── Lists wrappers (pass deps as callbacks) ────────────────────────────────────────────
+// ── Local wrappers binding deps ───────────────────────────────────────────────────────────
 function openList(listId) {
-  _openList(listId, {
-    navigateTo,
-    setHashListId,
-    onSnapshot,
-    itemsCol,
-    orderBy,
-    renderItems,
-    updateListCounts
-  });
+  _openList(listId, { navigateTo, setHashListId, onSnapshot, itemsCol, renderItems, updateListCounts });
 }
-
 function updateListCounts(listId) {
   _updateListCounts(listId, { listsCol, updateDoc, doc });
+}
+function renderItems() {
+  _renderItems(toggleItem, openEditItemModal);
+}
+function toggleItem(itemId) {
+  _toggleItem(itemId, { itemsCol });
+}
+function openAddItemModal(prefillName = '') {
+  _openAddItemModal(buildCategoryOptions);
+  if (prefillName) document.getElementById('item-name-full').value = prefillName;
+}
+function openEditItemModal(itemId) {
+  _openEditItemModal(itemId, buildCategoryOptions);
 }
 
 function teardownSubscriptions() {
@@ -261,92 +274,6 @@ function saveTplItem() {
   renderTplEditorItems();
 }
 
-// ── Items ──────────────────────────────────────────────────────────────────────────────
-function renderItems() {
-  const list_ = document.getElementById('items-list');
-  const empty = document.getElementById('items-empty');
-  const unchecked = state.allItems.filter(i => !i.checked);
-  const checked   = state.allItems.filter(i =>  i.checked);
-  const total = state.allItems.length, doneCount = checked.length;
-  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = `${doneCount} of ${total} checked`;
-  if (total === 0) { empty.style.display = 'flex'; list_.innerHTML = ''; return; }
-  empty.style.display = 'none';
-
-  const renderGroup = items => items.map(item => {
-    const qty        = item.qty ? `<span class="item-qty-badge">${escHtml(item.qty)}${item.unit ? ' '+escHtml(item.unit) : ''}</span>` : '';
-    const cat        = item.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(item.category)}</span>` : '';
-    const storeChips = toArray(item.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
-    const tagChips   = toArray(item.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
-    const notes      = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';
-    const meta       = [qty, cat, storeChips, tagChips, notes].filter(Boolean).join('');
-    return `<div class="item-row${item.checked ? ' checked' : ''}" data-item-id="${item.id}">
-      <div class="item-checkbox${item.checked ? ' checked' : ''}" data-toggle="${item.id}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="item-info" style="flex:1;min-width:0;">
-        <div class="item-name">${escHtml(item.name)}</div>
-        ${meta ? `<div class="item-meta">${meta}</div>` : ''}
-      </div>
-      <button class="icon-btn item-edit" data-edit-item="${item.id}" aria-label="Edit item" title="Edit item" style="color:var(--color-text-muted);"><i data-lucide="pencil"></i></button>
-    </div>`;
-  }).join('');
-
-  let html = unchecked.length > 0 ? renderGroup(unchecked) : '';
-  if (checked.length > 0) html += `<div class="items-section-label">Checked (${checked.length})</div>` + renderGroup(checked);
-  list_.innerHTML = html;
-  list_.querySelectorAll('[data-toggle]').forEach(el     => el.addEventListener('click',  ()  => toggleItem(el.dataset.toggle)));
-  list_.querySelectorAll('[data-edit-item]').forEach(btn => btn.addEventListener('click', ()  => openEditItemModal(btn.dataset.editItem)));
-  createIcons();
-}
-
-// ── Item Store Checkboxes ─────────────────────────────────────────────────────────────
-function populateItemStoreCheckboxes(selectedStores = []) {
-  const container = document.getElementById('item-store-checkboxes');
-  if (!container) return;
-  if (state.allStores.length === 0) { container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`; return; }
-  container.innerHTML = state.allStores.map(s => `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name)?'checked':''}><span>${escHtml(s.name)}</span></label>`).join('');
-}
-function getSelectedStores() {
-  return Array.from(document.getElementById('item-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []).map(cb => cb.value);
-}
-
-function openAddItemModal(prefillName = '') {
-  if (!state.currentListId) { showToast('No list selected — please open a list first', 'error'); return; }
-  state.editingItemId = null;
-  document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
-  document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
-  document.getElementById('item-name-full').value = prefillName;
-  document.getElementById('item-qty').value   = '';
-  document.getElementById('item-unit').value  = '';
-  document.getElementById('item-tags').value  = '';
-  document.getElementById('item-notes').value = '';
-  const catSel = document.getElementById('item-category');
-  if (catSel) catSel.innerHTML = buildCategoryOptions('');
-  populateItemStoreCheckboxes();
-  openModal('modal-add-item');
-  setTimeout(() => document.getElementById('item-name-full').focus(), 50);
-}
-
-function openEditItemModal(itemId) {
-  const item = state.allItems.find(i => i.id === itemId);
-  if (!item) return;
-  state.editingItemId = itemId;
-  document.querySelector('#modal-add-item .modal-title').textContent = 'Edit Item';
-  document.getElementById('save-item-btn').innerHTML = '<i data-lucide="save"></i> Save Changes';
-  document.getElementById('item-name-full').value = item.name  || '';
-  document.getElementById('item-qty').value        = item.qty   || '';
-  document.getElementById('item-unit').value       = item.unit  || '';
-  document.getElementById('item-tags').value       = toArray(item.tags).join(', ');
-  document.getElementById('item-notes').value      = item.notes || '';
-  const catSel = document.getElementById('item-category');
-  if (catSel) catSel.innerHTML = buildCategoryOptions(item.category || '');
-  populateItemStoreCheckboxes(toArray(item.stores));
-  openModal('modal-add-item');
-  setTimeout(() => document.getElementById('item-name-full').focus(), 50);
-}
-
 // ── Delete ──────────────────────────────────────────────────────────────────────────────
 function confirmDelete(type, id) {
   state.pendingDelete = { type, id };
@@ -523,33 +450,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('add-item-quick-btn').addEventListener('click', () => openAddItemModal());
 
   // Save item (add OR edit)
-  document.getElementById('save-item-btn').addEventListener('click', async () => {
-    const name = document.getElementById('item-name-full').value.trim();
-    if (!name) { showToast('Item name is required', 'error'); return; }
-    if (!state.currentListId) { showToast('No list selected', 'error'); return; }
-    const tags = document.getElementById('item-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
-    const data = {
-      name,
-      qty:      document.getElementById('item-qty').value.trim(),
-      unit:     document.getElementById('item-unit').value.trim(),
-      category: document.getElementById('item-category').value,
-      stores:   getSelectedStores(),
-      tags,
-      notes:    document.getElementById('item-notes').value.trim()
-    };
-    try {
-      if (state.editingItemId) {
-        await updateDoc(doc(itemsCol(state.currentListId), state.editingItemId), data);
-        showToast('Item updated!', 'success');
-      } else {
-        await addDoc(itemsCol(state.currentListId), { ...data, checked: false, createdAt: serverTimestamp() });
-      }
-      closeModal('modal-add-item');
-      state.editingItemId = null;
-      ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  document.getElementById('save-item-btn').addEventListener('click', () =>
+    _saveItem({ itemsCol, getSelectedStores })
+  );
+  document.getElementById('item-name-full').addEventListener('keydown', e => {
+    if (e.key === 'Enter') _saveItem({ itemsCol, getSelectedStores });
   });
-  document.getElementById('item-name-full').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('save-item-btn').click(); });
 
   // Reset state.editingItemId when modal is dismissed
   document.querySelectorAll('.modal-overlay').forEach(overlay =>
@@ -683,10 +589,4 @@ function updateUserUI() {
   if (sEmail) sEmail.textContent = email;
   if (stName)  stName.textContent  = name;
   if (stEmail) stEmail.textContent = email;
-}
-
-async function toggleItem(itemId) {
-  const item = state.allItems.find(i => i.id === itemId);
-  if (!item || !state.currentListId) return;
-  try { await updateDoc(doc(itemsCol(state.currentListId), itemId), { checked: !item.checked }); } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
