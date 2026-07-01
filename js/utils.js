@@ -5,6 +5,12 @@ export function escHtml(str) {
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+export function toArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  return [val];
+}
+
 export function createIcons() {
   if (window.lucide) window.lucide.createIcons();
 }
