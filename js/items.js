@@ -24,7 +24,7 @@ export function getSelectedStores() {
 }
 
 // -- Render Items -------------------------------------------------------------
-export function renderItems(onToggle, onEdit) {
+export function renderItems(onToggle, onEdit, onDelete) {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
   const unchecked = state.allItems.filter(i => !i.checked);
@@ -52,14 +52,16 @@ export function renderItems(onToggle, onEdit) {
         ${meta ? `<div class="item-meta">${meta}</div>` : ''}
       </div>
       <button class="icon-btn item-edit" data-edit-item="${item.id}" aria-label="Edit item" title="Edit item" style="color:var(--color-text-muted);"><i data-lucide="pencil"></i></button>
+      <button class="icon-btn item-delete" data-delete-item="${item.id}" aria-label="Delete item" title="Delete item" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
     </div>`;
   }).join('');
 
   let html = unchecked.length > 0 ? renderGroup(unchecked) : '';
   if (checked.length > 0) html += `<div class="items-section-label">Checked (${checked.length})</div>` + renderGroup(checked);
   list_.innerHTML = html;
-  list_.querySelectorAll('[data-toggle]').forEach(el     => el.addEventListener('click', () => onToggle(el.dataset.toggle)));
-  list_.querySelectorAll('[data-edit-item]').forEach(btn => btn.addEventListener('click', () => onEdit(btn.dataset.editItem)));
+  list_.querySelectorAll('[data-toggle]').forEach(el      => el.addEventListener('click', () => onToggle(el.dataset.toggle)));
+  list_.querySelectorAll('[data-edit-item]').forEach(btn  => btn.addEventListener('click', e => { e.stopPropagation(); onEdit(btn.dataset.editItem); }));
+  list_.querySelectorAll('[data-delete-item]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); onDelete(btn.dataset.deleteItem); }));
   createIcons();
 }
 
@@ -118,6 +120,15 @@ export async function deleteItem({ itemsCol }) {
     await deleteDoc(doc(itemsCol(state.currentListId), itemId));
     window.closeModal('modal-add-item');
     state.editingItemId = null;
+    window.showToast('Item deleted', 'success');
+  } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
+}
+
+// -- Delete Item by ID (called from confirm dialog) ---------------------------
+export async function deleteItemById(itemId, { itemsCol }) {
+  if (!itemId || !state.currentListId) return;
+  try {
+    await deleteDoc(doc(itemsCol(state.currentListId), itemId));
     window.showToast('Item deleted', 'success');
   } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
 }

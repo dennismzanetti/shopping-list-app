@@ -4,12 +4,14 @@ import { navigateTo } from './nav.js';
 
 const TITLES = {
   list:     'Delete List?',
+  item:     'Delete Item?',
   category: 'Delete Category?',
   store:    'Delete Store?',
   template: 'Delete Template?'
 };
 const MESSAGES = {
   list:     'This will permanently delete the list and all its items.',
+  item:     'This item will be permanently deleted.',
   category: 'This category will be removed.',
   store:    'This store will be removed.',
   template: 'This template will be permanently deleted.'
@@ -49,6 +51,11 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
           if (headerTitle) headerTitle.textContent = 'My Lists';
         }
         window.showToast('List deleted', 'success');
+
+      } else if (type === 'item') {
+        if (!state.currentListId) return;
+        await deleteDoc(doc(itemsCol(state.currentListId), id));
+        window.showToast('Item deleted', 'success');
 
       } else if (type === 'category') {
         await deleteDoc(doc(categoriesCol(), id));

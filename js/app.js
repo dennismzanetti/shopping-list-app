@@ -68,7 +68,8 @@ function doRenderItems() {
   );
   renderItems(
     (id) => toggleItem(id, { itemsCol }),
-    (id) => openEditItemModal(id, buildCategoryOptions)
+    (id) => openEditItemModal(id, buildCategoryOptions),
+    (id) => confirmDelete('item', id)
   );
 }
 
@@ -97,7 +98,6 @@ function doRenderLists() {
 // Navigation — wire both sidebar nav-items and header nav-items
 // ---------------------------------------------------------------------------
 function initNavigation() {
-  // Map view names in HTML data-view to the navigateTo view keys
   const VIEW_MAP = {
     lists:      'lists',
     templates:  'templates',
@@ -111,7 +111,6 @@ function initNavigation() {
       const view = el.dataset.view;
       if (VIEW_MAP[view]) {
         navigateTo(view);
-        // Sync active state on all matching nav items
         document.querySelectorAll('[data-view]').forEach(n => {
           n.classList.toggle('active', n.dataset.view === view);
         });
@@ -120,7 +119,7 @@ function initNavigation() {
     });
   });
 
-  // Mobile sidebar backdrop + toggle
+  // Mobile sidebar backdrop + toggle (safe no-ops if elements removed)
   const backdrop   = document.getElementById('sidebar-backdrop');
   const sidebar    = document.getElementById('sidebar');
   const menuBtn    = document.getElementById('mobile-menu-btn');
@@ -183,7 +182,6 @@ function initNewListModal() {
     });
   }
 
-  // Allow Enter key in name field
   if (nameInput) {
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') createBtn?.click(); });
   }
@@ -201,7 +199,6 @@ function initItemModal() {
   if (saveBtn) saveBtn.addEventListener('click', () => saveItem({ itemsCol, getSelectedStores }));
   if (delBtn)  delBtn.addEventListener('click',  () => deleteItem({ itemsCol }));
 
-  // Enter key in item name field
   const nameInput = document.getElementById('item-name-full');
   if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn?.click(); });
 }
@@ -210,7 +207,6 @@ function initItemModal() {
 // Categories & Stores (new-item modals)
 // ---------------------------------------------------------------------------
 function initCatStoreModals() {
-  // New category
   const newCatBtn  = document.getElementById('new-category-btn');
   const saveCatBtn = document.getElementById('save-category-btn');
   const catNameIn  = document.getElementById('new-category-name');
@@ -238,7 +234,6 @@ function initCatStoreModals() {
   });
   if (catNameIn) catNameIn.addEventListener('keydown', e => { if (e.key === 'Enter') saveCatBtn?.click(); });
 
-  // Category emoji picker
   const catEmojiBtn     = document.getElementById('cat-emoji-btn');
   const catEmojiPopover = document.getElementById('cat-emoji-picker-popover');
   if (catEmojiBtn && catEmojiPopover) {
@@ -259,7 +254,6 @@ function initCatStoreModals() {
     });
   }
 
-  // New store
   const newStoreBtn  = document.getElementById('new-store-btn');
   const saveStoreBtn = document.getElementById('save-store-btn');
   const storeNameIn  = document.getElementById('new-store-name');
@@ -311,13 +305,11 @@ function initListDetailNav() {
 // Firestore real-time subscriptions (start after sign-in)
 // ---------------------------------------------------------------------------
 function startListeners() {
-  // Lists
   state.unsubLists = onSnapshot(
     query(listsCol(), orderBy('createdAt')),
     snap => {
       state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       doRenderLists();
-      // On first load, restore hash-linked list
       if (state.listsFirstLoad) {
         state.listsFirstLoad = false;
         const hashId = getHashListId();
@@ -333,7 +325,6 @@ function startListeners() {
     err => { if (err.code !== 'permission-denied') console.error('lists:', err); }
   );
 
-  // Categories
   state.unsubCategories = onSnapshot(
     query(catsCol(), orderBy('createdAt')),
     snap => {
@@ -343,7 +334,6 @@ function startListeners() {
     err => { if (err.code !== 'permission-denied') console.error('categories:', err); }
   );
 
-  // Stores
   state.unsubStores = onSnapshot(
     query(storesCol(), orderBy('createdAt')),
     snap => {
@@ -354,7 +344,6 @@ function startListeners() {
     err => { if (err.code !== 'permission-denied') console.error('stores:', err); }
   );
 
-  // Templates
   state.unsubTemplates = onSnapshot(
     query(tplsCol(), orderBy('createdAt')),
     snap => {
@@ -396,21 +385,18 @@ function setUserUI(user) {
 // Bootstrap
 // ---------------------------------------------------------------------------
 function init() {
-  // Theme
   state.currentTheme = document.documentElement.getAttribute('data-theme') ||
     (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
   syncThemeUI();
   document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
   document.getElementById('dark-mode-toggle')?.addEventListener('change', toggleTheme);
 
-  // Static nav wiring
   initNavigation();
   initNewListModal();
   initItemModal();
   initCatStoreModals();
   initListDetailNav();
 
-  // Confirm dialog
   initConfirm({
     db, listsCol, itemsCol,
     categoriesCol: catsCol,
@@ -420,7 +406,6 @@ function init() {
     setHashListId
   });
 
-  // Export / Import
   initExportImport({
     db, listsCol, itemsCol,
     categoriesCol: catsCol,
@@ -429,20 +414,17 @@ function init() {
     getDocs, writeBatch, doc, addDoc, serverTimestamp, query, orderBy
   });
 
-  // Templates
   initTemplates({
     templatesCol: tplsCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
     buildCategoryOptions, confirmDelete,
     listsCol, itemsCol, writeBatch, db
   });
 
-  // Sign-out
   document.getElementById('signout-btn')?.addEventListener('click', async () => {
     stopListeners();
     await signOut(auth);
   });
 
-  // Google sign-in button
   document.getElementById('google-signin-btn')?.addEventListener('click', async () => {
     const authLoading = document.getElementById('auth-loading');
     const authBody    = document.getElementById('auth-body');
@@ -457,7 +439,6 @@ function init() {
     }
   });
 
-  // Auth state
   onAuthStateChanged(auth, user => {
     const authScreen = document.getElementById('auth-screen');
     const appEl      = document.getElementById('app');
