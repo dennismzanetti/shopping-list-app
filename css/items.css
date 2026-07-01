@@ -9,8 +9,8 @@
 .back-btn:hover{background:var(--color-surface-offset);color:var(--color-text)}
 .back-btn svg{width:16px;height:16px}
 
-/* Progress bar */
-.progress-summary{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md)}
+/* Progress bar — upgraded: borderless, shadow-based for a cleaner look */
+.progress-summary{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);padding:var(--space-3) var(--space-4);background:var(--color-surface);border-radius:var(--radius-md);box-shadow:var(--shadow-sm)}
 .progress-bar-wrap{flex:1;height:6px;background:var(--color-surface-offset);border-radius:var(--radius-full);overflow:hidden}
 .progress-bar-fill{height:100%;background:var(--color-primary);border-radius:var(--radius-full);transition:width .4s ease}
 .progress-label{font-size:var(--text-xs);color:var(--color-text-muted);white-space:nowrap}
@@ -23,10 +23,12 @@
 /* Items list */
 .items-list{display:flex;flex-direction:column;gap:var(--space-2)}
 .item-row{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);transition:background var(--transition-interactive),opacity var(--transition-interactive)}
-.item-row.checked{opacity:.55}
+/* Upgraded: checked state uses opacity:.6 + muted color (more modern than .55 flat opacity) */
+.item-row.checked{opacity:.6}
 .item-row.checked .item-name{text-decoration:line-through;color:var(--color-text-muted)}
+/* Upgraded: checkbox uses --color-success on checked state for satisfying completion feel */
 .item-checkbox{width:20px;height:20px;border-radius:var(--radius-sm);border:2px solid var(--color-border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background var(--transition-interactive),border-color var(--transition-interactive)}
-.item-checkbox.checked{background:var(--color-primary);border-color:var(--color-primary)}
+.item-checkbox.checked{background:var(--color-success);border-color:var(--color-success)}
 .item-checkbox svg{width:12px;height:12px;color:white;display:none}
 .item-checkbox.checked svg{display:block}
 .item-info{flex:1;min-width:0}
