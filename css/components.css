@@ -124,7 +124,19 @@
 /* Misc */
 .divider{height:1px;background:var(--color-divider);margin:var(--space-4) 0}
 
-/* Emoji Picker */
+/* Emoji Picker — full-screen overlay (legacy global picker) */
+.emoji-picker-overlay{position:fixed;inset:0;background:oklch(.1 0 0/.5);display:flex;align-items:center;justify-content:center;z-index:150;opacity:0;pointer-events:none;transition:opacity var(--transition-interactive)}
+.emoji-picker-overlay.open{opacity:1;pointer-events:all}
+.emoji-picker{background:var(--color-surface);border:1px solid oklch(from var(--color-border) l c h / 0.7);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);width:340px;max-height:420px;display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px) scale(0.99);transition:transform var(--transition-interactive)}
+.emoji-picker-overlay.open .emoji-picker{transform:translateY(0) scale(1)}
+.emoji-picker-header{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-3);border-bottom:1px solid var(--color-divider)}
+.emoji-search{flex:1;padding:var(--space-2) var(--space-3);border:1px solid oklch(from var(--color-border) l c h / 0.8);border-radius:var(--radius-md);background:var(--color-surface-offset);font-size:var(--text-sm);color:var(--color-text)}
+.emoji-search:focus{outline:none;border-color:var(--color-primary)}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:var(--space-3);overflow-y:auto}
+.emoji-grid button{font-size:1.4rem;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:none;background:none;cursor:pointer;transition:background var(--transition-interactive)}
+.emoji-grid button:hover{background:var(--color-surface-offset)}
+
+/* Emoji Picker — inline popover (new style used by list/store/template editors) */
 .emoji-picker-wrap{position:relative}
 .emoji-picker-btn{width:100%;aspect-ratio:1;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);transition:border-color var(--transition-interactive),box-shadow var(--transition-interactive);cursor:pointer;padding:0}
 .emoji-picker-btn:hover{border-color:var(--color-primary);box-shadow:0 0 0 3px oklch(from var(--color-primary) l c h/.12)}
