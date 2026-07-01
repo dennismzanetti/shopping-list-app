@@ -67,10 +67,46 @@
     </aside>
 
     <header class="app-header">
+      <!-- Left: logo + mobile menu toggle -->
       <div style="display:flex;align-items:center;gap:var(--space-3);">
         <button class="icon-btn mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu"><i data-lucide="menu"></i></button>
-        <span class="header-title" id="header-title">My Lists</span>
+        <div class="header-logo" aria-label="ShopList">
+          <div class="logo-icon" style="width:28px;height:28px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+          </div>
+          <span class="logo-text" style="font-size:var(--text-base);">ShopList</span>
+        </div>
+        <div class="header-nav-divider"></div>
+        <!-- Header nav links (desktop) -->
+        <nav class="header-nav" aria-label="Main navigation">
+          <div class="header-nav-item active" data-view="lists">
+            <i data-lucide="shopping-cart"></i>
+            <span>My Lists</span>
+            <span class="nav-badge" id="header-badge-lists">0</span>
+          </div>
+          <div class="header-nav-item" data-view="templates">
+            <i data-lucide="layout-template"></i>
+            <span>Templates</span>
+          </div>
+          <div class="header-nav-item" data-view="categories">
+            <i data-lucide="tag"></i>
+            <span>Categories</span>
+          </div>
+          <div class="header-nav-item" data-view="stores">
+            <i data-lucide="store"></i>
+            <span>Stores</span>
+          </div>
+          <div class="header-nav-item" data-view="settings">
+            <i data-lucide="settings"></i>
+            <span>Settings</span>
+          </div>
+        </nav>
       </div>
+      <!-- Right: theme toggle + user avatar -->
       <div class="header-actions">
         <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
         <button class="icon-btn" id="header-user-btn" aria-label="Account" data-view="settings">
