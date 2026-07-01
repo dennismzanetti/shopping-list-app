@@ -1,3 +1,8 @@
+/* ============================================================
+   TOKENS — CSS custom properties (design tokens)
+   Light mode, dark mode, spacing, type, radius, shadows
+   ============================================================ */
+
 :root, [data-theme="light"] {
   --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
   --color-surface-offset:#f3f0ec;--color-surface-offset-2:#edeae5;
