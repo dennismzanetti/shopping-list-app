@@ -12,7 +12,8 @@ import { openModal, closeModal, showToast, openEmojiPicker } from './ui.js';
 import { syncThemeUI, toggleTheme }                     from './theme.js';
 import { navigateTo }                                   from './nav.js';
 import { loadAboutCommits }                             from './about.js';
-import { renderLists, openList, updateListCounts }      from './lists.js';
+import { renderLists, openList, updateListCounts,
+         populateDetailStoreCheckboxes }                from './lists.js';
 import { renderItems, openAddItemModal, openEditItemModal,
          toggleItem, saveItem, deleteItem,
          getSelectedStores, populateItemStoreCheckboxes } from './items.js';
@@ -62,6 +63,25 @@ function getHashListId() {
 }
 
 // ---------------------------------------------------------------------------
+// Shared openList params
+// ---------------------------------------------------------------------------
+function openListParams() {
+  return {
+    navigateTo,
+    setHashListId,
+    onSnapshot,
+    itemsCol,
+    renderItems: doRenderItems,
+    updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
+    updateDoc,
+    doc,
+    listsCol,
+    showToast,
+    openEmojiPicker
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Render helpers (called after each Firestore snapshot)
 // ---------------------------------------------------------------------------
 function doRenderItems() {
@@ -80,14 +100,7 @@ function doRenderItems() {
 
 function doRenderLists() {
   renderLists(
-    (id) => openList(id, {
-      navigateTo,
-      setHashListId,
-      onSnapshot,
-      itemsCol,
-      renderItems: doRenderItems,
-      updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
-    }),
+    (id) => openList(id, openListParams()),
     (type, id) => confirmDelete(type, id)
   );
   // Update badges
@@ -206,14 +219,7 @@ function initNewListModal() {
           checkedCount: 0
         });
         closeModal('modal-new-list');
-        openList(ref.id, {
-          navigateTo,
-          setHashListId,
-          onSnapshot,
-          itemsCol,
-          renderItems: doRenderItems,
-          updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
-        });
+        openList(ref.id, openListParams());
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     });
   }
@@ -227,13 +233,15 @@ function initNewListModal() {
 // Item modal buttons
 // ---------------------------------------------------------------------------
 function initItemModal() {
-  const addBtn  = document.getElementById('add-item-quick-btn');
-  const saveBtn = document.getElementById('save-item-btn');
-  const delBtn  = document.getElementById('delete-item-btn');
+  const addBtn    = document.getElementById('add-item-quick-btn');
+  const addBtnBot = document.getElementById('add-item-bottom-btn');
+  const saveBtn   = document.getElementById('save-item-btn');
+  const delBtn    = document.getElementById('delete-item-btn');
 
-  if (addBtn)  addBtn.addEventListener('click',  () => openAddItemModal(buildCategoryOptions));
-  if (saveBtn) saveBtn.addEventListener('click', () => saveItem({ itemsCol, getSelectedStores }));
-  if (delBtn)  delBtn.addEventListener('click',  () => deleteItem({ itemsCol }));
+  if (addBtn)    addBtn.addEventListener('click',    () => openAddItemModal(buildCategoryOptions));
+  if (addBtnBot) addBtnBot.addEventListener('click', () => openAddItemModal(buildCategoryOptions));
+  if (saveBtn)   saveBtn.addEventListener('click',   () => saveItem({ itemsCol, getSelectedStores }));
+  if (delBtn)    delBtn.addEventListener('click',    () => deleteItem({ itemsCol }));
 
   const nameInput = document.getElementById('item-name-full');
   if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn?.click(); });
@@ -379,11 +387,7 @@ function startListeners() {
         state.listsFirstLoad = false;
         const hashId = getHashListId();
         if (hashId && state.allLists.find(l => l.id === hashId)) {
-          openList(hashId, {
-            navigateTo, setHashListId, onSnapshot, itemsCol,
-            renderItems: doRenderItems,
-            updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
-          });
+          openList(hashId, openListParams());
         }
       }
     },
@@ -405,6 +409,12 @@ function startListeners() {
       state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderStores(state.allStores, confirmDelete, updateStore);
       populateStoreSelect(state.allStores);
+      // Re-populate detail store checkboxes if currently on a list detail view
+      if (state.currentListId) {
+        const list = state.allLists.find(l => l.id === state.currentListId);
+        const selectedStores = list?.stores || (list?.store ? [list.store] : []);
+        populateDetailStoreCheckboxes(state.allStores, selectedStores);
+      }
     },
     err => { if (err.code !== 'permission-denied') console.error('stores:', err); }
   );
