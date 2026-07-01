@@ -5,6 +5,19 @@ import {
   writeBatch, serverTimestamp, query, orderBy
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
+// -- Pending Import State -----------------------------------------------------
+let _pendingImport = null;
+
+export function setPendingImport(data) {
+  _pendingImport = data;
+}
+
+export function getAndClearPendingImport() {
+  const data = _pendingImport;
+  _pendingImport = null;
+  return data;
+}
+
 // -- Export -------------------------------------------------------------------
 async function exportData({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy }) {
   const [listsSnap, catsSnap, storesSnap, tplSnap] = await Promise.all([
@@ -37,12 +50,10 @@ async function exportData({ db, listsCol, itemsCol, categoriesCol, storesCol, te
 }
 
 // -- Import -------------------------------------------------------------------
-async function importData(file, deps) {
+export async function performImport(data, deps) {
   const { db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol,
-          getDocs, writeBatch, doc, addDoc, serverTimestamp, query, orderBy } = deps;
+          getDocs, writeBatch, doc, addDoc, serverTimestamp } = deps;
   try {
-    const text = await file.text();
-    const data = JSON.parse(text);
     if (!data.lists || !data.categories || !data.stores) {
       window.showToast('Invalid backup file - missing required data.', 'error'); return;
     }
@@ -79,8 +90,8 @@ async function importData(file, deps) {
 
 // -- Init ---------------------------------------------------------------------
 export function initExportImport(deps) {
-  const exportBtn = document.getElementById('export-btn');
-  const importBtn = document.getElementById('import-btn');
+  const exportBtn   = document.getElementById('export-data-btn');
+  const importBtn   = document.getElementById('import-data-btn');
   const importInput = document.getElementById('import-file-input');
 
   if (exportBtn) exportBtn.addEventListener('click', () => exportData(deps));
@@ -89,7 +100,24 @@ export function initExportImport(deps) {
     importInput.addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      await importData(file, deps);
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data.lists || !data.categories || !data.stores) {
+          window.showToast('Invalid backup file - missing required data.', 'error');
+          importInput.value = '';
+          return;
+        }
+        // Store data and trigger confirm dialog
+        setPendingImport(data);
+        state.pendingDelete = { type: 'import', id: null };
+        document.getElementById('confirm-title').textContent   = 'Replace all data?';
+        document.getElementById('confirm-message').textContent = 'This will permanently replace all current lists, items, categories, stores, and templates with the backup file.';
+        document.getElementById('confirm-ok-btn').textContent  = 'Import';
+        window.openModal('modal-confirm');
+      } catch {
+        window.showToast('Could not parse file - make sure it is a valid ShopList JSON backup.', 'error');
+      }
       importInput.value = '';
     });
   }
