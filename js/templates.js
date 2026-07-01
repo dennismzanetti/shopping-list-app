@@ -34,6 +34,25 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
+// -- Template-level store pills -----------------------------------------------
+function populateTplStoreCheckboxes(selectedStores = []) {
+  const container = document.getElementById('tpl-store-checkboxes');
+  if (!container) return;
+  if (state.allStores.length === 0) {
+    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet - add some in the Stores view.</span>`;
+    return;
+  }
+  container.innerHTML = state.allStores.map(s =>
+    `<label class="store-checkbox-label"><input type="checkbox" value="${escHtml(s.name)}" ${selectedStores.includes(s.name) ? 'checked' : ''}><span>${escHtml(s.name)}</span></label>`
+  ).join('');
+}
+
+function getTplSelectedStores() {
+  return Array.from(
+    document.getElementById('tpl-store-checkboxes')?.querySelectorAll('input[type=checkbox]:checked') || []
+  ).map(cb => cb.value);
+}
+
 // -- Visibility toggle --------------------------------------------------------
 function getVisibilityValue() {
   const active = document.querySelector('#tpl-visibility .vis-toggle-btn.active');
@@ -200,6 +219,7 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
   setVisibilityValue(tpl ? (tpl.visibility || 'private') : 'private');
+  populateTplStoreCheckboxes(tpl ? toArray(tpl.stores) : []);
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
   navigateTo('template-editor');
@@ -371,6 +391,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
       name,
       emoji:      document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDED2',
       desc:       document.getElementById('tpl-desc').value.trim(),
+      stores:     getTplSelectedStores(),
       items:      state.tplEditorItems,
       visibility: getVisibilityValue(),
       updatedAt:  serverTimestamp()
