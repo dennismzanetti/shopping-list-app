@@ -35,6 +35,9 @@ const catsCol    = () => collection(db, 'users', uid(), 'categories');
 const storesCol  = () => collection(db, 'users', uid(), 'stores');
 const tplsCol    = () => collection(db, 'users', uid(), 'templates');
 
+// Expose state for duplicate-check in inline edit
+window._state = state;
+
 // ---------------------------------------------------------------------------
 // Category <select> helper (shared by items + templates)
 // ---------------------------------------------------------------------------
@@ -93,6 +96,17 @@ function doRenderLists() {
     if (el) el.textContent = count;
   });
   populateStoreSelect(state.allStores);
+}
+
+// ---------------------------------------------------------------------------
+// Category / Store update helpers
+// ---------------------------------------------------------------------------
+async function updateCategory(catId, fields) {
+  await updateDoc(doc(db, 'users', uid(), 'categories', catId), fields);
+}
+
+async function updateStore(storeId, fields) {
+  await updateDoc(doc(db, 'users', uid(), 'stores', storeId), fields);
 }
 
 // ---------------------------------------------------------------------------
@@ -335,7 +349,7 @@ function startListeners() {
     query(catsCol(), orderBy('createdAt')),
     snap => {
       state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderCategories(state.allCategories, confirmDelete);
+      renderCategories(state.allCategories, confirmDelete, updateCategory);
     },
     err => { if (err.code !== 'permission-denied') console.error('categories:', err); }
   );
@@ -344,7 +358,7 @@ function startListeners() {
     query(storesCol(), orderBy('createdAt')),
     snap => {
       state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderStores(state.allStores, confirmDelete);
+      renderStores(state.allStores, confirmDelete, updateStore);
       populateStoreSelect(state.allStores);
     },
     err => { if (err.code !== 'permission-denied') console.error('stores:', err); }
