@@ -12,13 +12,13 @@ import {
   collection, doc, getDocs, writeBatch, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
-// Accept user as a parameter — no global state needed
+// Accept user as a parameter - no global state needed
 const uid           = (user) => user.uid;
 const categoriesCol = (user) => collection(db, 'users', uid(user), 'categories');
 const storesCol     = (user) => collection(db, 'users', uid(user), 'stores');
 const templatesCol  = (user) => collection(db, 'users', uid(user), 'templates');
 
-// ── Default categories ───────────────────────────────────────────────────────
+// -- Default categories -------------------------------------------------------
 const DEFAULT_CATEGORIES = [
   { name:'Produce',            emoji:'🥦' },
   { name:'Dairy',              emoji:'🧀' },
@@ -41,13 +41,13 @@ const DEFAULT_CATEGORIES = [
   { name:'Other',              emoji:'📦' },
 ];
 
-// ── Default stores ───────────────────────────────────────────────────────────
+// -- Default stores -----------------------------------------------------------
 const DEFAULT_STORES = [
   'Walmart', 'Target', 'Whole Foods', 'Costco',
   "Trader Joe's", 'Stop & Shop', "Shaw's", 'Market Basket'
 ];
 
-// ── Default templates ────────────────────────────────────────────────────────
+// -- Default templates --------------------------------------------------------
 export const SEED_TEMPLATES = [
   { emoji:'🛒', name:'Weekly Groceries', desc:'Everyday essentials for the week',
     items:[
@@ -138,10 +138,10 @@ export const SEED_TEMPLATES = [
     ] }
 ];
 
-// ── Seed functions ───────────────────────────────────────────────────────────
+// -- Seed functions -----------------------------------------------------------
 
 // Seeds default categories and stores.
-// For categories: upserts — adds any DEFAULT_CATEGORIES not already present by name.
+// For categories: upserts - adds any DEFAULT_CATEGORIES not already present by name.
 // For stores: only seeds if the collection is empty.
 export async function seedDefaultsIfNeeded(user) {
   const [catSnap, storeSnap] = await Promise.all([
