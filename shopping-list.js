@@ -27,16 +27,16 @@ import { initCategoriesStores } from './js/categories-stores.js';
 import { initNewList, initListDetail, initItemButtons } from './js/lists-crud.js';
 import { confirmDelete, initConfirm } from './js/confirm.js';
 
-// ── Hash helpers ───────────────────────────────────────────────────────────────────
+// -- Hash helpers ---------------------------------------------------------------
 function getHashListId() {
-  const m = window.location.hash.match(/^#list\\/(.+)$/);
+  const m = window.location.hash.match(/^#list\/(.+)$/);
   return m ? m[1] : null;
 }
 function setHashListId(listId) {
   history.replaceState(null, '', listId ? `#list/${listId}` : '#');
 }
 
-// ── Firestore helpers ─────────────────────────────────────────────────────────────────
+// -- Firestore helpers ----------------------------------------------------------
 const uid           = () => state.currentUser.uid;
 const listsCol      = () => collection(db, 'users', uid(), 'lists');
 const itemsCol      = listId => collection(db, 'users', uid(), 'lists', listId, 'items');
@@ -46,7 +46,7 @@ const templatesCol  = () => collection(db, 'users', uid(), 'templates');
 
 const firestoreDeps = () => ({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, query, orderBy, writeBatch, doc, serverTimestamp, deleteDoc });
 
-// ── Local wrappers ────────────────────────────────────────────────────────────────
+// -- Local wrappers ------------------------------------------------------------
 function openList(listId) {
   _openList(listId, { navigateTo, setHashListId, onSnapshot, itemsCol, renderItems, updateListCounts });
 }
@@ -77,7 +77,7 @@ function teardownSubscriptions() {
   state.allStores = []; state.allTemplates = [];
 }
 
-// ── Snapshot error handler — suppresses permission-denied during auth handshake ──
+// -- Snapshot error handler - suppresses permission-denied during auth handshake
 function snapErr(err) {
   if (err.code !== 'permission-denied') console.error(err);
 }
@@ -117,7 +117,7 @@ function subscribeToData() {
   }, snapErr);
 }
 
-// ── Category selects ──────────────────────────────────────────────────────────────────
+// -- Category selects ----------------------------------------------------------
 function buildCategoryOptions(selectedCategory = '') {
   const blank = `<option value="">-- No category --</option>`;
   const opts  = state.allCategories.map(c =>
@@ -132,7 +132,7 @@ function populateCategorySelects() {
   if (tplSel)  tplSel.innerHTML  = buildCategoryOptions();
 }
 
-// ── Modals / toast ────────────────────────────────────────────────────────────────
+// -- Modals / toast ------------------------------------------------------------
 window.openModal  = id => { const el = document.getElementById(id); if (el) { el.classList.add('open');    createIcons(); } };
 window.closeModal = id => { const el = document.getElementById(id); if (el)   el.classList.remove('open'); };
 
@@ -148,7 +148,7 @@ function showToast(msg, type = 'info') {
 }
 window.showToast = showToast;
 
-// ── Bootstrap ───────────────────────────────────────────────────────────────────────
+// -- Bootstrap -----------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
 
   syncThemeUI();
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initListDetail({ confirmDelete, navigateTo, setHashListId });
   initItemButtons({ openAddItemModal, saveItem: _saveItem, itemsCol, getSelectedStores });
 
-  // Header user button → navigate to settings
+  // Header user button -> navigate to settings
   const headerUserBtn = document.getElementById('header-user-btn');
   if (headerUserBtn) {
     headerUserBtn.addEventListener('click', () => navigateTo('settings', { onSettings: loadAboutCommits }));
