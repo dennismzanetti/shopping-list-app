@@ -29,7 +29,7 @@ import { confirmDelete, initConfirm } from './js/confirm.js';
 
 // ── Hash helpers ───────────────────────────────────────────────────────────────────
 function getHashListId() {
-  const m = window.location.hash.match(/^#list\/(.+)$/);
+  const m = window.location.hash.match(/^#list\\/(.+)$/);
   return m ? m[1] : null;
 }
 function setHashListId(listId) {
@@ -77,6 +77,11 @@ function teardownSubscriptions() {
   state.allStores = []; state.allTemplates = [];
 }
 
+// ── Snapshot error handler — suppresses permission-denied during auth handshake ──
+function snapErr(err) {
+  if (err.code !== 'permission-denied') console.error(err);
+}
+
 function subscribeToData() {
   state.listsFirstLoad = true;
   seedDefaultsIfNeeded(state.currentUser);
@@ -85,19 +90,19 @@ function subscribeToData() {
   state.unsubTemplates = onSnapshot(query(templatesCol(), orderBy('createdAt')), snap => {
     state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderTemplates(tplId => openTemplateEditor(tplId, { buildCategoryOptions }));
-  });
+  }, snapErr);
 
   state.unsubCategories = onSnapshot(query(categoriesCol(), orderBy('createdAt')), snap => {
     state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCategories(state.allCategories, confirmDelete);
     populateCategorySelects();
-  });
+  }, snapErr);
 
   state.unsubStores = onSnapshot(query(storesCol(), orderBy('createdAt')), snap => {
     state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderStores(state.allStores, confirmDelete);
     populateStoreSelect(state.allStores);
-  });
+  }, snapErr);
 
   state.unsubLists = onSnapshot(query(listsCol(), orderBy('createdAt', 'desc')), snap => {
     state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -109,7 +114,7 @@ function subscribeToData() {
       state.pendingListId = null;
       if (restoreId && state.allLists.find(l => l.id === restoreId)) openList(restoreId);
     }
-  });
+  }, snapErr);
 }
 
 // ── Category selects ──────────────────────────────────────────────────────────────────
