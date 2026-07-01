@@ -77,7 +77,6 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
       </div>
     </div>`).join('');
 
-  // Wire up interactions for each card
   allCategories.forEach(cat => {
     const card       = grid.querySelector(`[data-cat-id="${cat.id}"]`);
     if (!card) return;
@@ -135,7 +134,6 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
     });
 
-    // Emoji picker toggle
     if (emojiBtn && popover) {
       emojiBtn.addEventListener('click', e => {
         e.stopPropagation();
@@ -251,9 +249,29 @@ export function renderStores(allStores, onDelete, onUpdate) {
   createIcons();
 }
 
-export function populateStoreSelect(allStores) {
-  const sel = document.getElementById('new-list-store');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">No default store</option>' +
-    allStores.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+/**
+ * Render store pills (checkbox labels) into a container.
+ * Replaces the old populateStoreSelect (which used a <select>).
+ * @param {string} containerId - ID of the .store-checkboxes div
+ * @param {Array}  allStores   - array of { id, name, emoji } objects
+ * @param {Array}  [selected]  - array of store names that should be pre-checked
+ */
+export function populateStorePills(containerId, allStores, selected = []) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!allStores || allStores.length === 0) {
+    container.innerHTML = '<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores added yet</span>';
+    return;
+  }
+  container.innerHTML = allStores.map(s => {
+    const label = (s.emoji ? s.emoji + '\u00a0' : '') + escHtml(s.name);
+    const checked = selected.includes(s.name) ? 'checked' : '';
+    return `<label class="store-checkbox-label">
+      <input type="checkbox" value="${escHtml(s.name)}" ${checked}>
+      ${label}
+    </label>`;
+  }).join('');
 }
+
+// Keep old name as alias so any other callers don't break
+export const populateStoreSelect = populateStorePills;

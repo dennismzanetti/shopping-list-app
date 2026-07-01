@@ -12,13 +12,12 @@ import { openModal, closeModal, showToast, openEmojiPicker } from './ui.js';
 import { syncThemeUI, toggleTheme }                     from './theme.js';
 import { navigateTo }                                   from './nav.js';
 import { loadAboutCommits }                             from './about.js';
-import { renderLists, openList, updateListCounts,
-         populateDetailStoreCheckboxes }                from './lists.js';
+import { renderLists, openList, updateListCounts }      from './lists.js';
 import { renderItems, openAddItemModal, openEditItemModal,
          toggleItem, saveItem, deleteItem,
          getSelectedStores, populateItemStoreCheckboxes } from './items.js';
 import { renderCategories, renderStores,
-         populateStoreSelect }                          from './categories.js';
+         populateStorePills }                           from './categories.js';
 import { initConfirm, confirmDelete }                   from './confirm.js';
 import { initExportImport }                             from './export-import.js';
 import { renderTemplates, initTemplates,
@@ -63,25 +62,6 @@ function getHashListId() {
 }
 
 // ---------------------------------------------------------------------------
-// Shared openList params
-// ---------------------------------------------------------------------------
-function openListParams() {
-  return {
-    navigateTo,
-    setHashListId,
-    onSnapshot,
-    itemsCol,
-    renderItems: doRenderItems,
-    updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
-    updateDoc,
-    doc,
-    listsCol,
-    showToast,
-    openEmojiPicker
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Render helpers (called after each Firestore snapshot)
 // ---------------------------------------------------------------------------
 function doRenderItems() {
@@ -100,7 +80,14 @@ function doRenderItems() {
 
 function doRenderLists() {
   renderLists(
-    (id) => openList(id, openListParams()),
+    (id) => openList(id, {
+      navigateTo,
+      setHashListId,
+      onSnapshot,
+      itemsCol,
+      renderItems: doRenderItems,
+      updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
+    }),
     (type, id) => confirmDelete(type, id)
   );
   // Update badges
@@ -109,7 +96,8 @@ function doRenderLists() {
     const el = document.getElementById(id);
     if (el) el.textContent = count;
   });
-  populateStoreSelect(state.allStores);
+  // Refresh store pills in the new-list modal if it's already open
+  populateStorePills('new-list-store', state.allStores);
 }
 
 // ---------------------------------------------------------------------------
@@ -173,31 +161,42 @@ function initNewListModal() {
   const btn       = document.getElementById('new-list-btn');
   const emptyBtn  = document.getElementById('empty-new-list-btn');
   const createBtn = document.getElementById('create-list-btn');
+  const cancelBtn = document.getElementById('list-modal-cancel');
+  const closeBtn  = document.getElementById('list-modal-close');
   const nameInput = document.getElementById('new-list-name');
-  const storeSelect = document.getElementById('new-list-store');
+  const descInput = document.getElementById('new-list-description');
+  const emojiBtn  = document.getElementById('emoji-picker-btn');
+  const emojiInput = document.getElementById('list-emoji-input');
 
   initVisToggle('new-list-visibility');
 
-  const open = () => {
-    populateStoreSelect(state.allStores);
-    if (nameInput) nameInput.value = '';
-    // Reset emoji input and button
-    const emojiInput = document.getElementById('list-emoji-input');
-    const emojiBtn   = document.getElementById('emoji-picker-btn');
+  const resetModal = () => {
+    if (nameInput)  nameInput.value  = '';
+    if (descInput)  descInput.value  = '';
     if (emojiInput) emojiInput.value = '';
-    if (emojiBtn)   emojiBtn.innerHTML = '<i data-lucide="smile"></i> Pick';
+    if (emojiBtn)   emojiBtn.textContent = '🛒';
     setVisToggleValue('new-list-visibility', 'private');
+    // Uncheck all store pills
+    document.querySelectorAll('#new-list-store input[type=checkbox]').forEach(cb => cb.checked = false);
+    const labels = document.querySelectorAll('#new-list-store .store-checkbox-label');
+    labels.forEach(l => l.classList.remove('selected'));
+  };
+
+  const open = () => {
+    populateStorePills('new-list-store', state.allStores);
+    resetModal();
     openModal('modal-new-list');
     setTimeout(() => { nameInput?.focus(); createIcons(); }, 50);
   };
 
-  if (btn)      btn.addEventListener('click', open);
-  if (emptyBtn) emptyBtn.addEventListener('click', open);
+  if (btn)       btn.addEventListener('click', open);
+  if (emptyBtn)  emptyBtn.addEventListener('click', open);
+  if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal('modal-new-list'));
+  if (closeBtn)  closeBtn.addEventListener('click',  () => closeModal('modal-new-list'));
 
-  // Wire emoji picker button for the list modal
-  const emojiPickerBtn = document.getElementById('emoji-picker-btn');
-  if (emojiPickerBtn) {
-    emojiPickerBtn.addEventListener('click', () =>
+  // Emoji picker button — shows the full-screen emoji picker overlay
+  if (emojiBtn) {
+    emojiBtn.addEventListener('click', () =>
       openEmojiPicker('list-emoji-input', 'emoji-picker-btn')
     );
   }
@@ -207,19 +206,32 @@ function initNewListModal() {
       const name = nameInput?.value.trim();
       if (!name) { showToast('List name is required', 'error'); return; }
       const visibility = getVisToggleValue('new-list-visibility');
-      const emoji = document.getElementById('list-emoji-input')?.value.trim() || '';
+      const emoji = emojiInput?.value.trim() || '';
+      const description = descInput?.value.trim() || '';
+      // Collect checked store pills
+      const stores = Array.from(
+        document.querySelectorAll('#new-list-store input[type=checkbox]:checked')
+      ).map(cb => cb.value);
       try {
         const ref = await addDoc(listsCol(), {
           name,
           emoji,
-          store: storeSelect?.value || '',
+          description,
+          stores,
           visibility,
           createdAt: serverTimestamp(),
           itemCount: 0,
           checkedCount: 0
         });
         closeModal('modal-new-list');
-        openList(ref.id, openListParams());
+        openList(ref.id, {
+          navigateTo,
+          setHashListId,
+          onSnapshot,
+          itemsCol,
+          renderItems: doRenderItems,
+          updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
+        });
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     });
   }
@@ -233,27 +245,27 @@ function initNewListModal() {
 // Item modal buttons
 // ---------------------------------------------------------------------------
 function initItemModal() {
-  const addBtn    = document.getElementById('add-item-quick-btn');
-  const addBtnBot = document.getElementById('add-item-bottom-btn');
-  const saveBtn   = document.getElementById('save-item-btn');
-  const delBtn    = document.getElementById('delete-item-btn');
+  const addBtn  = document.getElementById('add-item-quick-btn');
+  const saveBtn = document.getElementById('save-item-btn');
+  const delBtn  = document.getElementById('delete-item-btn');
 
-  if (addBtn)    addBtn.addEventListener('click',    () => openAddItemModal(buildCategoryOptions));
-  if (addBtnBot) addBtnBot.addEventListener('click', () => openAddItemModal(buildCategoryOptions));
-  if (saveBtn)   saveBtn.addEventListener('click',   () => saveItem({ itemsCol, getSelectedStores }));
-  if (delBtn)    delBtn.addEventListener('click',    () => deleteItem({ itemsCol }));
+  if (addBtn)  addBtn.addEventListener('click',  () => openAddItemModal(buildCategoryOptions));
+  if (saveBtn) saveBtn.addEventListener('click', () => saveItem({ itemsCol, getSelectedStores }));
+  if (delBtn)  delBtn.addEventListener('click',  () => deleteItem({ itemsCol }));
 
   const nameInput = document.getElementById('item-name-full');
   if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn?.click(); });
 }
 
 // ---------------------------------------------------------------------------
-// Categories & Stores (new-item modals)
+// Categories & Stores modals
 // ---------------------------------------------------------------------------
 function initCatStoreModals() {
   // ── Categories ──────────────────────────────────────────────────────────
   const newCatBtn  = document.getElementById('new-category-btn');
   const saveCatBtn = document.getElementById('save-category-btn');
+  const cancelCatBtn = document.getElementById('category-modal-cancel');
+  const closeCatBtn  = document.getElementById('category-modal-close');
   const catNameIn  = document.getElementById('new-category-name');
   const catEmojiIn = document.getElementById('new-category-emoji');
   const catEmojiPickerBtn = document.getElementById('category-emoji-picker-btn');
@@ -265,8 +277,9 @@ function initCatStoreModals() {
     openModal('modal-new-category');
     setTimeout(() => { catNameIn?.focus(); createIcons(); }, 50);
   });
+  if (cancelCatBtn) cancelCatBtn.addEventListener('click', () => closeModal('modal-new-category'));
+  if (closeCatBtn)  closeCatBtn.addEventListener('click',  () => closeModal('modal-new-category'));
 
-  // Wire category emoji picker button
   if (catEmojiPickerBtn) {
     catEmojiPickerBtn.addEventListener('click', () =>
       openEmojiPicker('new-category-emoji', 'category-emoji-picker-btn')
@@ -289,6 +302,8 @@ function initCatStoreModals() {
   // ── Stores ───────────────────────────────────────────────────────────────
   const newStoreBtn      = document.getElementById('new-store-btn');
   const saveStoreBtn     = document.getElementById('save-store-btn');
+  const cancelStoreBtn   = document.getElementById('store-modal-cancel');
+  const closeStoreBtn    = document.getElementById('store-modal-close');
   const storeNameIn      = document.getElementById('new-store-name');
   const storeEmojiIn     = document.getElementById('store-emoji-input');
   const storeEmojiPickerBtn = document.getElementById('store-emoji-picker-btn');
@@ -300,8 +315,9 @@ function initCatStoreModals() {
     openModal('modal-new-store');
     setTimeout(() => { storeNameIn?.focus(); createIcons(); }, 50);
   });
+  if (cancelStoreBtn) cancelStoreBtn.addEventListener('click', () => closeModal('modal-new-store'));
+  if (closeStoreBtn)  closeStoreBtn.addEventListener('click',  () => closeModal('modal-new-store'));
 
-  // Wire store emoji picker button
   if (storeEmojiPickerBtn) {
     storeEmojiPickerBtn.addEventListener('click', () =>
       openEmojiPicker('store-emoji-input', 'store-emoji-picker-btn')
@@ -349,13 +365,11 @@ function initListDetailNav() {
 
   if (printBtn) printBtn.addEventListener('click', () => printList());
 
-  // Visibility toggle — saves to Firestore on click
   if (visToggle) {
     visToggle.querySelectorAll('.vis-toggle-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!state.currentListId) return;
         const newVis = btn.dataset.value;
-        // Optimistic UI update
         visToggle.querySelectorAll('.vis-toggle-btn').forEach(b => {
           b.classList.toggle('active', b === btn);
           b.setAttribute('aria-pressed', String(b === btn));
@@ -387,7 +401,11 @@ function startListeners() {
         state.listsFirstLoad = false;
         const hashId = getHashListId();
         if (hashId && state.allLists.find(l => l.id === hashId)) {
-          openList(hashId, openListParams());
+          openList(hashId, {
+            navigateTo, setHashListId, onSnapshot, itemsCol,
+            renderItems: doRenderItems,
+            updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
+          });
         }
       }
     },
@@ -408,13 +426,7 @@ function startListeners() {
     snap => {
       state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderStores(state.allStores, confirmDelete, updateStore);
-      populateStoreSelect(state.allStores);
-      // Re-populate detail store checkboxes if currently on a list detail view
-      if (state.currentListId) {
-        const list = state.allLists.find(l => l.id === state.currentListId);
-        const selectedStores = list?.stores || (list?.store ? [list.store] : []);
-        populateDetailStoreCheckboxes(state.allStores, selectedStores);
-      }
+      populateStorePills('new-list-store', state.allStores);
     },
     err => { if (err.code !== 'permission-denied') console.error('stores:', err); }
   );

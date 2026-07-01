@@ -324,7 +324,7 @@
   </div>
 </div>
 
-<!-- New / Edit List Modal -->
+<!-- New List Modal -->
 <div class="modal-overlay" id="modal-new-list">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="list-modal-title">
     <div class="modal-header">
@@ -332,22 +332,33 @@
       <button class="icon-btn" id="list-modal-close" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label" for="new-list-name">List Name</label>
-        <input type="text" class="form-input" id="new-list-name" placeholder="e.g. Weekly Groceries" maxlength="60">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Stores</label>
-        <div class="store-checkboxes" id="new-list-store"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="list-emoji-input">Emoji</label>
-        <div style="display:flex;gap:var(--space-2);align-items:center;">
-          <input type="text" class="form-input" id="list-emoji-input" placeholder="🛒" maxlength="4" style="width:72px;text-align:center;font-size:1.5rem;">
-          <button class="btn btn-secondary btn-sm" id="emoji-picker-btn" type="button"><i data-lucide="smile"></i> Pick</button>
+      <!-- Emoji + Name row -->
+      <div class="form-row" style="grid-template-columns:64px 1fr;align-items:end;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Emoji</label>
+          <div class="emoji-picker-wrap">
+            <button type="button" class="emoji-picker-btn" id="emoji-picker-btn" aria-label="Pick an emoji" title="Click to pick emoji">🛒</button>
+            <input type="hidden" id="list-emoji-input" value="">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="new-list-name">List Name *</label>
+          <input type="text" class="form-input" id="new-list-name" placeholder="e.g. Weekly Groceries" maxlength="60">
         </div>
       </div>
+      <div style="margin-bottom:var(--space-4);"></div>
+      <!-- Description -->
       <div class="form-group">
+        <label class="form-label" for="new-list-description">Description <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
+        <textarea class="form-textarea" id="new-list-description" placeholder="What is this list for?" maxlength="200" style="min-height:64px;"></textarea>
+      </div>
+      <!-- Stores as pills -->
+      <div class="form-group">
+        <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
+        <div class="store-checkboxes" id="new-list-store"></div>
+      </div>
+      <!-- Visibility -->
+      <div class="form-group" style="margin-bottom:0;">
         <label class="form-label">Visibility</label>
         <div class="vis-toggle" id="new-list-visibility">
           <button type="button" class="vis-toggle-btn active" data-value="private"><i data-lucide="lock"></i> Private</button>
