@@ -6,7 +6,7 @@ const VIEWS = ['lists', 'list-detail', 'templates', 'categories', 'stores', 'set
 export function navigateTo(viewName, opts = {}) {
   VIEWS.forEach(v => {
     const el = document.getElementById(`view-${v}`);
-    if (el) el.style.display = (v === viewName) ? '' : 'none';
+    if (el) el.classList.toggle('active', v === viewName);
   });
   document.querySelectorAll('[data-view]').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.view === viewName);
@@ -20,9 +20,19 @@ export function initNav(opts = {}) {
     tab.addEventListener('click', () => navigateTo(tab.dataset.view, opts));
   });
 
-  const hamburger = document.getElementById('hamburger-btn');
+  const hamburger = document.getElementById('mobile-menu-btn');
   const sidebar   = document.getElementById('sidebar');
+  const backdrop  = document.getElementById('sidebar-backdrop');
   if (hamburger && sidebar) {
-    hamburger.addEventListener('click', () => sidebar.classList.toggle('open'));
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      if (backdrop) backdrop.classList.toggle('open');
+    });
+  }
+  if (backdrop) {
+    backdrop.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('open');
+    });
   }
 }
