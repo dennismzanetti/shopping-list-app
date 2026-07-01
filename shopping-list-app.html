@@ -449,11 +449,105 @@
 
 <!-- Modal: New Category -->
 <div class="modal-overlay" id="modal-new-category">
-  <div class="modal" style="max-width:360px;">
+  <div class="modal" style="max-width:400px;">
     <div class="modal-header"><span class="modal-title">Add Category</span><button class="icon-btn" onclick="closeModal('modal-new-category')" aria-label="Close"><i data-lucide="x"></i></button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label" for="new-category-name">Category name *</label><input class="form-input" id="new-category-name" type="text" placeholder="e.g. Bakery"></div>
-      <div class="form-group"><label class="form-label" for="new-category-emoji">Emoji (optional)</label><input class="form-input" id="new-category-emoji" type="text" placeholder="e.g. 🥖" maxlength="4"></div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Emoji <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
+        <div class="emoji-picker-wrap" id="cat-emoji-picker-wrap">
+          <button type="button" class="emoji-picker-btn" id="cat-emoji-btn" aria-label="Pick an emoji" title="Click to pick an emoji" aria-expanded="false">🏷️</button>
+          <input type="hidden" id="new-category-emoji" value="">
+          <div class="emoji-picker-popover" id="cat-emoji-picker-popover" role="dialog" aria-label="Emoji picker">
+            <div class="emoji-picker-inner">
+              <div class="emoji-picker-section-label">Shopping</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="🛒">🛒</button>
+                <button type="button" class="emoji-option" data-emoji="🛍️">🛍️</button>
+                <button type="button" class="emoji-option" data-emoji="📋">📋</button>
+                <button type="button" class="emoji-option" data-emoji="🧾">🧾</button>
+                <button type="button" class="emoji-option" data-emoji="💳">💳</button>
+              </div>
+              <div class="emoji-picker-section-label">Produce</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="🍎">🍎</button>
+                <button type="button" class="emoji-option" data-emoji="🍊">🍊</button>
+                <button type="button" class="emoji-option" data-emoji="🍋">🍋</button>
+                <button type="button" class="emoji-option" data-emoji="🍇">🍇</button>
+                <button type="button" class="emoji-option" data-emoji="🍓">🍓</button>
+                <button type="button" class="emoji-option" data-emoji="🥦">🥦</button>
+                <button type="button" class="emoji-option" data-emoji="🥕">🥕</button>
+                <button type="button" class="emoji-option" data-emoji="🥑">🥑</button>
+                <button type="button" class="emoji-option" data-emoji="🌽">🌽</button>
+                <button type="button" class="emoji-option" data-emoji="🍅">🍅</button>
+                <button type="button" class="emoji-option" data-emoji="🧅">🧅</button>
+                <button type="button" class="emoji-option" data-emoji="🧄">🧄</button>
+                <button type="button" class="emoji-option" data-emoji="🥬">🥬</button>
+              </div>
+              <div class="emoji-picker-section-label">Meat &amp; Dairy</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="🥩">🥩</button>
+                <button type="button" class="emoji-option" data-emoji="🍗">🍗</button>
+                <button type="button" class="emoji-option" data-emoji="🥚">🥚</button>
+                <button type="button" class="emoji-option" data-emoji="🧀">🧀</button>
+                <button type="button" class="emoji-option" data-emoji="🥛">🥛</button>
+                <button type="button" class="emoji-option" data-emoji="🧈">🧈</button>
+              </div>
+              <div class="emoji-picker-section-label">Bakery</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="🍞">🍞</button>
+                <button type="button" class="emoji-option" data-emoji="🥐">🥐</button>
+                <button type="button" class="emoji-option" data-emoji="🥖">🥖</button>
+                <button type="button" class="emoji-option" data-emoji="🧁">🧁</button>
+                <button type="button" class="emoji-option" data-emoji="🎂">🎂</button>
+              </div>
+              <div class="emoji-picker-section-label">Pantry</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="🍝">🍝</button>
+                <button type="button" class="emoji-option" data-emoji="🍚">🍚</button>
+                <button type="button" class="emoji-option" data-emoji="🥫">🥫</button>
+                <button type="button" class="emoji-option" data-emoji="🧂">🧂</button>
+                <button type="button" class="emoji-option" data-emoji="🫙">🫙</button>
+                <button type="button" class="emoji-option" data-emoji="🍯">🍯</button>
+              </div>
+              <div class="emoji-picker-section-label">Drinks</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="☕">☕</button>
+                <button type="button" class="emoji-option" data-emoji="🧃">🧃</button>
+                <button type="button" class="emoji-option" data-emoji="🍷">🍷</button>
+                <button type="button" class="emoji-option" data-emoji="🍺">🍺</button>
+                <button type="button" class="emoji-option" data-emoji="💧">💧</button>
+              </div>
+              <div class="emoji-picker-section-label">Household</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="🧹">🧹</button>
+                <button type="button" class="emoji-option" data-emoji="🧺">🧺</button>
+                <button type="button" class="emoji-option" data-emoji="🧻">🧻</button>
+                <button type="button" class="emoji-option" data-emoji="🧼">🧼</button>
+                <button type="button" class="emoji-option" data-emoji="🪥">🪥</button>
+                <button type="button" class="emoji-option" data-emoji="🏠">🏠</button>
+              </div>
+              <div class="emoji-picker-section-label">Health</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="💊">💊</button>
+                <button type="button" class="emoji-option" data-emoji="🩺">🩺</button>
+                <button type="button" class="emoji-option" data-emoji="🌿">🌿</button>
+              </div>
+              <div class="emoji-picker-section-label">Misc</div>
+              <div class="emoji-picker-grid">
+                <button type="button" class="emoji-option" data-emoji="⭐">⭐</button>
+                <button type="button" class="emoji-option" data-emoji="❤️">❤️</button>
+                <button type="button" class="emoji-option" data-emoji="🎉">🎉</button>
+                <button type="button" class="emoji-option" data-emoji="📦">📦</button>
+                <button type="button" class="emoji-option" data-emoji="🏷️">🏷️</button>
+                <button type="button" class="emoji-option" data-emoji="🥗">🥗</button>
+                <button type="button" class="emoji-option" data-emoji="🥩">🥩</button>
+                <button type="button" class="emoji-option" data-emoji="🥥">🥥</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-new-category')">Cancel</button><button class="btn btn-primary" id="save-category-btn"><i data-lucide="plus"></i> Save</button></div>
   </div>
