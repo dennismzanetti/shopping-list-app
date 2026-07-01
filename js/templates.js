@@ -1,5 +1,6 @@
 import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
+import { navigateTo } from './nav.js';
 
 // -- Helpers ------------------------------------------------------------------
 export function normaliseItem(it) {
@@ -154,7 +155,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     await batch.commit();
     window.showToast(`${items.length} item${items.length !== 1 ? 's' : ''} added to list!`, 'success');
     window.closeModal('modal-tpl-add-to-list');
-    window.closeModal('modal-template-editor');
+    navigateTo('templates');
   } catch (e) { window.showToast('Error adding items: ' + e.message, 'error'); }
 }
 
@@ -193,7 +194,7 @@ export function renderTemplates(onEdit) {
 export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.editingTemplateId = tplId || null;
   const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
-  document.getElementById('tpl-editor-title').textContent = tpl ? 'Template' : 'New Template';
+  document.getElementById('tpl-editor-title').textContent = tpl ? tpl.name : 'New Template';
   setEmojiPickerValue(tpl ? (tpl.emoji || '') : '');
   document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
@@ -201,7 +202,7 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   setVisibilityValue(tpl ? (tpl.visibility || 'private') : 'private');
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
-  window.openModal('modal-template-editor');
+  navigateTo('template-editor');
 }
 
 export function renderTplEditorItems({ buildCategoryOptions } = {}) {
@@ -348,6 +349,10 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     openTemplateEditor(null, { buildCategoryOptions })
   );
 
+  document.getElementById('back-to-templates').addEventListener('click', () =>
+    navigateTo('templates')
+  );
+
   document.getElementById('tpl-add-item-btn').addEventListener('click', () =>
     openTplItemModal(-1, { buildCategoryOptions })
   );
@@ -379,7 +384,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
         await addDoc(templatesCol(), data);
         window.showToast(`"${name}" template created!`, 'success');
       }
-      window.closeModal('modal-template-editor');
+      navigateTo('templates');
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });
 
@@ -391,7 +396,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
 
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
     if (!state.editingTemplateId) return;
-    window.closeModal('modal-template-editor');
+    navigateTo('templates');
     confirmDelete('template', state.editingTemplateId);
   });
 }

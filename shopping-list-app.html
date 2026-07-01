@@ -158,6 +158,60 @@
         <div class="lists-grid" id="templates-grid"></div>
       </div>
 
+      <!-- Template Editor View -->
+      <div class="view" id="view-template-editor">
+        <div class="list-detail-header">
+          <button class="back-btn" id="back-to-templates"><i data-lucide="arrow-left"></i> Templates</button>
+        </div>
+        <div class="page-header">
+          <div>
+            <h1 class="page-title" id="tpl-editor-title">New Template</h1>
+          </div>
+          <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
+            <button class="btn btn-primary btn-sm" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+            <button class="btn btn-danger btn-sm" id="tpl-delete-btn" style="display:none;"><i data-lucide="trash-2"></i> Delete</button>
+          </div>
+        </div>
+        <div class="tpl-editor-body">
+          <div class="card">
+            <div class="card-header"><span style="font-weight:600;">Details</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <div class="form-row" style="grid-template-columns:72px 1fr;">
+                <div class="form-group">
+                  <label class="form-label">Emoji</label>
+                  <div class="emoji-picker-wrap" id="tpl-emoji-picker-wrap">
+                    <button type="button" class="emoji-picker-btn" id="tpl-emoji-btn" aria-label="Pick an emoji" title="Click to pick an emoji">🛒</button>
+                    <input type="hidden" id="tpl-emoji" value="">
+                  </div>
+                </div>
+                <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Visibility</label>
+                <div class="vis-toggle" id="tpl-visibility">
+                  <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true"><i data-lucide="lock"></i> Private</button>
+                  <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false"><i data-lucide="users"></i> Public</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span style="font-weight:600;">Items</span>
+              <span id="tpl-item-count" style="font-size:var(--text-xs);color:var(--color-text-faint);">0 items</span>
+            </div>
+            <div class="card-body" style="padding-bottom:var(--space-3);">
+              <div class="tpl-editor-items" id="tpl-editor-items"></div>
+              <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);">
+                <i data-lucide="plus"></i> Add Item
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Categories View -->
       <div class="view" id="view-categories">
         <div class="page-header">
@@ -363,47 +417,6 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" id="store-modal-cancel">Cancel</button>
       <button class="btn btn-primary" id="save-store-btn">Save Store</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Template Editor -->
-<div class="modal-overlay" id="modal-template-editor">
-  <div class="modal" style="max-width:680px;">
-    <div class="modal-header">
-      <span class="modal-title" id="tpl-editor-title">New Template</span>
-      <button class="icon-btn" onclick="window.closeModal('modal-template-editor')" aria-label="Close"><i data-lucide="x"></i></button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row" style="grid-template-columns:72px 1fr;">
-        <div class="form-group">
-          <label class="form-label">Emoji</label>
-          <div class="emoji-picker-wrap" id="tpl-emoji-picker-wrap">
-            <button type="button" class="emoji-picker-btn" id="tpl-emoji-btn" aria-label="Pick an emoji" title="Click to pick an emoji">🛒</button>
-            <input type="hidden" id="tpl-emoji" value="">
-          </div>
-        </div>
-        <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
-      </div>
-      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
-      <div class="form-group" style="margin-bottom:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-          <label class="form-label" style="margin-bottom:0;">Items</label>
-          <span id="tpl-item-count" style="font-size:var(--text-xs);color:var(--color-text-faint);">0 items</span>
-        </div>
-        <div class="tpl-editor-items" id="tpl-editor-items"></div>
-        <div style="margin-top:var(--space-3);">
-          <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);">
-            <i data-lucide="plus"></i> Add Item
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-danger" id="tpl-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
-      <button class="btn btn-ghost" onclick="window.closeModal('modal-template-editor')">Cancel</button>
-      <button class="btn btn-primary" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
-      <button class="btn btn-primary" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
     </div>
   </div>
 </div>
