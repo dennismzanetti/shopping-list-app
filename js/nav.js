@@ -11,29 +11,38 @@ const viewTitles = {
 
 export function navigateTo(view, { onSettings } = {}) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.header-nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
   const target = document.getElementById('view-' + view);
   if (target) target.classList.add('active');
   document.querySelectorAll(`[data-view="${view}"]`).forEach(n => n.classList.add('active'));
-  if (viewTitles[view]) document.getElementById('header-title').textContent = viewTitles[view];
+  if (viewTitles[view]) {
+    const titleEl = document.getElementById('header-title');
+    if (titleEl) titleEl.textContent = viewTitles[view];
+  }
   if (view === 'settings' && onSettings) onSettings();
-  closeSidebar();
   createIcons();
 }
 
-export function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebar-backdrop').classList.remove('open');
-}
-
 export function initNav({ onSettings } = {}) {
-  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('mobile-open');
-    document.getElementById('sidebar-backdrop').classList.toggle('open');
-  });
-  document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
+  // Mobile hamburger — only wire up if the sidebar still exists (graceful fallback)
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 
-  document.querySelectorAll('.nav-item[data-view], .bottom-nav-item[data-view]').forEach(item =>
+  if (mobileMenuBtn && sidebar) {
+    mobileMenuBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('mobile-open');
+      if (sidebarBackdrop) sidebarBackdrop.classList.toggle('open');
+    });
+  }
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener('click', () => {
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      sidebarBackdrop.classList.remove('open');
+    });
+  }
+
+  document.querySelectorAll('.header-nav-item[data-view], .bottom-nav-item[data-view]').forEach(item =>
     item.addEventListener('click', () => navigateTo(item.dataset.view, { onSettings }))
   );
 }
