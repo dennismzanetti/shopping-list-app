@@ -1,48 +1,30 @@
+// nav.js - view navigation
 import { createIcons } from './utils.js';
+import { loadAboutCommits } from './about.js';
 
-const viewTitles = {
-  lists: 'My Lists',
-  'list-detail': '',
-  templates: 'Templates',
-  categories: 'Categories',
-  stores: 'Stores',
-  settings: 'Settings'
-};
+const VIEWS = ['lists','list-detail','settings','templates','categories-stores'];
 
-export function navigateTo(view, { onSettings } = {}) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.header-nav-item, .bottom-nav-item').forEach(n => n.classList.remove('active'));
-  const target = document.getElementById('view-' + view);
-  if (target) target.classList.add('active');
-  document.querySelectorAll(`[data-view="${view}"]`).forEach(n => n.classList.add('active'));
-  if (viewTitles[view]) {
-    const titleEl = document.getElementById('header-title');
-    if (titleEl) titleEl.textContent = viewTitles[view];
-  }
-  if (view === 'settings' && onSettings) onSettings();
+export function navigateTo(viewName, opts = {}) {
+  VIEWS.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.style.display = (v === viewName) ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.view === viewName);
+  });
+  if (viewName === 'settings' && opts.onSettings) opts.onSettings();
   createIcons();
 }
 
-export function initNav({ onSettings } = {}) {
-  // Mobile hamburger — only wire up if the sidebar still exists (graceful fallback)
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const sidebar = document.getElementById('sidebar');
-  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+export function initNav(opts = {}) {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => navigateTo(tab.dataset.view, opts));
+  });
 
-  if (mobileMenuBtn && sidebar) {
-    mobileMenuBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('mobile-open');
-      if (sidebarBackdrop) sidebarBackdrop.classList.toggle('open');
-    });
+  // Mobile hamburger - only wire up if the sidebar still exists (graceful fallback)
+  const hamburger = document.getElementById('hamburger-btn');
+  const sidebar   = document.getElementById('sidebar');
+  if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => sidebar.classList.toggle('open'));
   }
-  if (sidebarBackdrop) {
-    sidebarBackdrop.addEventListener('click', () => {
-      if (sidebar) sidebar.classList.remove('mobile-open');
-      sidebarBackdrop.classList.remove('open');
-    });
-  }
-
-  document.querySelectorAll('.header-nav-item[data-view], .bottom-nav-item[data-view]').forEach(item =>
-    item.addEventListener('click', () => navigateTo(item.dataset.view, { onSettings }))
-  );
 }
