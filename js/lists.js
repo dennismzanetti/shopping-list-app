@@ -52,10 +52,12 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
   state.currentListId = listId;
   setHashListId(listId);
   const list = state.allLists.find(l => l.id === listId);
-  document.getElementById('list-detail-name').textContent = list ? list.name : '';
+  const nameEl  = document.getElementById('detail-list-name');
+  const storeEl = document.getElementById('detail-list-store');
+  if (nameEl)  nameEl.textContent  = list ? list.name  : '';
+  if (storeEl) storeEl.textContent = list ? (list.store || '') : '';
   navigateTo('list-detail');
   if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
-  const { query, orderBy } = window._firestoreQuery || {};
   state.unsubItems = onSnapshot(
     itemsCol(listId),
     snap => {
