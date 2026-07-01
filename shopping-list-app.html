@@ -111,33 +111,77 @@
         <div class="page-header">
           <div>
             <h1 class="page-title" id="detail-list-name">List Name</h1>
-            <p class="page-subtitle" id="detail-list-store"></p>
           </div>
           <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
-            <!-- Visibility toggle pill -->
-            <div class="vis-toggle" id="detail-visibility-toggle" aria-label="List visibility">
-              <button type="button" class="vis-toggle-btn active" data-value="private" id="detail-vis-private">
-                <i data-lucide="lock"></i> Private
-              </button>
-              <button type="button" class="vis-toggle-btn" data-value="public" id="detail-vis-public">
-                <i data-lucide="users"></i> Public
-              </button>
-            </div>
             <button class="btn btn-primary btn-sm" id="add-item-quick-btn"><i data-lucide="plus"></i> Add Item</button>
-            <button class="btn btn-ghost btn-sm" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete List</button>
+            <button class="btn btn-ghost btn-sm" id="print-list-btn"><i data-lucide="printer"></i> Print</button>
+            <button class="btn btn-ghost btn-sm" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete</button>
           </div>
         </div>
-        <div class="progress-summary" id="progress-summary">
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
-          <span class="progress-label" id="progress-label">0 of 0</span>
-        </div>
-        <div id="items-container">
-          <div class="empty-state" id="items-empty">
-            <div class="empty-state-icon"><i data-lucide="package-open"></i></div>
-            <h3>List is empty</h3>
-            <p>Tap <strong>Add Item</strong> above to get started.</p>
+
+        <div class="tpl-editor-body">
+          <!-- Details Card -->
+          <div class="card">
+            <div class="card-header"><span style="font-weight:600;">Details</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <div class="form-row" style="grid-template-columns:72px 1fr;">
+                <div class="form-group">
+                  <label class="form-label">Emoji</label>
+                  <div class="emoji-picker-wrap" id="detail-emoji-picker-wrap">
+                    <button type="button" class="emoji-picker-btn" id="detail-emoji-btn" aria-label="Pick an emoji" title="Click to pick an emoji">🛒</button>
+                    <input type="hidden" id="detail-list-emoji" value="">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">List name</label>
+                  <input class="form-input" id="detail-list-name-input" type="text" placeholder="e.g. Weekly Groceries">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Description</label>
+                <input class="form-input" id="detail-list-desc" type="text" placeholder="A short description (optional)">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
+                <div class="store-checkboxes" id="detail-store-checkboxes"></div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Visibility</label>
+                <div class="vis-toggle" id="detail-visibility-toggle" aria-label="List visibility">
+                  <button type="button" class="vis-toggle-btn active" data-value="private" id="detail-vis-private">
+                    <i data-lucide="lock"></i> Private
+                  </button>
+                  <button type="button" class="vis-toggle-btn" data-value="public" id="detail-vis-public">
+                    <i data-lucide="users"></i> Public
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="items-list" id="items-list"></div>
+
+          <!-- Items Card -->
+          <div class="card">
+            <div class="card-header">
+              <span style="font-weight:600;">Items</span>
+              <div style="display:flex;align-items:center;gap:var(--space-3);">
+                <div class="progress-summary" id="progress-summary" style="margin:0;">
+                  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+                  <span class="progress-label" id="progress-label">0 of 0</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-body" style="padding-bottom:var(--space-3);">
+              <div id="items-container">
+                <div class="empty-state" id="items-empty">
+                  <div class="empty-state-icon"><i data-lucide="package-open"></i></div>
+                  <h3>List is empty</h3>
+                  <p>Tap <strong>Add Item</strong> to get started.</p>
+                </div>
+                <div class="items-list" id="items-list"></div>
+              </div>
+              <button class="btn btn-ghost" id="add-item-bottom-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);margin-top:var(--space-3);"><i data-lucide="plus"></i> Add Item</button>
+            </div>
+          </div>
         </div>
       </div>
 
