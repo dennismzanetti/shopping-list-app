@@ -3,7 +3,7 @@
 
 import { escHtml, createIcons } from './utils.js';
 
-// ── Categories ───────────────────────────────────────────────────────────────
+// -- Categories ---------------------------------------------------------------
 export function renderCategories(allCategories, onDelete) {
   const grid = document.getElementById('categories-grid');
   if (!grid) return;
@@ -22,7 +22,7 @@ export function renderCategories(allCategories, onDelete) {
   createIcons();
 }
 
-// ── Stores ────────────────────────────────────────────────────────────────────
+// -- Stores -------------------------------------------------------------------
 export function renderStores(allStores, onDelete) {
   const grid = document.getElementById('stores-grid');
   if (!grid) return;
