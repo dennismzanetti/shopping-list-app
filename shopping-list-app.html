@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ShopList</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="preconnect" href="https://api.fontshare.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
@@ -184,41 +186,11 @@
             <div class="card-body"><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="dark-mode-toggle"><span class="toggle-slider"></span></label><span style="font-size:var(--text-sm);">Dark mode</span></div></div>
           </div>
           <div class="card">
-            <div class="card-header"><span style="font-weight:600;">Data</span></div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
-              <div>
-                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3);">Export all your data — lists, items, categories, stores, and templates — as a JSON backup file.</p>
-                <button class="btn btn-ghost" id="export-data-btn" style="gap:var(--space-2);"><i data-lucide="upload"></i> Export Data</button>
-              </div>
-              <div style="border-top:1px solid var(--color-divider);padding-top:var(--space-4);">
-                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3);">Restore from a previously exported JSON file. <strong style="color:var(--color-warning);">This will permanently replace all current lists, items, categories, stores, and templates.</strong></p>
-                <button class="btn btn-ghost" id="import-data-btn" style="gap:var(--space-2);"><i data-lucide="download"></i> Import Data</button>
-                <input type="file" id="import-file-input" accept=".json" style="display:none;">
-              </div>
+            <div class="card-header"><span style="font-weight:600;">Data</span>
             </div>
-          </div>
-          <div class="card">
-            <div class="card-header"><span style="font-weight:600;">Account</span></div>
-            <div class="card-body"><button class="btn btn-danger" id="signout-btn" style="width:100%;justify-content:center;"><i data-lucide="log-out"></i> Sign Out</button></div>
-          </div>
-          <div class="card" id="about-card">
-            <div class="card-header">
-              <span style="font-weight:600;">About</span>
-              <span style="font-size:var(--text-xs);color:var(--color-text-faint);">10 most recent commits</span>
-            </div>
-            <div class="card-body" style="padding:0;">
-              <table class="about-commit-table">
-                <thead>
-                  <tr>
-                    <th class="col-date">Date &amp; Time</th>
-                    <th class="col-sha">SHA</th>
-                    <th class="col-msg">Notes</th>
-                  </tr>
-                </thead>
-                <tbody id="about-commits-tbody">
-                  <tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-xs);">Loading commits…</td></tr>
-                </tbody>
-              </table>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-3);">
+              <button class="btn btn-secondary" id="export-btn"><i data-lucide="download"></i> Export Data</button>
+              <button class="btn btn-danger" id="signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
             </div>
           </div>
         </div>
@@ -226,386 +198,200 @@
 
     </main>
   </div>
-
-  <nav class="bottom-nav">
-    <div class="bottom-nav-items">
-      <div class="bottom-nav-item active" data-view="lists"><i data-lucide="shopping-cart"></i><span>Lists</span></div>
-      <div class="bottom-nav-item" data-view="templates"><i data-lucide="layout-template"></i><span>Templates</span></div>
-      <div class="bottom-nav-item" data-view="categories"><i data-lucide="tag"></i><span>Categories</span></div>
-      <div class="bottom-nav-item" data-view="stores"><i data-lucide="store"></i><span>Stores</span></div>
-      <div class="bottom-nav-item" data-view="settings"><i data-lucide="settings"></i><span>Settings</span></div>
-    </div>
-  </nav>
 </div>
 
-<!-- Modal: Template Editor -->
-<div class="modal-overlay" id="modal-template-editor">
-  <div class="modal" style="max-width:680px;">
+<!-- New / Edit List Modal -->
+<div class="modal-overlay" id="list-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="list-modal-title">
     <div class="modal-header">
-      <span class="modal-title" id="tpl-editor-title">New Template</span>
-      <button class="icon-btn" onclick="closeModal('modal-template-editor')" aria-label="Close"><i data-lucide="x"></i></button>
+      <span class="modal-title" id="list-modal-title">New List</span>
+      <button class="icon-btn" id="list-modal-close" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-row" style="grid-template-columns:72px 1fr;">
+      <div class="form-group">
+        <label class="form-label" for="list-name-input">List Name</label>
+        <input type="text" class="form-input" id="list-name-input" placeholder="e.g. Weekly Groceries" maxlength="60">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stores</label>
+        <div class="store-checkboxes" id="list-store-checkboxes"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="list-emoji-input">Emoji</label>
+        <div style="display:flex;gap:var(--space-2);align-items:center;">
+          <input type="text" class="form-input" id="list-emoji-input" placeholder="🛒" maxlength="4" style="width:72px;text-align:center;font-size:1.5rem;">
+          <button class="btn btn-secondary btn-sm" id="emoji-picker-btn" type="button"><i data-lucide="smile"></i> Pick</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="list-visibility-input">Visibility</label>
+        <div class="vis-toggle" id="list-visibility-toggle">
+          <button type="button" class="vis-toggle-btn active" data-value="private"><i data-lucide="lock"></i> Private</button>
+          <button type="button" class="vis-toggle-btn" data-value="shared"><i data-lucide="users"></i> Shared</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="list-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="list-modal-save">Save List</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Item Modal -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+    <div class="modal-header">
+      <span class="modal-title" id="item-modal-title">Add Item</span>
+      <button class="icon-btn" id="item-modal-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="item-name-input">Item Name</label>
+        <input type="text" class="form-input" id="item-name-input" placeholder="e.g. Organic Milk" maxlength="80">
+      </div>
+      <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Emoji</label>
-          <div class="emoji-picker-wrap" id="emoji-picker-wrap">
-            <button type="button" class="emoji-picker-btn" id="tpl-emoji-btn" aria-label="Pick an emoji" title="Click to pick an emoji">🛒</button>
-            <input type="hidden" id="tpl-emoji" value="">
-            <div class="emoji-picker-popover" id="emoji-picker-popover" role="dialog" aria-label="Emoji picker">
-              <div class="emoji-picker-inner">
-                <div class="emoji-picker-section-label">Shopping</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="🛒">🛒</button>
-                  <button type="button" class="emoji-option" data-emoji="🛍️">🛍️</button>
-                  <button type="button" class="emoji-option" data-emoji="📋">📋</button>
-                  <button type="button" class="emoji-option" data-emoji="🧾">🧾</button>
-                  <button type="button" class="emoji-option" data-emoji="💳">💳</button>
-                </div>
-                <div class="emoji-picker-section-label">Produce</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="🍎">🍎</button>
-                  <button type="button" class="emoji-option" data-emoji="🍊">🍊</button>
-                  <button type="button" class="emoji-option" data-emoji="🍋">🍋</button>
-                  <button type="button" class="emoji-option" data-emoji="🍇">🍇</button>
-                  <button type="button" class="emoji-option" data-emoji="🍓">🍓</button>
-                  <button type="button" class="emoji-option" data-emoji="🥦">🥦</button>
-                  <button type="button" class="emoji-option" data-emoji="🥕">🥕</button>
-                  <button type="button" class="emoji-option" data-emoji="🥑">🥑</button>
-                  <button type="button" class="emoji-option" data-emoji="🌽">🌽</button>
-                  <button type="button" class="emoji-option" data-emoji="🍅">🍅</button>
-                  <button type="button" class="emoji-option" data-emoji="🧅">🧅</button>
-                  <button type="button" class="emoji-option" data-emoji="🧄">🧄</button>
-                  <button type="button" class="emoji-option" data-emoji="🥬">🥬</button>
-                </div>
-                <div class="emoji-picker-section-label">Meat &amp; Dairy</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="🥩">🥩</button>
-                  <button type="button" class="emoji-option" data-emoji="🍗">🍗</button>
-                  <button type="button" class="emoji-option" data-emoji="🥚">🥚</button>
-                  <button type="button" class="emoji-option" data-emoji="🧀">🧀</button>
-                  <button type="button" class="emoji-option" data-emoji="🥛">🥛</button>
-                  <button type="button" class="emoji-option" data-emoji="🧈">🧈</button>
-                </div>
-                <div class="emoji-picker-section-label">Bakery</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="🍞">🍞</button>
-                  <button type="button" class="emoji-option" data-emoji="🥐">🥐</button>
-                  <button type="button" class="emoji-option" data-emoji="🥖">🥖</button>
-                  <button type="button" class="emoji-option" data-emoji="🧁">🧁</button>
-                  <button type="button" class="emoji-option" data-emoji="🎂">🎂</button>
-                </div>
-                <div class="emoji-picker-section-label">Pantry</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="🍝">🍝</button>
-                  <button type="button" class="emoji-option" data-emoji="🍚">🍚</button>
-                  <button type="button" class="emoji-option" data-emoji="🥫">🥫</button>
-                  <button type="button" class="emoji-option" data-emoji="🧂">🧂</button>
-                  <button type="button" class="emoji-option" data-emoji="🫙">🫙</button>
-                  <button type="button" class="emoji-option" data-emoji="🍯">🍯</button>
-                </div>
-                <div class="emoji-picker-section-label">Drinks</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="☕">☕</button>
-                  <button type="button" class="emoji-option" data-emoji="🧃">🧃</button>
-                  <button type="button" class="emoji-option" data-emoji="🍷">🍷</button>
-                  <button type="button" class="emoji-option" data-emoji="🍺">🍺</button>
-                  <button type="button" class="emoji-option" data-emoji="💧">💧</button>
-                </div>
-                <div class="emoji-picker-section-label">Household</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="🧹">🧹</button>
-                  <button type="button" class="emoji-option" data-emoji="🧺">🧺</button>
-                  <button type="button" class="emoji-option" data-emoji="🧻">🧻</button>
-                  <button type="button" class="emoji-option" data-emoji="🧼">🧼</button>
-                  <button type="button" class="emoji-option" data-emoji="🪥">🪥</button>
-                  <button type="button" class="emoji-option" data-emoji="🏠">🏠</button>
-                </div>
-                <div class="emoji-picker-section-label">Health</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="💊">💊</button>
-                  <button type="button" class="emoji-option" data-emoji="🩺">🩺</button>
-                  <button type="button" class="emoji-option" data-emoji="🌿">🌿</button>
-                </div>
-                <div class="emoji-picker-section-label">Misc</div>
-                <div class="emoji-picker-grid">
-                  <button type="button" class="emoji-option" data-emoji="⭐">⭐</button>
-                  <button type="button" class="emoji-option" data-emoji="❤️">❤️</button>
-                  <button type="button" class="emoji-option" data-emoji="🎉">🎉</button>
-                  <button type="button" class="emoji-option" data-emoji="📦">📦</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <label class="form-label" for="item-qty-input">Quantity</label>
+          <input type="number" class="form-input" id="item-qty-input" placeholder="1" min="0" step="0.1">
         </div>
-        <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
+        <div class="form-group">
+          <label class="form-label" for="item-unit-input">Unit</label>
+          <input type="text" class="form-input" id="item-unit-input" placeholder="e.g. lbs, oz, pk" maxlength="20">
+        </div>
       </div>
-      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
       <div class="form-group">
-        <label class="form-label">Visibility</label>
-        <div class="vis-toggle" id="tpl-visibility" role="group" aria-label="Template visibility">
-          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true"><i data-lucide="lock"></i> Private</button>
-          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false"><i data-lucide="globe"></i> Public</button>
-        </div>
+        <label class="form-label" for="item-store-select">Store</label>
+        <select class="form-select" id="item-store-select">
+          <option value="">Any store</option>
+        </select>
       </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-          <label class="form-label" style="margin-bottom:0;">Items</label>
-          <span id="tpl-item-count" style="font-size:var(--text-xs);color:var(--color-text-faint);">0 items</span>
-        </div>
-        <div class="tpl-editor-items" id="tpl-editor-items"></div>
-        <div style="margin-top:var(--space-3);">
-          <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);"><i data-lucide="plus"></i> Add Item</button>
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="item-category-select">Category</label>
+        <select class="form-select" id="item-category-select">
+          <option value="">No category</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="item-note-input">Note</label>
+        <textarea class="form-textarea" id="item-note-input" placeholder="Brand, size, or other notes…" maxlength="200"></textarea>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger" id="tpl-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-template-editor')">Cancel</button>
-      <button class="btn btn-primary" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
-      <button class="btn btn-primary" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+      <button class="btn btn-ghost" id="item-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="item-modal-save">Save Item</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Add Template Items to List -->
-<div class="modal-overlay" id="modal-tpl-add-to-list">
-  <div class="modal" style="max-width:400px;">
+<!-- New / Edit Template Modal -->
+<div class="modal-overlay" id="template-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
     <div class="modal-header">
-      <span class="modal-title">Add to List</span>
-      <button class="icon-btn" onclick="closeModal('modal-tpl-add-to-list')" aria-label="Close"><i data-lucide="x"></i></button>
+      <span class="modal-title" id="template-modal-title">New Template</span>
+      <button class="icon-btn" id="template-modal-close" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label" for="tpl-list-select">Select a list</label>
-        <select class="form-select" id="tpl-list-select"></select>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="template-name-input">Template Name</label>
+        <input type="text" class="form-input" id="template-name-input" placeholder="e.g. Weekly Essentials" maxlength="60">
       </div>
-      <div class="form-group" id="tpl-new-list-row" style="margin-bottom:0;display:none;">
-        <label class="form-label" for="tpl-new-list-name">New list name *</label>
-        <input class="form-input" id="tpl-new-list-name" type="text" placeholder="e.g. Weekly Groceries">
+      <div class="form-group">
+        <label class="form-label" for="template-items-input">Items (one per line)</label>
+        <textarea class="form-textarea" id="template-items-input" placeholder="Milk&#10;Eggs&#10;Bread" style="min-height:120px;" maxlength="2000"></textarea>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-tpl-add-to-list')">Cancel</button>
-      <button class="btn btn-primary" id="tpl-atl-confirm-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
+      <button class="btn btn-ghost" id="template-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="template-modal-save">Save Template</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Template Item Editor -->
-<div class="modal-overlay" id="modal-tpl-item">
-  <div class="modal" style="max-width:480px;">
+<!-- New / Edit Category Modal -->
+<div class="modal-overlay" id="category-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
     <div class="modal-header">
-      <span class="modal-title" id="tpl-item-modal-title">Add Template Item</span>
-      <button class="icon-btn" onclick="closeTplItemModal()" aria-label="Close"><i data-lucide="x"></i></button>
+      <span class="modal-title" id="category-modal-title">New Category</span>
+      <button class="icon-btn" id="category-modal-close" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label" for="tpl-item-name">Item name *</label><input class="form-input" id="tpl-item-name" type="text" placeholder="e.g. Whole milk"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label" for="tpl-item-qty">Quantity</label><input class="form-input" id="tpl-item-qty" type="text" placeholder="e.g. 2"></div>
-        <div class="form-group"><label class="form-label" for="tpl-item-unit">Unit</label><input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs, oz, pkg"></div>
+      <div class="form-group">
+        <label class="form-label" for="category-name-input">Category Name</label>
+        <input type="text" class="form-input" id="category-name-input" placeholder="e.g. Produce" maxlength="40">
       </div>
       <div class="form-group">
-        <label class="form-label" for="tpl-item-category">Category <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
-        <select class="form-select" id="tpl-item-category"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
-        <div class="store-checkboxes" id="tpl-item-store-checkboxes"></div>
-      </div>
-      <div class="form-group"><label class="form-label" for="tpl-item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label><input class="form-input" id="tpl-item-tags" type="text" placeholder="e.g. organic, weekly"></div>
-      <div class="form-group"><label class="form-label" for="tpl-item-notes">Notes</label><input class="form-input" id="tpl-item-notes" type="text" placeholder="e.g. brand preference"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeTplItemModal()">Cancel</button>
-      <button class="btn btn-primary" id="tpl-item-save-btn"><i data-lucide="check"></i> Save Item</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: New List -->
-<div class="modal-overlay" id="modal-new-list">
-  <div class="modal">
-    <div class="modal-header"><span class="modal-title">New Shopping List</span><button class="icon-btn" onclick="closeModal('modal-new-list')" aria-label="Close"><i data-lucide="x"></i></button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label" for="new-list-name">List name *</label><input class="form-input" id="new-list-name" type="text" placeholder="e.g. Weekly Groceries"></div>
-      <div class="form-group"><label class="form-label" for="new-list-store">Default store <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
-        <select class="form-select" id="new-list-store"></select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Visibility</label>
-        <div class="vis-toggle" id="new-list-visibility" role="group" aria-label="List visibility">
-          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true"><i data-lucide="lock"></i> Private</button>
-          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false"><i data-lucide="globe"></i> Public</button>
+        <label class="form-label" for="category-emoji-input">Emoji</label>
+        <div style="display:flex;gap:var(--space-2);align-items:center;">
+          <input type="text" class="form-input" id="category-emoji-input" placeholder="🥦" maxlength="4" style="width:72px;text-align:center;font-size:1.5rem;">
+          <button class="btn btn-secondary btn-sm" id="category-emoji-picker-btn" type="button"><i data-lucide="smile"></i> Pick</button>
         </div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-new-list')">Cancel</button><button class="btn btn-primary" id="create-list-btn"><i data-lucide="plus"></i> Create List</button></div>
-  </div>
-</div>
-
-<!-- Modal: Add / Edit Item -->
-<div class="modal-overlay" id="modal-add-item">
-  <div class="modal">
-    <div class="modal-header"><span class="modal-title" id="add-item-modal-title">Add Item</span><button class="icon-btn" onclick="closeModal('modal-add-item')" aria-label="Close"><i data-lucide="x"></i></button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label" for="item-name-full">Item name *</label><input class="form-input" id="item-name-full" type="text" placeholder="e.g. Whole milk"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label" for="item-qty">Quantity</label><input class="form-input" id="item-qty" type="text" placeholder="e.g. 2"></div>
-        <div class="form-group"><label class="form-label" for="item-unit">Unit</label><input class="form-input" id="item-unit" type="text" placeholder="e.g. lbs, oz, pkg"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="item-category">Category <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
-        <select class="form-select" id="item-category"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
-        <div class="store-checkboxes" id="item-store-checkboxes"></div>
-      </div>
-      <div class="form-group"><label class="form-label" for="item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label><input class="form-input" id="item-tags" type="text" placeholder="e.g. organic, gluten-free, weekly"></div>
-      <div class="form-group"><label class="form-label" for="item-notes">Notes</label><input class="form-input" id="item-notes" type="text" placeholder="e.g. brand preference"></div>
-    </div>
     <div class="modal-footer">
-      <button class="btn btn-danger" id="delete-item-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete Item</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-add-item')">Cancel</button>
-      <button class="btn btn-primary" id="save-item-btn"><i data-lucide="plus"></i> Add Item</button>
+      <button class="btn btn-ghost" id="category-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="category-modal-save">Save Category</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: New Category -->
-<div class="modal-overlay" id="modal-new-category">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header"><span class="modal-title">Add Category</span><button class="icon-btn" onclick="closeModal('modal-new-category')" aria-label="Close"><i data-lucide="x"></i></button></div>
+<!-- New / Edit Store Modal -->
+<div class="modal-overlay" id="store-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="store-modal-title">
+    <div class="modal-header">
+      <span class="modal-title" id="store-modal-title">New Store</span>
+      <button class="icon-btn" id="store-modal-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label" for="new-category-name">Category name *</label><input class="form-input" id="new-category-name" type="text" placeholder="e.g. Bakery"></div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Emoji <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
-        <div class="emoji-picker-wrap" id="cat-emoji-picker-wrap">
-          <button type="button" class="emoji-picker-btn" id="cat-emoji-btn" aria-label="Pick an emoji" title="Click to pick an emoji" aria-expanded="false">🏷️</button>
-          <input type="hidden" id="new-category-emoji" value="">
-          <div class="emoji-picker-popover" id="cat-emoji-picker-popover" role="dialog" aria-label="Emoji picker">
-            <div class="emoji-picker-inner">
-              <div class="emoji-picker-section-label">Shopping</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="🛒">🛒</button>
-                <button type="button" class="emoji-option" data-emoji="🛍️">🛍️</button>
-                <button type="button" class="emoji-option" data-emoji="📋">📋</button>
-                <button type="button" class="emoji-option" data-emoji="🧾">🧾</button>
-                <button type="button" class="emoji-option" data-emoji="💳">💳</button>
-              </div>
-              <div class="emoji-picker-section-label">Produce</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="🍎">🍎</button>
-                <button type="button" class="emoji-option" data-emoji="🍊">🍊</button>
-                <button type="button" class="emoji-option" data-emoji="🍋">🍋</button>
-                <button type="button" class="emoji-option" data-emoji="🍇">🍇</button>
-                <button type="button" class="emoji-option" data-emoji="🍓">🍓</button>
-                <button type="button" class="emoji-option" data-emoji="🥦">🥦</button>
-                <button type="button" class="emoji-option" data-emoji="🥕">🥕</button>
-                <button type="button" class="emoji-option" data-emoji="🥑">🥑</button>
-                <button type="button" class="emoji-option" data-emoji="🌽">🌽</button>
-                <button type="button" class="emoji-option" data-emoji="🍅">🍅</button>
-                <button type="button" class="emoji-option" data-emoji="🧅">🧅</button>
-                <button type="button" class="emoji-option" data-emoji="🧄">🧄</button>
-                <button type="button" class="emoji-option" data-emoji="🥬">🥬</button>
-              </div>
-              <div class="emoji-picker-section-label">Meat &amp; Dairy</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="🥩">🥩</button>
-                <button type="button" class="emoji-option" data-emoji="🍗">🍗</button>
-                <button type="button" class="emoji-option" data-emoji="🥚">🥚</button>
-                <button type="button" class="emoji-option" data-emoji="🧀">🧀</button>
-                <button type="button" class="emoji-option" data-emoji="🥛">🥛</button>
-                <button type="button" class="emoji-option" data-emoji="🧈">🧈</button>
-              </div>
-              <div class="emoji-picker-section-label">Bakery</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="🍞">🍞</button>
-                <button type="button" class="emoji-option" data-emoji="🥐">🥐</button>
-                <button type="button" class="emoji-option" data-emoji="🥖">🥖</button>
-                <button type="button" class="emoji-option" data-emoji="🧁">🧁</button>
-                <button type="button" class="emoji-option" data-emoji="🎂">🎂</button>
-              </div>
-              <div class="emoji-picker-section-label">Pantry</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="🍝">🍝</button>
-                <button type="button" class="emoji-option" data-emoji="🍚">🍚</button>
-                <button type="button" class="emoji-option" data-emoji="🥫">🥫</button>
-                <button type="button" class="emoji-option" data-emoji="🧂">🧂</button>
-                <button type="button" class="emoji-option" data-emoji="🫙">🫙</button>
-                <button type="button" class="emoji-option" data-emoji="🍯">🍯</button>
-              </div>
-              <div class="emoji-picker-section-label">Drinks</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="☕">☕</button>
-                <button type="button" class="emoji-option" data-emoji="🧃">🧃</button>
-                <button type="button" class="emoji-option" data-emoji="🍷">🍷</button>
-                <button type="button" class="emoji-option" data-emoji="🍺">🍺</button>
-                <button type="button" class="emoji-option" data-emoji="💧">💧</button>
-              </div>
-              <div class="emoji-picker-section-label">Household</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="🧹">🧹</button>
-                <button type="button" class="emoji-option" data-emoji="🧺">🧺</button>
-                <button type="button" class="emoji-option" data-emoji="🧻">🧻</button>
-                <button type="button" class="emoji-option" data-emoji="🧼">🧼</button>
-                <button type="button" class="emoji-option" data-emoji="🪥">🪥</button>
-                <button type="button" class="emoji-option" data-emoji="🏠">🏠</button>
-              </div>
-              <div class="emoji-picker-section-label">Health</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="💊">💊</button>
-                <button type="button" class="emoji-option" data-emoji="🩺">🩺</button>
-                <button type="button" class="emoji-option" data-emoji="🌿">🌿</button>
-              </div>
-              <div class="emoji-picker-section-label">Misc</div>
-              <div class="emoji-picker-grid">
-                <button type="button" class="emoji-option" data-emoji="⭐">⭐</button>
-                <button type="button" class="emoji-option" data-emoji="❤️">❤️</button>
-                <button type="button" class="emoji-option" data-emoji="🎉">🎉</button>
-                <button type="button" class="emoji-option" data-emoji="📦">📦</button>
-                <button type="button" class="emoji-option" data-emoji="🏷️">🏷️</button>
-                <button type="button" class="emoji-option" data-emoji="🥗">🥗</button>
-                <button type="button" class="emoji-option" data-emoji="🥩">🥩</button>
-                <button type="button" class="emoji-option" data-emoji="🥥">🥥</button>
-              </div>
-            </div>
-          </div>
+      <div class="form-group">
+        <label class="form-label" for="store-name-input">Store Name</label>
+        <input type="text" class="form-input" id="store-name-input" placeholder="e.g. Whole Foods" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="store-emoji-input">Emoji</label>
+        <div style="display:flex;gap:var(--space-2);align-items:center;">
+          <input type="text" class="form-input" id="store-emoji-input" placeholder="🏪" maxlength="4" style="width:72px;text-align:center;font-size:1.5rem;">
+          <button class="btn btn-secondary btn-sm" id="store-emoji-picker-btn" type="button"><i data-lucide="smile"></i> Pick</button>
         </div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-new-category')">Cancel</button><button class="btn btn-primary" id="save-category-btn"><i data-lucide="plus"></i> Save</button></div>
-  </div>
-</div>
-
-<!-- Modal: New Store -->
-<div class="modal-overlay" id="modal-new-store">
-  <div class="modal" style="max-width:360px;">
-    <div class="modal-header"><span class="modal-title">Add Store</span><button class="icon-btn" onclick="closeModal('modal-new-store')" aria-label="Close"><i data-lucide="x"></i></button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label" for="new-store-name">Store name *</label><input class="form-input" id="new-store-name" type="text" placeholder="e.g. Whole Foods"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="store-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="store-modal-save">Save Store</button>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-new-store')">Cancel</button><button class="btn btn-primary" id="save-store-btn"><i data-lucide="plus"></i> Save</button></div>
   </div>
 </div>
 
 <!-- Confirm Dialog -->
-<div class="modal-overlay" id="modal-confirm">
-  <div class="confirm-dialog">
-    <h3 id="confirm-title">Are you sure?</h3>
-    <p id="confirm-message">This action cannot be undone.</p>
-    <div class="confirm-dialog-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-confirm')">Cancel</button>
-      <button class="btn btn-danger" id="confirm-ok-btn">Delete</button>
+<div class="modal-overlay" id="confirm-dialog">
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" style="max-width:360px;">
+    <div class="modal-header">
+      <span class="modal-title" id="confirm-title">Confirm</span>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message" style="font-size:var(--text-sm);color:var(--color-text-muted);"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok">Delete</button>
     </div>
   </div>
 </div>
 
+<!-- Emoji Picker -->
+<div class="emoji-picker-overlay" id="emoji-picker-overlay">
+  <div class="emoji-picker" id="emoji-picker">
+    <div class="emoji-picker-header">
+      <input type="text" class="emoji-search" id="emoji-search" placeholder="Search emoji…">
+      <button class="icon-btn" id="emoji-picker-close" aria-label="Close picker"><i data-lucide="x"></i></button>
+    </div>
+    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+</div>
+
+<!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
-<script type="module">
-  import('./js/app.js');
-</script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
