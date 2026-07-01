@@ -8,7 +8,7 @@ import {
 import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
-import { openModal, closeModal, showToast }             from './ui.js';
+import { openModal, closeModal, showToast, openEmojiPicker } from './ui.js';
 import { syncThemeUI, toggleTheme }                     from './theme.js';
 import { navigateTo }                                   from './nav.js';
 import { loadAboutCommits }                             from './about.js';
@@ -168,22 +168,37 @@ function initNewListModal() {
   const open = () => {
     populateStoreSelect(state.allStores);
     if (nameInput) nameInput.value = '';
+    // Reset emoji input and button
+    const emojiInput = document.getElementById('list-emoji-input');
+    const emojiBtn   = document.getElementById('emoji-picker-btn');
+    if (emojiInput) emojiInput.value = '';
+    if (emojiBtn)   emojiBtn.innerHTML = '<i data-lucide="smile"></i> Pick';
     setVisToggleValue('new-list-visibility', 'private');
     openModal('modal-new-list');
-    setTimeout(() => nameInput?.focus(), 50);
+    setTimeout(() => { nameInput?.focus(); createIcons(); }, 50);
   };
 
   if (btn)      btn.addEventListener('click', open);
   if (emptyBtn) emptyBtn.addEventListener('click', open);
+
+  // Wire emoji picker button for the list modal
+  const emojiPickerBtn = document.getElementById('emoji-picker-btn');
+  if (emojiPickerBtn) {
+    emojiPickerBtn.addEventListener('click', () =>
+      openEmojiPicker('list-emoji-input', 'emoji-picker-btn')
+    );
+  }
 
   if (createBtn) {
     createBtn.addEventListener('click', async () => {
       const name = nameInput?.value.trim();
       if (!name) { showToast('List name is required', 'error'); return; }
       const visibility = getVisToggleValue('new-list-visibility');
+      const emoji = document.getElementById('list-emoji-input')?.value.trim() || '';
       try {
         const ref = await addDoc(listsCol(), {
           name,
+          emoji,
           store: storeSelect?.value || '',
           visibility,
           createdAt: serverTimestamp(),
@@ -228,19 +243,27 @@ function initItemModal() {
 // Categories & Stores (new-item modals)
 // ---------------------------------------------------------------------------
 function initCatStoreModals() {
+  // ── Categories ──────────────────────────────────────────────────────────
   const newCatBtn  = document.getElementById('new-category-btn');
   const saveCatBtn = document.getElementById('save-category-btn');
   const catNameIn  = document.getElementById('new-category-name');
   const catEmojiIn = document.getElementById('new-category-emoji');
+  const catEmojiPickerBtn = document.getElementById('category-emoji-picker-btn');
 
   if (newCatBtn) newCatBtn.addEventListener('click', () => {
     if (catNameIn)  catNameIn.value  = '';
     if (catEmojiIn) catEmojiIn.value = '';
-    const emojiBtn = document.getElementById('cat-emoji-btn');
-    if (emojiBtn) emojiBtn.textContent = '\uD83C\uDFF7\uFE0F';
+    if (catEmojiPickerBtn) catEmojiPickerBtn.innerHTML = '<i data-lucide="smile"></i> Pick';
     openModal('modal-new-category');
-    setTimeout(() => catNameIn?.focus(), 50);
+    setTimeout(() => { catNameIn?.focus(); createIcons(); }, 50);
   });
+
+  // Wire category emoji picker button
+  if (catEmojiPickerBtn) {
+    catEmojiPickerBtn.addEventListener('click', () =>
+      openEmojiPicker('new-category-emoji', 'category-emoji-picker-btn')
+    );
+  }
 
   if (saveCatBtn) saveCatBtn.addEventListener('click', async () => {
     const name = catNameIn?.value.trim();
@@ -255,43 +278,36 @@ function initCatStoreModals() {
   });
   if (catNameIn) catNameIn.addEventListener('keydown', e => { if (e.key === 'Enter') saveCatBtn?.click(); });
 
-  const catEmojiBtn     = document.getElementById('cat-emoji-btn');
-  const catEmojiPopover = document.getElementById('cat-emoji-picker-popover');
-  if (catEmojiBtn && catEmojiPopover) {
-    catEmojiBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      catEmojiPopover.classList.toggle('open');
-    });
-    catEmojiPopover.querySelectorAll('.emoji-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        if (catEmojiIn) catEmojiIn.value = opt.dataset.emoji;
-        catEmojiBtn.textContent = opt.dataset.emoji;
-        catEmojiPopover.classList.remove('open');
-      });
-    });
-    document.addEventListener('click', e => {
-      if (!catEmojiBtn.contains(e.target) && !catEmojiPopover.contains(e.target))
-        catEmojiPopover.classList.remove('open');
-    });
-  }
-
-  const newStoreBtn  = document.getElementById('new-store-btn');
-  const saveStoreBtn = document.getElementById('save-store-btn');
-  const storeNameIn  = document.getElementById('new-store-name');
+  // ── Stores ───────────────────────────────────────────────────────────────
+  const newStoreBtn      = document.getElementById('new-store-btn');
+  const saveStoreBtn     = document.getElementById('save-store-btn');
+  const storeNameIn      = document.getElementById('new-store-name');
+  const storeEmojiIn     = document.getElementById('store-emoji-input');
+  const storeEmojiPickerBtn = document.getElementById('store-emoji-picker-btn');
 
   if (newStoreBtn) newStoreBtn.addEventListener('click', () => {
-    if (storeNameIn) storeNameIn.value = '';
+    if (storeNameIn)  storeNameIn.value  = '';
+    if (storeEmojiIn) storeEmojiIn.value = '';
+    if (storeEmojiPickerBtn) storeEmojiPickerBtn.innerHTML = '<i data-lucide="smile"></i> Pick';
     openModal('modal-new-store');
-    setTimeout(() => storeNameIn?.focus(), 50);
+    setTimeout(() => { storeNameIn?.focus(); createIcons(); }, 50);
   });
+
+  // Wire store emoji picker button
+  if (storeEmojiPickerBtn) {
+    storeEmojiPickerBtn.addEventListener('click', () =>
+      openEmojiPicker('store-emoji-input', 'store-emoji-picker-btn')
+    );
+  }
 
   if (saveStoreBtn) saveStoreBtn.addEventListener('click', async () => {
     const name = storeNameIn?.value.trim();
     if (!name) { showToast('Store name is required', 'error'); return; }
     const exists = state.allStores.some(s => s.name.toLowerCase() === name.toLowerCase());
     if (exists) { showToast('Store already exists', 'error'); return; }
+    const emoji = storeEmojiIn?.value.trim() || '';
     try {
-      await addDoc(storesCol(), { name, createdAt: serverTimestamp() });
+      await addDoc(storesCol(), { name, emoji, createdAt: serverTimestamp() });
       closeModal('modal-new-store');
       showToast('Store added', 'success');
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
