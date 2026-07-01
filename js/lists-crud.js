@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { escHtml, createIcons } from './utils.js';
 
 /** Returns the currently selected value from a .vis-toggle group */
-function getVisToggleValue(groupId) {
+export function getVisToggleValue(groupId) {
   const btn = document.querySelector(`#${groupId} .vis-toggle-btn.active`);
   return btn ? btn.dataset.value : 'private';
 }
