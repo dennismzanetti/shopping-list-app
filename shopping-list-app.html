@@ -178,7 +178,11 @@
             <div class="card-header"><span style="font-weight:600;">Profile</span></div>
             <div class="card-body" style="display:flex;align-items:center;gap:var(--space-4);">
               <div class="user-avatar" style="width:56px;height:56px;font-size:var(--text-lg);" id="settings-avatar">U</div>
-              <div><div style="font-weight:600;" id="settings-name">—</div><div style="font-size:var(--text-sm);color:var(--color-text-muted);" id="settings-email">—</div></div>
+              <div style="flex:1;">
+                <div style="font-weight:600;" id="settings-name">—</div>
+                <div style="font-size:var(--text-sm);color:var(--color-text-muted);" id="settings-email">—</div>
+              </div>
+              <button class="btn btn-danger btn-sm" id="signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
             </div>
           </div>
           <div class="card">
@@ -191,7 +195,6 @@
               <button class="btn btn-secondary" id="export-data-btn"><i data-lucide="download"></i> Export Data</button>
               <button class="btn btn-secondary" id="import-data-btn"><i data-lucide="upload"></i> Import Data</button>
               <input type="file" id="import-file-input" accept=".json" style="display:none;">
-              <button class="btn btn-danger" id="signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
             </div>
           </div>
           <div class="card" id="about-card">
