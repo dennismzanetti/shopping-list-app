@@ -4,12 +4,12 @@ import {
   doc, updateDoc, addDoc, deleteDoc, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
-// ── Item Store Checkboxes ───────────────────────────────────────────────────────
+// -- Item Store Checkboxes ----------------------------------------------------
 export function populateItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('item-store-checkboxes');
   if (!container) return;
   if (state.allStores.length === 0) {
-    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
+    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet - add some in the Stores view.</span>`;
     return;
   }
   container.innerHTML = state.allStores.map(s =>
@@ -23,7 +23,7 @@ export function getSelectedStores() {
   ).map(cb => cb.value);
 }
 
-// ── Render Items ─────────────────────────────────────────────────────────────────────
+// -- Render Items -------------------------------------------------------------
 export function renderItems(onToggle, onEdit) {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
@@ -63,9 +63,9 @@ export function renderItems(onToggle, onEdit) {
   createIcons();
 }
 
-// ── Add / Edit Item Modals ─────────────────────────────────────────────────────
+// -- Add / Edit Item Modals ---------------------------------------------------
 export function openAddItemModal(buildCategoryOptions) {
-  if (!state.currentListId) { window.showToast('No list selected — please open a list first', 'error'); return; }
+  if (!state.currentListId) { window.showToast('No list selected - please open a list first', 'error'); return; }
   state.editingItemId = null;
   document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
@@ -101,7 +101,7 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
 }
 
-// ── Toggle Item ──────────────────────────────────────────────────────────────────────
+// -- Toggle Item --------------------------------------------------------------
 export async function toggleItem(itemId, { itemsCol }) {
   const item = state.allItems.find(i => i.id === itemId);
   if (!item || !state.currentListId) return;
@@ -110,7 +110,7 @@ export async function toggleItem(itemId, { itemsCol }) {
   } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
 }
 
-// ── Delete Item ─────────────────────────────────────────────────────────────────────
+// -- Delete Item --------------------------------------------------------------
 export async function deleteItem({ itemsCol }) {
   const itemId = state.editingItemId;
   if (!itemId || !state.currentListId) return;
@@ -122,7 +122,7 @@ export async function deleteItem({ itemsCol }) {
   } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
 }
 
-// ── Save Item (add OR edit) ───────────────────────────────────────────────────────
+// -- Save Item (add OR edit) --------------------------------------------------
 export async function saveItem({ itemsCol, getSelectedStores: getStores }) {
   const name = document.getElementById('item-name-full').value.trim();
   if (!name) { window.showToast('Item name is required', 'error'); return; }
