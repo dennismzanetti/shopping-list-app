@@ -45,7 +45,8 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
           state.currentListId = null;
           setHashListId(null);
           navigateTo('lists');
-          document.getElementById('header-title').textContent = 'My Lists';
+          const headerTitle = document.getElementById('header-title');
+          if (headerTitle) headerTitle.textContent = 'My Lists';
         }
         window.showToast('List deleted', 'success');
 
