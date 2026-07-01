@@ -1,7 +1,7 @@
 import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// -- Helpers ------------------------------------------------------------------
 export function normaliseItem(it) {
   if (typeof it === 'string') return { name: it, qty: '', unit: '', category: '', stores: [], tags: [], notes: '' };
   return {
@@ -19,7 +19,7 @@ function populateTplItemStoreCheckboxes(selectedStores = []) {
   const container = document.getElementById('tpl-item-store-checkboxes');
   if (!container) return;
   if (state.allStores.length === 0) {
-    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet — add some in the Stores view.</span>`;
+    container.innerHTML = `<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores yet - add some in the Stores view.</span>`;
     return;
   }
   container.innerHTML = state.allStores.map(s =>
@@ -33,7 +33,7 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
-// ── Emoji Picker ──────────────────────────────────────────────────────────────
+// -- Emoji Picker -------------------------------------------------------------
 function initEmojiPicker() {
   const btn     = document.getElementById('tpl-emoji-btn');
   const hidden  = document.getElementById('tpl-emoji');
@@ -65,14 +65,14 @@ function initEmojiPicker() {
 export function setEmojiPickerValue(emoji) {
   const btn    = document.getElementById('tpl-emoji-btn');
   const hidden = document.getElementById('tpl-emoji');
-  if (btn)    btn.textContent = emoji || '🛒';
+  if (btn)    btn.textContent = emoji || '\uD83D\uDED2';
   if (hidden) hidden.value   = emoji || '';
 }
 
-// ── Add-to-List picker modal ──────────────────────────────────────────────────────
+// -- Add-to-List picker modal -------------------------------------------------
 export function openAddToListModal() {
   const items = getCheckedTplItems();
-  if (items.length === 0) { window.showToast('No items selected — check at least one item first', 'error'); return; }
+  if (items.length === 0) { window.showToast('No items selected - check at least one item first', 'error'); return; }
 
   const select = document.getElementById('tpl-list-select');
   const newRow  = document.getElementById('tpl-new-list-row');
@@ -81,7 +81,7 @@ export function openAddToListModal() {
   if (select) {
     select.innerHTML = state.allLists.map(l =>
       `<option value="${escHtml(l.id)}">${escHtml(l.name)}</option>`
-    ).join('') + `<option value="__new__">➕ Create New List</option>`;
+    ).join('') + `<option value="__new__">+ Create New List</option>`;
 
     const toggle = () => {
       const isNew = select.value === '__new__';
@@ -138,7 +138,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
   } catch (e) { window.showToast('Error adding items: ' + e.message, 'error'); }
 }
 
-// ── Render grid ──────────────────────────────────────────────────────────────────
+// -- Render grid --------------------------------------------------------------
 export function renderTemplates(onEdit) {
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
@@ -169,7 +169,7 @@ export function renderTemplates(onEdit) {
   createIcons();
 }
 
-// ── Editor ───────────────────────────────────────────────────────────────────────
+// -- Editor -------------------------------------------------------------------
 export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.editingTemplateId = tplId || null;
   const tpl = tplId ? state.allTemplates.find(t => t.id === tplId) : null;
@@ -190,11 +190,10 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
 
   if (count === 0) {
-    container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet — click "Add Item" below</div>`;
+    container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet - click "Add Item" below</div>`;
     return;
   }
 
-  // Select All header row
   const selectAllRow = `<div id="tpl-select-all-row" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-1);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-1);">
     <input type="checkbox" id="tpl-select-all" style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;" aria-label="Select all items">
     <span style="font-size:var(--text-xs);color:var(--color-text-muted);user-select:none;cursor:pointer;" id="tpl-select-all-label">Select all</span>
@@ -204,7 +203,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   const itemRows = state.tplEditorItems.map((it, i) => {
     const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
     const catObj = state.allCategories.find(c => c.name === it.category);
-    const cat   = it.category ? `<span title="${escHtml(it.category)}" style="font-size:var(--text-sm);line-height:1;">${catObj?.emoji || '🏷️'}</span>` : '';
+    const cat   = it.category ? `<span title="${escHtml(it.category)}" style="font-size:var(--text-sm);line-height:1;">${catObj?.emoji || '\uD83C\uDFF7\uFE0F'}</span>` : '';
     const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
@@ -224,7 +223,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
 
   container.innerHTML = selectAllRow + itemRows;
 
-  // Wire up Select All logic
   const selectAllCb = container.querySelector('#tpl-select-all');
   const selectAllLabel = container.querySelector('#tpl-select-all-label');
   const countLabel = container.querySelector('#tpl-select-all-count');
@@ -259,7 +257,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     cb.addEventListener('change', updateSelectAllState)
   );
 
-  // Edit / remove / row-click handlers
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
   );
@@ -280,7 +277,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   createIcons();
 }
 
-// ── Template Item sub-modal ───────────────────────────────────────────────────────────────
+// -- Template Item sub-modal --------------------------------------------------
 export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
   state.tplItemEditingIdx = idx;
   const it = idx >= 0 ? state.tplEditorItems[idx] : null;
@@ -319,7 +316,7 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
   renderTplEditorItems({ buildCategoryOptions });
 }
 
-// ── initTemplates — wires all template UI listeners ────────────────────────────────────────
+// -- initTemplates - wires all template UI listeners -------------------------
 export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                                  listsCol, itemsCol, writeBatch, db }) {
 
@@ -345,7 +342,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     if (!name) { window.showToast('Template name is required', 'error'); return; }
     const data = {
       name,
-      emoji: document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDCCB',
+      emoji: document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDED2',
       desc:  document.getElementById('tpl-desc').value.trim(),
       items: state.tplEditorItems,
       visibility: state.editingTemplateId
