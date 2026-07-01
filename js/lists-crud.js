@@ -26,7 +26,14 @@ export function initNewList({ listsCol, addDoc, serverTimestamp, openList, confi
     const storeEl = document.getElementById('new-list-store');
     const store   = storeEl ? storeEl.value : '';
     try {
-      const ref = await addDoc(listsCol(), { name, store, createdAt: serverTimestamp(), itemCount: 0, checkedCount: 0 });
+      const ref = await addDoc(listsCol(), {
+        name,
+        store,
+        visibility: 'private',
+        createdAt: serverTimestamp(),
+        itemCount: 0,
+        checkedCount: 0
+      });
       window.closeModal('modal-new-list');
       openList(ref.id);
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }

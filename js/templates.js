@@ -115,7 +115,12 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
     const newName = document.getElementById('tpl-new-list-name').value.trim();
     if (!newName) { window.showToast('Please enter a name for the new list', 'error'); return; }
     try {
-      const ref = await addDoc(listsCol(), { name: newName, createdAt: serverTimestamp(), itemCount: 0 });
+      const ref = await addDoc(listsCol(), {
+        name: newName,
+        visibility: 'private',
+        createdAt: serverTimestamp(),
+        itemCount: 0
+      });
       listId = ref.id;
     } catch (e) { window.showToast('Error creating list: ' + e.message, 'error'); return; }
   }
@@ -343,6 +348,9 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
       emoji: document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDCCB',
       desc:  document.getElementById('tpl-desc').value.trim(),
       items: state.tplEditorItems,
+      visibility: state.editingTemplateId
+        ? (state.allTemplates.find(t => t.id === state.editingTemplateId)?.visibility || 'private')
+        : 'private',
       updatedAt: serverTimestamp()
     };
     try {
