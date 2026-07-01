@@ -3,30 +3,69 @@
             template editor, about/commit table
    ============================================================ */
 
-/* Auth */
-.auth-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:var(--color-bg);padding:var(--space-4)}
+/* Auth — gradient background */
+.auth-screen{
+  min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 60% 20%, oklch(from var(--color-primary) l c h / 0.08) 0%, transparent 60%),
+             radial-gradient(ellipse at 20% 80%, oklch(0.75 0.06 200 / 0.12) 0%, transparent 55%),
+             var(--color-bg);
+  padding:var(--space-4);
+}
 .auth-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:var(--space-10) var(--space-8);width:100%;max-width:400px;text-align:center}
 .auth-logo{width:60px;height:60px;background:var(--color-primary);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-5);color:var(--color-text-inverse)}
-.auth-title{font-family:var(--font-display);font-size:var(--text-xl);color:var(--color-text);margin-bottom:var(--space-2)}
+.auth-title{font-family:var(--font-body);font-size:var(--text-xl);font-weight:800;color:var(--color-primary);margin-bottom:var(--space-2);letter-spacing:-.03em}
 .auth-subtitle{font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-8);max-width:28ch;margin-inline:auto}
 .auth-loading{display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8) 0;color:var(--color-text-muted);font-size:var(--text-sm)}
 
-/* Lists grid & cards — upgraded: larger gap + softer hover border */
+/* Lists grid & cards */
 .lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--space-5)}
-.list-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);cursor:pointer;transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;position:relative}
-/* Upgraded: hover uses softer primary-highlight border instead of full primary */
+
+/* List card — colored top accent border cycling through accent palette */
+.list-card{
+  background:var(--color-surface);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-lg);
+  padding:var(--space-5);
+  padding-top:calc(var(--space-5) + 3px);
+  box-shadow:var(--shadow-sm);
+  cursor:pointer;
+  transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;
+  position:relative;
+  overflow:hidden;
+}
+/* Top accent stripe — injected via nth-child cycling */
+.list-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background:var(--card-accent, var(--accent-1));
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+}
+.list-card:nth-child(5n+1){--card-accent:var(--accent-1)}
+.list-card:nth-child(5n+2){--card-accent:var(--accent-2)}
+.list-card:nth-child(5n+3){--card-accent:var(--accent-3)}
+.list-card:nth-child(5n+4){--card-accent:var(--accent-4)}
+.list-card:nth-child(5n+5){--card-accent:var(--accent-5)}
 .list-card:hover{box-shadow:var(--shadow-md);border-color:oklch(from var(--color-primary) l c h/.4);transform:translateY(-1px)}
 .list-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--space-3)}
 .list-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text);padding-right:calc(36px * 2 + var(--space-1) + var(--space-2))}
 .list-card-meta{font-size:var(--text-xs);color:var(--color-text-muted);display:flex;gap:var(--space-3);margin-top:var(--space-2)}
 .list-card-progress{height:4px;background:var(--color-surface-offset);border-radius:var(--radius-full);margin-top:var(--space-3);overflow:hidden}
-.list-card-progress-bar{height:100%;background:var(--color-primary);border-radius:var(--radius-full);transition:width .4s ease}
+.list-card-progress-bar{height:100%;background:linear-gradient(90deg,var(--color-primary),var(--color-success));border-radius:var(--radius-full);transition:width .4s ease}
 .list-card-actions{position:absolute;top:var(--space-3);right:var(--space-3);display:flex;gap:var(--space-1);z-index:1}
 
 /* Template cards */
 .template-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;display:flex;flex-direction:column;gap:var(--space-3)}
 .template-card:hover{box-shadow:var(--shadow-md);border-color:oklch(from var(--color-primary) l c h/.4);transform:translateY(-1px)}
-.template-card-emoji{font-size:2rem;line-height:1}
+/* Template emoji in a colored pill background */
+.template-card-emoji{
+  font-size:1.6rem;line-height:1;
+  width:44px;height:44px;
+  background:var(--color-primary-highlight);
+  border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+}
 .template-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text)}
 .template-card-desc{font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5}
 .template-card-items{display:flex;flex-wrap:wrap;gap:var(--space-1);margin-top:var(--space-1)}
@@ -49,7 +88,7 @@
 .tpl-editor-add-row input{flex:1;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text)}
 .tpl-editor-add-row input:focus{outline:none;border-color:var(--color-primary)}
 
-/* About — commit history table — upgraded: consistent text-xs throughout */
+/* About — commit history table */
 .about-commit-table{width:100%;border-collapse:collapse;font-size:var(--text-xs)}
 .about-commit-table thead tr{background:var(--color-surface-offset)}
 .about-commit-table th{padding:var(--space-2) var(--space-4);text-align:left;font-weight:600;font-size:var(--text-xs);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--color-divider)}

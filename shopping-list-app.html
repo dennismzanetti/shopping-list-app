@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ShopList</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
@@ -164,7 +163,7 @@
       <div class="view" id="view-stores">
         <div class="page-header">
           <div><h1 class="page-title">Stores</h1><p class="page-subtitle">Your favorite grocery stores</p></div>
-          <button class="btn btn-primary" id="new-store-btn"><i data-lucide="plus"></i> Add Store</button>
+          <button class="btn btn-primary" id="new-store-btn"><i data-lucide="store"></i> Add Store</button>
         </div>
         <div class="lists-grid" id="stores-grid"></div>
       </div>
@@ -342,16 +341,11 @@
         <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
       </div>
       <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
-      <!-- Visibility toggle -->
       <div class="form-group">
         <label class="form-label">Visibility</label>
         <div class="vis-toggle" id="tpl-visibility" role="group" aria-label="Template visibility">
-          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true">
-            <i data-lucide="lock"></i> Private
-          </button>
-          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false">
-            <i data-lucide="globe"></i> Public
-          </button>
+          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true"><i data-lucide="lock"></i> Private</button>
+          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false"><i data-lucide="globe"></i> Public</button>
         </div>
       </div>
       <div class="form-group" style="margin-bottom:0;">
@@ -361,9 +355,7 @@
         </div>
         <div class="tpl-editor-items" id="tpl-editor-items"></div>
         <div style="margin-top:var(--space-3);">
-          <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);">
-            <i data-lucide="plus"></i> Add Item
-          </button>
+          <button class="btn btn-ghost" id="tpl-add-item-btn" style="width:100%;justify-content:center;border:1px dashed var(--color-border);"><i data-lucide="plus"></i> Add Item</button>
         </div>
       </div>
     </div>
@@ -440,16 +432,11 @@
       <div class="form-group"><label class="form-label" for="new-list-store">Default store <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
         <select class="form-select" id="new-list-store"></select>
       </div>
-      <!-- Visibility toggle -->
       <div class="form-group" style="margin-bottom:0;">
         <label class="form-label">Visibility</label>
         <div class="vis-toggle" id="new-list-visibility" role="group" aria-label="List visibility">
-          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true">
-            <i data-lucide="lock"></i> Private
-          </button>
-          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false">
-            <i data-lucide="globe"></i> Public
-          </button>
+          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true"><i data-lucide="lock"></i> Private</button>
+          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false"><i data-lucide="globe"></i> Public</button>
         </div>
       </div>
     </div>
