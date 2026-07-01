@@ -22,6 +22,7 @@ import { initConfirm, confirmDelete }                   from './confirm.js';
 import { initExportImport }                             from './export-import.js';
 import { renderTemplates, initTemplates,
          openTemplateEditor }                           from './templates.js';
+import { initVisToggle, setVisToggleValue, getVisToggleValue } from './lists-crud.js';
 import { createIcons }                                  from './utils.js';
 
 // ---------------------------------------------------------------------------
@@ -141,15 +142,18 @@ function initNavigation() {
 // New-list modal
 // ---------------------------------------------------------------------------
 function initNewListModal() {
-  const btn      = document.getElementById('new-list-btn');
-  const emptyBtn = document.getElementById('empty-new-list-btn');
+  const btn       = document.getElementById('new-list-btn');
+  const emptyBtn  = document.getElementById('empty-new-list-btn');
   const createBtn = document.getElementById('create-list-btn');
   const nameInput = document.getElementById('new-list-name');
   const storeSelect = document.getElementById('new-list-store');
 
+  initVisToggle('new-list-visibility');
+
   const open = () => {
     populateStoreSelect(state.allStores);
     if (nameInput) nameInput.value = '';
+    setVisToggleValue('new-list-visibility', 'private');
     openModal('modal-new-list');
     setTimeout(() => nameInput?.focus(), 50);
   };
@@ -161,10 +165,12 @@ function initNewListModal() {
     createBtn.addEventListener('click', async () => {
       const name = nameInput?.value.trim();
       if (!name) { showToast('List name is required', 'error'); return; }
+      const visibility = getVisToggleValue('new-list-visibility');
       try {
         const ref = await addDoc(listsCol(), {
           name,
           store: storeSelect?.value || '',
+          visibility,
           createdAt: serverTimestamp(),
           itemCount: 0,
           checkedCount: 0
