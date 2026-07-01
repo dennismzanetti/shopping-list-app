@@ -83,10 +83,11 @@
   gap:var(--space-4);
 }
 
-/* Visibility toggle inside the editor form — prevent it from stretching full width */
-#view-template-editor .vis-toggle{
-  align-self:flex-start;
-  width:auto;
+/* Visibility toggle — prevent stretching full width in editor views */
+#view-template-editor .vis-toggle,
+#view-list-detail .vis-toggle {
+  align-self: flex-start;
+  width: auto;
 }
 
 .tpl-editor-items{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3)}
