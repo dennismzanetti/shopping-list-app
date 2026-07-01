@@ -24,6 +24,7 @@ import { renderTemplates, initTemplates,
          openTemplateEditor }                           from './templates.js';
 import { initVisToggle, setVisToggleValue, getVisToggleValue } from './lists-crud.js';
 import { createIcons }                                  from './utils.js';
+import { printList }                                    from './print.js';
 
 // ---------------------------------------------------------------------------
 // Firestore collection helpers
@@ -304,6 +305,7 @@ function initCatStoreModals() {
 function initListDetailNav() {
   const backBtn   = document.getElementById('back-to-lists');
   const deleteBtn = document.getElementById('detail-delete-btn');
+  const printBtn  = document.getElementById('print-list-btn');
 
   if (backBtn) backBtn.addEventListener('click', () => {
     if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
@@ -319,6 +321,8 @@ function initListDetailNav() {
     if (!state.currentListId) return;
     confirmDelete('list', state.currentListId);
   });
+
+  if (printBtn) printBtn.addEventListener('click', () => printList());
 }
 
 // ---------------------------------------------------------------------------
