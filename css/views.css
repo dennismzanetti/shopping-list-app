@@ -1,0 +1,76 @@
+/* View switching */
+.view{display:none}
+.view.active{display:block}
+
+/* Auth */
+.auth-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:var(--color-bg);padding:var(--space-4)}
+.auth-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:var(--space-10) var(--space-8);width:100%;max-width:400px;text-align:center}
+.auth-logo{width:56px;height:56px;background:var(--color-primary);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-5);color:var(--color-text-inverse)}
+.auth-title{font-family:var(--font-display);font-size:var(--text-xl);color:var(--color-text);margin-bottom:var(--space-2)}
+.auth-subtitle{font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-8);max-width:28ch;margin-inline:auto}
+.auth-loading{display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8) 0;color:var(--color-text-muted);font-size:var(--text-sm)}
+
+/* Lists grid */
+.lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--space-4)}
+.list-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);cursor:pointer;transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;position:relative}
+.list-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary);transform:translateY(-1px)}
+.list-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--space-3)}
+.list-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text);padding-right:calc(36px * 2 + var(--space-1) + var(--space-2))}
+.list-card-meta{font-size:var(--text-xs);color:var(--color-text-muted);display:flex;gap:var(--space-3);margin-top:var(--space-2)}
+.list-card-progress{height:4px;background:var(--color-surface-offset);border-radius:var(--radius-full);margin-top:var(--space-3);overflow:hidden}
+.list-card-progress-bar{height:100%;background:var(--color-primary);border-radius:var(--radius-full);transition:width .4s ease}
+.list-card-actions{position:absolute;top:var(--space-3);right:var(--space-3);display:flex;gap:var(--space-1);z-index:1}
+
+/* Templates */
+.template-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;display:flex;flex-direction:column;gap:var(--space-3)}
+.template-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary);transform:translateY(-1px)}
+.template-card-emoji{font-size:2rem;line-height:1}
+.template-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text)}
+.template-card-desc{font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5}
+.template-card-items{display:flex;flex-wrap:wrap;gap:var(--space-1);margin-top:var(--space-1)}
+.template-item-chip{font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-text-muted);padding:2px 8px;border-radius:var(--radius-full)}
+.template-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:var(--space-3);border-top:1px solid var(--color-divider)}
+.template-item-count{font-size:var(--text-xs);color:var(--color-text-faint)}
+.template-card-edit-btn{color:var(--color-text-faint);transition:color var(--transition-interactive)}
+.template-card-edit-btn:hover{color:var(--color-primary)}
+.tag-chip{display:inline-flex;align-items:center;font-size:var(--text-xs);background:var(--color-primary-highlight);color:var(--color-primary);padding:1px 7px;border-radius:var(--radius-full);font-weight:500}
+
+/* Template editor */
+.tpl-editor-items{display:flex;flex-direction:column;gap:var(--space-2);max-height:320px;overflow-y:auto;margin-bottom:var(--space-3)}
+.tpl-editor-item{display:grid;grid-template-columns:1fr auto auto auto auto;gap:var(--space-2);align-items:center;padding:var(--space-2) var(--space-3);background:var(--color-surface-offset);border-radius:var(--radius-md);border:1px solid var(--color-border)}
+.tpl-editor-item input,.tpl-editor-item select{padding:var(--space-1) var(--space-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface);font-size:var(--text-xs);color:var(--color-text)}
+.tpl-editor-item input:focus,.tpl-editor-item select:focus{outline:none;border-color:var(--color-primary)}
+.tpl-editor-item .item-name-input{grid-column:1;min-width:0}
+.tpl-editor-item .item-qty-input{width:60px}
+.tpl-editor-item .item-store-select{width:110px}
+.tpl-editor-item .item-tags-input{width:120px}
+.tpl-editor-add-row{display:flex;gap:var(--space-2);margin-top:var(--space-2)}
+.tpl-editor-add-row input{flex:1;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text)}
+.tpl-editor-add-row input:focus{outline:none;border-color:var(--color-primary)}
+
+/* Emoji picker */
+.emoji-picker-wrap{position:relative}
+.emoji-picker-btn{width:100%;aspect-ratio:1;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);transition:border-color var(--transition-interactive),box-shadow var(--transition-interactive);cursor:pointer;padding:0}
+.emoji-picker-btn:hover{border-color:var(--color-primary);box-shadow:0 0 0 3px oklch(from var(--color-primary) l c h/.1)}
+.emoji-picker-popover{position:absolute;top:calc(100% + var(--space-2));left:0;z-index:200;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:260px;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity var(--transition-interactive),transform var(--transition-interactive)}
+.emoji-picker-popover.open{opacity:1;pointer-events:all;transform:translateY(0)}
+.emoji-picker-inner{padding:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);max-height:300px;overflow-y:auto}
+.emoji-picker-section-label{font-size:var(--text-xs);font-weight:600;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:.07em;padding:var(--space-1) 0 2px}
+.emoji-picker-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--space-1)}
+.emoji-option{font-size:1.3rem;line-height:1;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid transparent;background:none;cursor:pointer;transition:background var(--transition-interactive),border-color var(--transition-interactive);padding:0}
+.emoji-option:hover{background:var(--color-surface-offset);border-color:var(--color-border)}
+.emoji-option:active{background:var(--color-primary-highlight);border-color:var(--color-primary)}
+
+/* About — commit history table */
+.about-commit-table{width:100%;border-collapse:collapse;font-size:var(--text-xs)}
+.about-commit-table thead tr{background:var(--color-surface-offset)}
+.about-commit-table th{padding:var(--space-2) var(--space-4);text-align:left;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--color-divider)}
+.about-commit-table td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-divider);vertical-align:top;color:var(--color-text)}
+.about-commit-table tbody tr:last-child td{border-bottom:none}
+.about-commit-table tbody tr:hover{background:var(--color-surface-offset)}
+.about-commit-table .col-date{width:180px;white-space:nowrap;color:var(--color-text-muted)}
+.about-commit-table .col-sha{width:120px}
+.about-commit-table .col-msg{word-break:break-word}
+.commit-sha-pill{display:inline-block;font-family:monospace;font-size:.7rem;background:var(--color-surface-offset);color:var(--color-primary);padding:2px 6px;border-radius:var(--radius-sm);border:1px solid var(--color-border);letter-spacing:.02em;cursor:default}
+.commit-sha-pill a{color:inherit;text-decoration:none}
+.commit-sha-pill a:hover{text-decoration:underline}
