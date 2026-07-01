@@ -237,7 +237,7 @@ function initCatStoreModals() {
     if (catNameIn)  catNameIn.value  = '';
     if (catEmojiIn) catEmojiIn.value = '';
     const emojiBtn = document.getElementById('cat-emoji-btn');
-    if (emojiBtn) emojiBtn.textContent = '🏷️';
+    if (emojiBtn) emojiBtn.textContent = '\uD83C\uDFF7\uFE0F';
     openModal('modal-new-category');
     setTimeout(() => catNameIn?.focus(), 50);
   });
@@ -300,12 +300,13 @@ function initCatStoreModals() {
 }
 
 // ---------------------------------------------------------------------------
-// Back button on list detail view
+// Back button + delete + visibility toggle on list detail view
 // ---------------------------------------------------------------------------
 function initListDetailNav() {
   const backBtn   = document.getElementById('back-to-lists');
   const deleteBtn = document.getElementById('detail-delete-btn');
   const printBtn  = document.getElementById('print-list-btn');
+  const visToggle = document.getElementById('detail-visibility-toggle');
 
   if (backBtn) backBtn.addEventListener('click', () => {
     if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
@@ -323,6 +324,30 @@ function initListDetailNav() {
   });
 
   if (printBtn) printBtn.addEventListener('click', () => printList());
+
+  // Visibility toggle — saves to Firestore on click
+  if (visToggle) {
+    visToggle.querySelectorAll('.vis-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!state.currentListId) return;
+        const newVis = btn.dataset.value;
+        // Optimistic UI update
+        visToggle.querySelectorAll('.vis-toggle-btn').forEach(b => {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        try {
+          await updateDoc(doc(listsCol(), state.currentListId), { visibility: newVis });
+          showToast(
+            newVis === 'public' ? 'List set to Public' : 'List set to Private',
+            'success'
+          );
+        } catch (e) {
+          showToast('Error: ' + e.message, 'error');
+        }
+      });
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -401,8 +426,8 @@ function setUserUI(user) {
   });
   const nameEl  = document.getElementById('settings-name');
   const emailEl = document.getElementById('settings-email');
-  if (nameEl)  nameEl.textContent  = user.displayName || '—';
-  if (emailEl) emailEl.textContent = user.email || '—';
+  if (nameEl)  nameEl.textContent  = user.displayName || '\u2014';
+  if (emailEl) emailEl.textContent = user.email || '\u2014';
 }
 
 // ---------------------------------------------------------------------------

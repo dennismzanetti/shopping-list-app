@@ -121,7 +121,16 @@
             <h1 class="page-title" id="detail-list-name">List Name</h1>
             <p class="page-subtitle" id="detail-list-store"></p>
           </div>
-          <div style="display:flex;gap:var(--space-2);align-items:center;">
+          <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
+            <!-- Visibility toggle pill -->
+            <div class="vis-toggle" id="detail-visibility-toggle" aria-label="List visibility">
+              <button type="button" class="vis-toggle-btn active" data-value="private" id="detail-vis-private">
+                <i data-lucide="lock"></i> Private
+              </button>
+              <button type="button" class="vis-toggle-btn" data-value="public" id="detail-vis-public">
+                <i data-lucide="users"></i> Public
+              </button>
+            </div>
             <button class="btn btn-primary btn-sm" id="add-item-quick-btn"><i data-lucide="plus"></i> Add Item</button>
             <button class="btn btn-ghost btn-sm" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete List</button>
           </div>
@@ -153,7 +162,7 @@
       <div class="view" id="view-categories">
         <div class="page-header">
           <div><h1 class="page-title">Categories</h1><p class="page-subtitle">Organize items by category</p></div>
-          <button class="btn btn-primary" id="new-category-btn"><i data-lucide="plus"></i> Add Category</button>
+          <button class="btn btn-primary" id="new-category-btn"><i data-lucide="tag"></i> Add Category</button>
         </div>
         <div class="lists-grid" id="categories-grid"></div>
       </div>
@@ -248,7 +257,7 @@
         <label class="form-label">Visibility</label>
         <div class="vis-toggle" id="new-list-visibility">
           <button type="button" class="vis-toggle-btn active" data-value="private"><i data-lucide="lock"></i> Private</button>
-          <button type="button" class="vis-toggle-btn" data-value="shared"><i data-lucide="users"></i> Shared</button>
+          <button type="button" class="vis-toggle-btn" data-value="public"><i data-lucide="users"></i> Public</button>
         </div>
       </div>
     </div>
