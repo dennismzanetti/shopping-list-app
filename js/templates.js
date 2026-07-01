@@ -33,6 +33,26 @@ function getTplItemSelectedStores() {
   ).map(cb => cb.value);
 }
 
+// -- Visibility toggle --------------------------------------------------------
+function getVisibilityValue() {
+  const active = document.querySelector('#tpl-visibility .vis-toggle-btn.active');
+  return active?.dataset.value || 'private';
+}
+
+function setVisibilityValue(val) {
+  document.querySelectorAll('#tpl-visibility .vis-toggle-btn').forEach(btn => {
+    const isActive = btn.dataset.value === val;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function initVisibilityToggle() {
+  document.querySelectorAll('#tpl-visibility .vis-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => setVisibilityValue(btn.dataset.value));
+  });
+}
+
 // -- Emoji Picker -------------------------------------------------------------
 function initEmojiPicker() {
   const btn     = document.getElementById('tpl-emoji-btn');
@@ -178,6 +198,7 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
+  setVisibilityValue(tpl ? (tpl.visibility || 'private') : 'private');
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
   window.openModal('modal-template-editor');
@@ -321,6 +342,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
                                  listsCol, itemsCol, writeBatch, db }) {
 
   initEmojiPicker();
+  initVisibilityToggle();
 
   document.getElementById('new-template-btn').addEventListener('click', () =>
     openTemplateEditor(null, { buildCategoryOptions })
@@ -342,13 +364,11 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     if (!name) { window.showToast('Template name is required', 'error'); return; }
     const data = {
       name,
-      emoji: document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDED2',
-      desc:  document.getElementById('tpl-desc').value.trim(),
-      items: state.tplEditorItems,
-      visibility: state.editingTemplateId
-        ? (state.allTemplates.find(t => t.id === state.editingTemplateId)?.visibility || 'private')
-        : 'private',
-      updatedAt: serverTimestamp()
+      emoji:      document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDED2',
+      desc:       document.getElementById('tpl-desc').value.trim(),
+      items:      state.tplEditorItems,
+      visibility: getVisibilityValue(),
+      updatedAt:  serverTimestamp()
     };
     try {
       if (state.editingTemplateId) {
