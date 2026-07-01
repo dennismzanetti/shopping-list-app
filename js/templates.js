@@ -1,5 +1,6 @@
 import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
+import { initVisToggle, setVisToggleValue } from './lists-crud.js';
 
 // -- Helpers ------------------------------------------------------------------
 export function normaliseItem(it) {
@@ -156,11 +157,17 @@ export function renderTemplates(onEdit) {
       return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
     }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
+    const sharedBadge = t.visibility === 'public'
+      ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Shared</span>`
+      : '';
     return `<div class="template-card" data-tpl-id="${t.id}" style="cursor:pointer;" title="Edit template">
       <div class="template-card-emoji">${t.emoji || '\uD83D\uDCCB'}</div>
       <div><div class="template-card-title">${escHtml(t.name)}</div><div class="template-card-desc">${escHtml(t.desc || '')}</div></div>
       <div class="template-card-items">${chips}${moreChip}</div>
-      <div class="template-card-footer"><span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span></div>
+      <div class="template-card-footer">
+        <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+        ${sharedBadge}
+      </div>
     </div>`;
   }).join('');
   grid.querySelectorAll('.template-card').forEach(card =>
@@ -178,6 +185,8 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
+  // Pre-populate visibility toggle
+  setVisToggleValue('tpl-visibility', tpl ? (tpl.visibility || 'private') : 'private');
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
   window.openModal('modal-template-editor');
@@ -321,6 +330,7 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
                                  listsCol, itemsCol, writeBatch, db }) {
 
   initEmojiPicker();
+  initVisToggle('tpl-visibility');
 
   document.getElementById('new-template-btn').addEventListener('click', () =>
     openTemplateEditor(null, { buildCategoryOptions })
@@ -340,14 +350,13 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
   document.getElementById('tpl-save-btn').addEventListener('click', async () => {
     const name = document.getElementById('tpl-name').value.trim();
     if (!name) { window.showToast('Template name is required', 'error'); return; }
+    const visibility = document.querySelector('#tpl-visibility .vis-toggle-btn.active')?.dataset.value || 'private';
     const data = {
       name,
       emoji: document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDED2',
       desc:  document.getElementById('tpl-desc').value.trim(),
       items: state.tplEditorItems,
-      visibility: state.editingTemplateId
-        ? (state.allTemplates.find(t => t.id === state.editingTemplateId)?.visibility || 'private')
-        : 'private',
+      visibility,
       updatedAt: serverTimestamp()
     };
     try {

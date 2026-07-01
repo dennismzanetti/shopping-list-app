@@ -10,7 +10,7 @@ export function renderLists(onOpen, onDelete) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
       <div class="empty-state-icon"><i data-lucide="shopping-cart"></i></div>
       <h3>No lists yet</h3><p>Create your first shopping list to get started.</p>
-      <button class="btn btn-primary" onclick="window.openModal('new-list-modal')">Create a list</button>
+      <button class="btn btn-primary" onclick="window.openModal('modal-new-list')">Create a list</button>
     </div>`;
     createIcons(); return;
   }
@@ -18,6 +18,9 @@ export function renderLists(onOpen, onDelete) {
     const total   = list.itemCount   || 0;
     const checked = list.checkedCount || 0;
     const pct     = total > 0 ? Math.round((checked / total) * 100) : 0;
+    const sharedBadge = list.visibility === 'public'
+      ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Shared</span>`
+      : '';
     return `
     <div class="list-card" data-list-id="${list.id}">
       <div class="list-card-header">
@@ -29,6 +32,7 @@ export function renderLists(onOpen, onDelete) {
       <h3 class="list-card-name">${escHtml(list.name)}</h3>
       <div class="list-card-meta">${total} item${total !== 1 ? 's' : ''} - ${checked} done</div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${sharedBadge ? `<div style="margin-top:var(--space-2);">${sharedBadge}</div>` : ''}
     </div>`;
   }).join('');
 

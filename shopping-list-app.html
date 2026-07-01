@@ -301,7 +301,7 @@
                   <button type="button" class="emoji-option" data-emoji="🍚">🍚</button>
                   <button type="button" class="emoji-option" data-emoji="🥫">🥫</button>
                   <button type="button" class="emoji-option" data-emoji="🧂">🧂</button>
-                  <button type="button" class="emoji-option" data-emoji="�ac99">�ac99</button>
+                  <button type="button" class="emoji-option" data-emoji="🫙">🫙</button>
                   <button type="button" class="emoji-option" data-emoji="🍯">🍯</button>
                 </div>
                 <div class="emoji-picker-section-label">Drinks</div>
@@ -341,6 +341,18 @@
         <div class="form-group"><label class="form-label">Template name *</label><input class="form-input" id="tpl-name" type="text" placeholder="e.g. Weekly Groceries"></div>
       </div>
       <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="tpl-desc" type="text" placeholder="A short description (optional)"></div>
+      <!-- Visibility toggle -->
+      <div class="form-group">
+        <label class="form-label">Visibility</label>
+        <div class="vis-toggle" id="tpl-visibility" role="group" aria-label="Template visibility">
+          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true">
+            <i data-lucide="lock"></i> Private
+          </button>
+          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false">
+            <i data-lucide="globe"></i> Public
+          </button>
+        </div>
+      </div>
       <div class="form-group" style="margin-bottom:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
           <label class="form-label" style="margin-bottom:0;">Items</label>
@@ -426,6 +438,18 @@
       <div class="form-group"><label class="form-label" for="new-list-name">List name *</label><input class="form-input" id="new-list-name" type="text" placeholder="e.g. Weekly Groceries"></div>
       <div class="form-group"><label class="form-label" for="new-list-store">Default store <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
         <select class="form-select" id="new-list-store"></select>
+      </div>
+      <!-- Visibility toggle -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Visibility</label>
+        <div class="vis-toggle" id="new-list-visibility" role="group" aria-label="List visibility">
+          <button type="button" class="vis-toggle-btn active" data-value="private" aria-pressed="true">
+            <i data-lucide="lock"></i> Private
+          </button>
+          <button type="button" class="vis-toggle-btn" data-value="public" aria-pressed="false">
+            <i data-lucide="globe"></i> Public
+          </button>
+        </div>
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-new-list')">Cancel</button><button class="btn btn-primary" id="create-list-btn"><i data-lucide="plus"></i> Create List</button></div>
@@ -521,7 +545,7 @@
                 <button type="button" class="emoji-option" data-emoji="🍚">🍚</button>
                 <button type="button" class="emoji-option" data-emoji="🥫">🥫</button>
                 <button type="button" class="emoji-option" data-emoji="🧂">🧂</button>
-                <button type="button" class="emoji-option" data-emoji="�ac99">�ac99</button>
+                <button type="button" class="emoji-option" data-emoji="🫙">🫙</button>
                 <button type="button" class="emoji-option" data-emoji="🍯">🍯</button>
               </div>
               <div class="emoji-picker-section-label">Drinks</div>
