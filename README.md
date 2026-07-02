@@ -1,5 +1,5 @@
 # ShopList
-
+d. zanetti
 A web app for managing shopping lists, built with HTML, JavaScript, and Firebase.
 
 ---
