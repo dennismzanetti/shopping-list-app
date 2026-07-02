@@ -3,41 +3,6 @@
 
 import { escHtml, createIcons } from './utils.js';
 
-// Shared compact emoji list for the inline picker
-const INLINE_EMOJIS = [
-  '🍎','🍊','🍋','🍇','🍓','🥦','🥕','🥑','🌽','🍅','🧅','🧄','🥬',
-  '🥩','🍗','🥚','🧀','🥛','🧈',
-  '🍞','🥐','🥖','🧁','🎂',
-  '🍝','🍚','🥫','🧂','🫙','🍯',
-  '☕','🧃','🍷','🍺','💧',
-  '🧹','🧺','🧻','🧼','🪥','🏠',
-  '💊','🩺','🌿',
-  '🛒','🛍️','📋','🧾','💳',
-  '🐶','🐱','🐾','🦴','🐟','🐦','🐇','🐹','🐠','🦮',
-  '⭐','❤️','🎉','📦','🏷️','🥗'
-];
-
-function buildInlineEmojiPicker(currentEmoji, inputId, btnId) {
-  return `
-    <div class="inline-emoji-wrap" style="position:relative;display:inline-flex;align-items:center;">
-      <button type="button" class="inline-emoji-btn" id="${btnId}" title="Change emoji"
-        style="font-size:1.2rem;background:none;border:none;cursor:pointer;padding:0 2px;line-height:1;">
-        ${currentEmoji || '🏷️'}
-      </button>
-      <div class="inline-emoji-popover" id="${btnId}-popover"
-        style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;
-               background:var(--color-surface-2);border:1px solid var(--color-border);
-               border-radius:var(--radius-md);padding:var(--space-2);box-shadow:var(--shadow-md);
-               display:none;flex-wrap:wrap;gap:2px;width:220px;">
-        ${INLINE_EMOJIS.map(em =>
-          `<button type="button" class="inline-emoji-opt" data-emoji="${em}"
-            style="font-size:1.1rem;background:none;border:none;cursor:pointer;padding:2px;border-radius:4px;">${em}</button>`
-        ).join('')}
-      </div>
-      <input type="hidden" id="${inputId}" value="${escHtml(currentEmoji || '')}">
-    </div>`;
-}
-
 // -- Categories ---------------------------------------------------------------
 export function renderCategories(allCategories, onDelete, onUpdate) {
   const grid = document.getElementById('categories-grid');
@@ -51,11 +16,17 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
     <div class="card" data-cat-id="${cat.id}">
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);">
         <div class="cat-display" style="display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
-          <span class="cat-emoji-display" style="font-size:1.1rem;">${cat.emoji || '🏷️'}</span>
+          <span class="cat-emoji-display" style="font-size:1.1rem;">${cat.emoji || '\uD83C\uDFF7\uFE0F'}</span>
           <span class="cat-name-display" style="font-size:var(--text-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(cat.name)}</span>
         </div>
         <div class="cat-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
-          ${buildInlineEmojiPicker(cat.emoji, `cat-edit-emoji-${cat.id}`, `cat-emoji-btn-${cat.id}`)}
+          <button type="button" class="cat-emoji-picker-btn"
+            id="cat-emoji-btn-${cat.id}"
+            title="Change emoji"
+            style="font-size:1.2rem;background:none;border:1px solid var(--color-border);border-radius:var(--radius-sm);cursor:pointer;padding:2px 6px;line-height:1;flex-shrink:0;">
+            ${cat.emoji || '\uD83C\uDFF7\uFE0F'}
+          </button>
+          <input type="hidden" id="cat-edit-emoji-${cat.id}" value="${escHtml(cat.emoji || '')}">
           <input class="form-input cat-name-input" data-cat-name-input="${cat.id}"
             value="${escHtml(cat.name)}"
             style="flex:1;min-width:0;padding:var(--space-1) var(--space-2);font-size:var(--text-sm);height:32px;">
@@ -89,27 +60,25 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
     const nameInput  = card.querySelector('[data-cat-name-input]');
     const emojiInput = card.querySelector(`#cat-edit-emoji-${cat.id}`);
     const emojiBtn   = card.querySelector(`#cat-emoji-btn-${cat.id}`);
-    const popover    = card.querySelector(`#cat-emoji-btn-${cat.id}-popover`);
 
     function enterEdit() {
-      display.style.display  = 'none';
-      editRow.style.display  = 'flex';
-      editBtn.style.display  = 'none';
+      display.style.display   = 'none';
+      editRow.style.display   = 'flex';
+      editBtn.style.display   = 'none';
       deleteBtn.style.display = 'none';
-      saveBtn.style.display  = '';
+      saveBtn.style.display   = '';
       cancelBtn.style.display = '';
       nameInput.focus();
       nameInput.select();
     }
 
     function exitEdit() {
-      display.style.display  = '';
-      editRow.style.display  = 'none';
-      editBtn.style.display  = '';
+      display.style.display   = '';
+      editRow.style.display   = 'none';
+      editBtn.style.display   = '';
       deleteBtn.style.display = '';
-      saveBtn.style.display  = 'none';
+      saveBtn.style.display   = 'none';
       cancelBtn.style.display = 'none';
-      if (popover) popover.style.display = 'none';
     }
 
     async function doSave() {
@@ -134,23 +103,23 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
     });
 
-    if (emojiBtn && popover) {
+    // Wire emoji button to the shared full-screen picker
+    if (emojiBtn && emojiInput) {
       emojiBtn.addEventListener('click', e => {
         e.stopPropagation();
-        const isOpen = popover.style.display === 'flex';
-        popover.style.display = isOpen ? 'none' : 'flex';
+        if (window.openEmojiPicker) {
+          window.openEmojiPicker(`cat-edit-emoji-${cat.id}`, `cat-emoji-btn-${cat.id}`);
+        }
       });
-      popover.querySelectorAll('.inline-emoji-opt').forEach(opt => {
-        opt.addEventListener('click', () => {
-          if (emojiInput) emojiInput.value = opt.dataset.emoji;
-          emojiBtn.textContent = opt.dataset.emoji;
-          popover.style.display = 'none';
-        });
+      // Keep button label in sync when picker writes to the hidden input
+      const observer = new MutationObserver(() => {
+        emojiBtn.textContent = emojiInput.value || '\uD83C\uDFF7\uFE0F';
       });
-      document.addEventListener('click', e => {
-        if (!emojiBtn.contains(e.target) && !popover.contains(e.target))
-          popover.style.display = 'none';
-      }, { passive: true });
+      observer.observe(emojiInput, { attributes: true, attributeFilter: ['value'] });
+      // Also sync via input event (openEmojiPicker sets .value directly)
+      emojiInput.addEventListener('change', () => {
+        emojiBtn.textContent = emojiInput.value || '\uD83C\uDFF7\uFE0F';
+      });
     }
   });
 
@@ -168,10 +137,18 @@ export function renderStores(allStores, onDelete, onUpdate) {
   grid.innerHTML = allStores.map(store => `
     <div class="card" data-store-id="${store.id}">
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);">
-        <div class="store-display" style="flex:1;min-width:0;">
-          <span class="store-name-display" style="font-size:var(--text-sm);font-weight:600;">${escHtml(store.name)}</span>
+        <div class="store-display" style="display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
+          <span class="store-emoji-display" style="font-size:1.1rem;">${store.emoji || '\uD83C\uDFEA'}</span>
+          <span class="store-name-display" style="font-size:var(--text-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(store.name)}</span>
         </div>
         <div class="store-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
+          <button type="button" class="store-emoji-picker-btn"
+            id="store-emoji-btn-${store.id}"
+            title="Change emoji"
+            style="font-size:1.2rem;background:none;border:1px solid var(--color-border);border-radius:var(--radius-sm);cursor:pointer;padding:2px 6px;line-height:1;flex-shrink:0;">
+            ${store.emoji || '\uD83C\uDFEA'}
+          </button>
+          <input type="hidden" id="store-edit-emoji-${store.id}" value="${escHtml(store.emoji || '')}">
           <input class="form-input store-name-input" data-store-name-input="${store.id}"
             value="${escHtml(store.name)}"
             style="flex:1;min-width:0;padding:var(--space-1) var(--space-2);font-size:var(--text-sm);height:32px;">
@@ -203,34 +180,37 @@ export function renderStores(allStores, onDelete, onUpdate) {
     const cancelBtn = card.querySelector('[data-cancel-store]');
     const deleteBtn = card.querySelector('[data-delete-store]');
     const nameInput = card.querySelector('[data-store-name-input]');
+    const emojiInput = card.querySelector(`#store-edit-emoji-${store.id}`);
+    const emojiBtn   = card.querySelector(`#store-emoji-btn-${store.id}`);
 
     function enterEdit() {
-      display.style.display  = 'none';
-      editRow.style.display  = 'flex';
-      editBtn.style.display  = 'none';
+      display.style.display   = 'none';
+      editRow.style.display   = 'flex';
+      editBtn.style.display   = 'none';
       deleteBtn.style.display = 'none';
-      saveBtn.style.display  = '';
+      saveBtn.style.display   = '';
       cancelBtn.style.display = '';
       nameInput.focus();
       nameInput.select();
     }
 
     function exitEdit() {
-      display.style.display  = '';
-      editRow.style.display  = 'none';
-      editBtn.style.display  = '';
+      display.style.display   = '';
+      editRow.style.display   = 'none';
+      editBtn.style.display   = '';
       deleteBtn.style.display = '';
-      saveBtn.style.display  = 'none';
+      saveBtn.style.display   = 'none';
       cancelBtn.style.display = 'none';
     }
 
     async function doSave() {
-      const newName = nameInput.value.trim();
+      const newName  = nameInput.value.trim();
+      const newEmoji = emojiInput ? emojiInput.value.trim() : store.emoji || '';
       if (!newName) { window.showToast('Name cannot be empty', 'error'); return; }
       const duplicate = window._state?.allStores?.some(s => s.id !== store.id && s.name.toLowerCase() === newName.toLowerCase());
       if (duplicate) { window.showToast('Store already exists', 'error'); return; }
       try {
-        await onUpdate(store.id, { name: newName });
+        await onUpdate(store.id, { name: newName, emoji: newEmoji });
         window.showToast('Store updated', 'success');
       } catch(e) { window.showToast('Error: ' + e.message, 'error'); }
     }
@@ -244,6 +224,19 @@ export function renderStores(allStores, onDelete, onUpdate) {
       if (e.key === 'Enter')  { e.preventDefault(); doSave(); }
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
     });
+
+    // Wire emoji button to the shared full-screen picker
+    if (emojiBtn && emojiInput) {
+      emojiBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (window.openEmojiPicker) {
+          window.openEmojiPicker(`store-edit-emoji-${store.id}`, `store-emoji-btn-${store.id}`);
+        }
+      });
+      emojiInput.addEventListener('change', () => {
+        emojiBtn.textContent = emojiInput.value || '\uD83C\uDFEA';
+      });
+    }
   });
 
   createIcons();
@@ -251,7 +244,6 @@ export function renderStores(allStores, onDelete, onUpdate) {
 
 /**
  * Render store pills (checkbox labels) into a container.
- * Replaces the old populateStoreSelect (which used a <select>).
  * @param {string} containerId - ID of the .store-checkboxes div
  * @param {Array}  allStores   - array of { id, name, emoji } objects
  * @param {Array}  [selected]  - array of store names that should be pre-checked
