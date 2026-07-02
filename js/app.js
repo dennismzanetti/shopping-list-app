@@ -86,7 +86,8 @@ function doRenderLists() {
       onSnapshot,
       itemsCol,
       renderItems: doRenderItems,
-      updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
+      updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
+      openEmojiPicker,
     }),
     (type, id) => confirmDelete(type, id)
   );
@@ -230,7 +231,8 @@ function initNewListModal() {
           onSnapshot,
           itemsCol,
           renderItems: doRenderItems,
-          updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
+          updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
+          openEmojiPicker,
         });
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     });
@@ -404,7 +406,8 @@ function startListeners() {
           openList(hashId, {
             navigateTo, setHashListId, onSnapshot, itemsCol,
             renderItems: doRenderItems,
-            updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc })
+            updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
+            openEmojiPicker,
           });
         }
       }
