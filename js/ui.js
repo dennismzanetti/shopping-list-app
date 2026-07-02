@@ -20,7 +20,12 @@ window.closeModal = closeModal;
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 export function showToast(msg, type = 'info') {
-  const container = document.getElementById('toast-container');
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
   const toast     = document.createElement('div');
   toast.className = 'toast ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '');
   const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
