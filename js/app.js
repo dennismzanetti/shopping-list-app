@@ -62,6 +62,25 @@ function getHashListId() {
 }
 
 // ---------------------------------------------------------------------------
+// Shared openList options builder
+// ---------------------------------------------------------------------------
+function openListOpts() {
+  return {
+    navigateTo,
+    setHashListId,
+    onSnapshot,
+    itemsCol,
+    renderItems: doRenderItems,
+    updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
+    openEmojiPicker,
+    updateDoc,
+    doc,
+    listsCol,
+    showToast,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Render helpers (called after each Firestore snapshot)
 // ---------------------------------------------------------------------------
 function doRenderItems() {
@@ -80,15 +99,7 @@ function doRenderItems() {
 
 function doRenderLists() {
   renderLists(
-    (id) => openList(id, {
-      navigateTo,
-      setHashListId,
-      onSnapshot,
-      itemsCol,
-      renderItems: doRenderItems,
-      updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
-      openEmojiPicker,
-    }),
+    (id) => openList(id, openListOpts()),
     (type, id) => confirmDelete(type, id)
   );
   // Update badges
@@ -225,15 +236,7 @@ function initNewListModal() {
           checkedCount: 0
         });
         closeModal('modal-new-list');
-        openList(ref.id, {
-          navigateTo,
-          setHashListId,
-          onSnapshot,
-          itemsCol,
-          renderItems: doRenderItems,
-          updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
-          openEmojiPicker,
-        });
+        openList(ref.id, openListOpts());
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     });
   }
@@ -248,12 +251,19 @@ function initNewListModal() {
 // ---------------------------------------------------------------------------
 function initItemModal() {
   const addBtn  = document.getElementById('add-item-quick-btn');
+  const addBottomBtn = document.getElementById('add-item-bottom-btn');
   const saveBtn = document.getElementById('save-item-btn');
   const delBtn  = document.getElementById('delete-item-btn');
 
-  if (addBtn)  addBtn.addEventListener('click',  () => openAddItemModal(buildCategoryOptions));
-  if (saveBtn) saveBtn.addEventListener('click', () => saveItem({ itemsCol, getSelectedStores }));
-  if (delBtn)  delBtn.addEventListener('click',  () => deleteItem({ itemsCol }));
+  if (addBtn)       addBtn.addEventListener('click',       () => openAddItemModal(buildCategoryOptions));
+  if (addBottomBtn) addBottomBtn.addEventListener('click', () => openAddItemModal(buildCategoryOptions));
+  if (saveBtn)      saveBtn.addEventListener('click',      () => saveItem({ itemsCol, getSelectedStores }));
+  if (delBtn)       delBtn.addEventListener('click',       () => deleteItem({ itemsCol }));
+
+  const cancelBtn = document.getElementById('item-modal-cancel');
+  const closeBtn  = document.getElementById('item-modal-close');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal('modal-add-item'));
+  if (closeBtn)  closeBtn.addEventListener('click',  () => closeModal('modal-add-item'));
 
   const nameInput = document.getElementById('item-name-full');
   if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn?.click(); });
@@ -403,12 +413,7 @@ function startListeners() {
         state.listsFirstLoad = false;
         const hashId = getHashListId();
         if (hashId && state.allLists.find(l => l.id === hashId)) {
-          openList(hashId, {
-            navigateTo, setHashListId, onSnapshot, itemsCol,
-            renderItems: doRenderItems,
-            updateListCounts: (lid) => updateListCounts(lid, { listsCol, updateDoc, doc }),
-            openEmojiPicker,
-          });
+          openList(hashId, openListOpts());
         }
       }
     },
