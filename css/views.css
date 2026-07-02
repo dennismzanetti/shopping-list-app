@@ -131,10 +131,12 @@
 .tpl-editor-add-row input:focus{outline:none;border-color:var(--color-primary)}
 
 /* ============================================================
-   PAGE HEADER — Option D: Bold Gradient Bar
-   Teal family: My Lists, List Detail, Add List, Edit List
-   Amber family: Templates, Template Editor
-   Other views (categories, stores, settings) keep default.
+   PAGE HEADER — Gradient Bars by View
+   Teal family:   My Lists, List Detail, Add List, Edit List
+   Amber family:  Templates, Template Editor
+   Purple family: Categories
+   Blue family:   Stores
+   Slate family:  Settings
    ============================================================ */
 
 /* Shared gradient header base — all styled views */
@@ -143,27 +145,17 @@
 #view-add-list .page-header,
 #view-edit-list .page-header,
 #view-templates .page-header,
-#view-template-editor .page-header {
+#view-template-editor .page-header,
+#view-categories .page-header,
+#view-stores .page-header,
+#view-settings .page-header {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
   margin-bottom: var(--space-2);
   color: #fff;
-  gap: var(--space-3);
-}
-
-/* Top row: icon+title block on the left, action buttons on the right */
-#view-lists .page-header > div,
-#view-list-detail .page-header .page-header-top,
-#view-template-editor .page-header .page-header-top,
-#view-add-list .page-header > div,
-#view-edit-list .page-header > div,
-#view-templates .page-header > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-4);
 }
 
@@ -181,13 +173,31 @@
   background: linear-gradient(120deg, #5a2e00 0%, #964219 60%, #c55700 100%);
 }
 
+/* Purple family — Categories */
+#view-categories .page-header {
+  background: linear-gradient(120deg, #2a1050 0%, #7a39bb 60%, #9b52e0 100%);
+}
+
+/* Blue family — Stores */
+#view-stores .page-header {
+  background: linear-gradient(120deg, #072a40 0%, #006494 60%, #0a7fbf 100%);
+}
+
+/* Slate family — Settings */
+#view-settings .page-header {
+  background: linear-gradient(120deg, #1a1916 0%, #3a3835 60%, #5a5855 100%);
+}
+
 /* page-title inside all gradient headers */
 #view-lists .page-header .page-title,
 #view-list-detail .page-header .page-title,
 #view-add-list .page-header .page-title,
 #view-edit-list .page-header .page-title,
 #view-templates .page-header .page-title,
-#view-template-editor .page-header .page-title {
+#view-template-editor .page-header .page-title,
+#view-categories .page-header .page-title,
+#view-stores .page-header .page-title,
+#view-settings .page-header .page-title {
   color: #fff;
   font-size: var(--text-xl);
   font-weight: 700;
@@ -200,29 +210,35 @@
 #view-add-list .page-header .page-subtitle,
 #view-edit-list .page-header .page-subtitle,
 #view-templates .page-header .page-subtitle,
-#view-template-editor .page-header .page-subtitle {
+#view-template-editor .page-header .page-subtitle,
+#view-categories .page-header .page-subtitle,
+#view-stores .page-header .page-subtitle,
+#view-settings .page-header .page-subtitle {
   color: rgba(255, 255, 255, 0.72);
   font-size: var(--text-sm);
   margin-top: var(--space-1);
 }
 
 /* Left side div: icon + text block */
-#view-lists .page-header > div > div:first-child,
-#view-list-detail .page-header .page-header-top > div:first-child,
-#view-template-editor .page-header .page-header-top > div:first-child,
-#view-add-list .page-header > div > div:first-child,
-#view-edit-list .page-header > div > div:first-child,
-#view-templates .page-header > div > div:first-child {
+#view-lists .page-header > div:first-child,
+#view-list-detail .page-header > div:first-child,
+#view-add-list .page-header > div:first-child,
+#view-edit-list .page-header > div:first-child,
+#view-templates .page-header > div:first-child,
+#view-template-editor .page-header > div:first-child,
+#view-categories .page-header > div:first-child,
+#view-stores .page-header > div:first-child,
+#view-settings .page-header > div:first-child {
   display: flex;
   align-items: center;
   gap: var(--space-4);
 }
 
 /* Cart icon — teal family */
-#view-lists .page-header > div > div:first-child::before,
-#view-list-detail .page-header .page-header-top > div:first-child::before,
-#view-add-list .page-header > div > div:first-child::before,
-#view-edit-list .page-header > div > div:first-child::before {
+#view-lists .page-header > div:first-child::before,
+#view-list-detail .page-header > div:first-child::before,
+#view-add-list .page-header > div:first-child::before,
+#view-edit-list .page-header > div:first-child::before {
   content: '';
   display: block;
   width: 28px;
@@ -233,8 +249,8 @@
 }
 
 /* Layout-template icon — amber family */
-#view-templates .page-header > div > div:first-child::before,
-#view-template-editor .page-header .page-header-top > div:first-child::before {
+#view-templates .page-header > div:first-child::before,
+#view-template-editor .page-header > div:first-child::before {
   content: '';
   display: block;
   width: 28px;
@@ -244,7 +260,40 @@
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cpath d='M3 9h18M9 21V9'/%3E%3C/svg%3E") no-repeat center/contain;
 }
 
-/* Ghost buttons inside all gradient headers */
+/* Tag icon — purple / categories */
+#view-categories .page-header > div:first-child::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  opacity: 0.9;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E%3C/svg%3E") no-repeat center/contain;
+}
+
+/* Store icon — blue / stores */
+#view-stores .page-header > div:first-child::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  opacity: 0.9;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l1-5h16l1 5'/%3E%3Cpath d='M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2'/%3E%3Cpath d='M5 11v8a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-8'/%3E%3C/svg%3E") no-repeat center/contain;
+}
+
+/* Settings icon — slate / settings */
+#view-settings .page-header > div:first-child::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  opacity: 0.9;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E") no-repeat center/contain;
+}
+
+/* Ghost/primary buttons inside ALL gradient headers */
 #view-lists .page-header .btn-primary,
 #view-lists .page-header .btn-ghost,
 #view-list-detail .page-header .btn-primary,
@@ -260,7 +309,13 @@
 #view-templates .page-header .btn-ghost,
 #view-template-editor .page-header .btn-primary,
 #view-template-editor .page-header .btn-ghost,
-#view-template-editor .page-header .btn-danger {
+#view-template-editor .page-header .btn-danger,
+#view-categories .page-header .btn-primary,
+#view-categories .page-header .btn-ghost,
+#view-stores .page-header .btn-primary,
+#view-stores .page-header .btn-ghost,
+#view-settings .page-header .btn-primary,
+#view-settings .page-header .btn-ghost {
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.30);
   color: #fff;
@@ -284,38 +339,15 @@
 #view-templates .page-header .btn-ghost:hover,
 #view-template-editor .page-header .btn-primary:hover,
 #view-template-editor .page-header .btn-ghost:hover,
-#view-template-editor .page-header .btn-danger:hover {
+#view-template-editor .page-header .btn-danger:hover,
+#view-categories .page-header .btn-primary:hover,
+#view-categories .page-header .btn-ghost:hover,
+#view-stores .page-header .btn-primary:hover,
+#view-stores .page-header .btn-ghost:hover,
+#view-settings .page-header .btn-primary:hover,
+#view-settings .page-header .btn-ghost:hover {
   background: rgba(255, 255, 255, 0.28);
   border-color: rgba(255, 255, 255, 0.45);
-}
-
-/* Back button inside gradient header — sits below the title/actions row */
-.header-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.80);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: var(--radius-full);
-  padding: 3px var(--space-3) 3px var(--space-2);
-  cursor: pointer;
-  transition: background var(--transition-interactive), color var(--transition-interactive);
-  align-self: flex-start;
-  text-decoration: none;
-  letter-spacing: 0.01em;
-}
-.header-back-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-}
-.header-back-btn svg,
-.header-back-btn i {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
 }
 
 /* About — commit history table */
