@@ -92,16 +92,20 @@
 
 .tpl-editor-items{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3)}
 
-/* Template editor item rows — styled to match list item rows */
+/* Template editor item rows — match list item rows exactly */
 .tpl-editor-item-row{
   display:flex;align-items:center;gap:var(--space-3);
   padding:var(--space-3) var(--space-4);
-  background:var(--color-surface-offset);
+  background:var(--color-surface);
   border:1px solid oklch(from var(--color-border) l c h / 0.7);
   border-radius:var(--radius-md);
-  transition:background var(--transition-interactive);
+  transition:background var(--transition-lift),box-shadow var(--transition-lift),transform var(--transition-lift),border-color var(--transition-lift);
 }
-.tpl-editor-item-row:hover{background:var(--color-surface-dynamic)}
+.tpl-editor-item-row:hover{
+  box-shadow:var(--shadow-hover);
+  transform:translateY(-1px);
+  border-color:oklch(from var(--color-border) l c h / 0.9);
+}
 .tpl-item-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .tpl-item-name{font-size:var(--text-sm);font-weight:500;color:var(--color-text)}
 .tpl-item-qty{font-size:var(--text-xs);color:var(--color-text-muted);margin-left:var(--space-2)}

@@ -38,7 +38,8 @@ export function renderItems(onToggle, onEdit, onDelete) {
 
   const renderGroup = items => items.map(item => {
     const qty        = item.qty ? `<span class="item-qty-badge">${escHtml(item.qty)}${item.unit ? ' '+escHtml(item.unit) : ''}</span>` : '';
-    const cat        = item.category ? `<span class="item-tag-chip"><i data-lucide="tag" style="width:10px;height:10px;"></i>${escHtml(item.category)}</span>` : '';
+    const catObj     = state.allCategories.find(c => c.name === (item.category || ''));
+    const cat        = item.category ? `<span class="item-tag-chip" title="${escHtml(item.category)}">${catObj?.emoji || '\uD83C\uDFF7\uFE0F'}</span>` : '';
     const storeChips = toArray(item.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tagChips   = toArray(item.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes      = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';

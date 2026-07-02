@@ -225,9 +225,9 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       </label>
     </div>
     ${state.tplEditorItems.map((it, i) => {
-      const cat    = state.allCategories.find(c => c.name === (it.category || ''));
+      const cat      = state.allCategories.find(c => c.name === (it.category || ''));
       const catBadge = it.category
-        ? `<span class="item-cat-badge">${cat?.emoji ? cat.emoji + ' ' : ''}${escHtml(it.category)}</span>`
+        ? `<span class="item-cat-badge" title="${escHtml(it.category)}">${cat?.emoji || '\uD83C\uDFF7\uFE0F'}</span>`
         : '';
       const storesBadge = it.stores?.length
         ? `<span class="item-cat-badge" style="background:var(--color-blue-highlight);color:var(--color-blue);">${escHtml(it.stores.join(', '))}</span>`
