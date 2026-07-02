@@ -145,12 +145,25 @@
 #view-templates .page-header,
 #view-template-editor .page-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
   margin-bottom: var(--space-2);
   color: #fff;
+  gap: var(--space-3);
+}
+
+/* Top row: icon+title block on the left, action buttons on the right */
+#view-lists .page-header > div,
+#view-list-detail .page-header .page-header-top,
+#view-template-editor .page-header .page-header-top,
+#view-add-list .page-header > div,
+#view-edit-list .page-header > div,
+#view-templates .page-header > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
 }
 
@@ -194,22 +207,22 @@
 }
 
 /* Left side div: icon + text block */
-#view-lists .page-header > div:first-child,
-#view-list-detail .page-header > div:first-child,
-#view-add-list .page-header > div:first-child,
-#view-edit-list .page-header > div:first-child,
-#view-templates .page-header > div:first-child,
-#view-template-editor .page-header > div:first-child {
+#view-lists .page-header > div > div:first-child,
+#view-list-detail .page-header .page-header-top > div:first-child,
+#view-template-editor .page-header .page-header-top > div:first-child,
+#view-add-list .page-header > div > div:first-child,
+#view-edit-list .page-header > div > div:first-child,
+#view-templates .page-header > div > div:first-child {
   display: flex;
   align-items: center;
   gap: var(--space-4);
 }
 
 /* Cart icon — teal family */
-#view-lists .page-header > div:first-child::before,
-#view-list-detail .page-header > div:first-child::before,
-#view-add-list .page-header > div:first-child::before,
-#view-edit-list .page-header > div:first-child::before {
+#view-lists .page-header > div > div:first-child::before,
+#view-list-detail .page-header .page-header-top > div:first-child::before,
+#view-add-list .page-header > div > div:first-child::before,
+#view-edit-list .page-header > div > div:first-child::before {
   content: '';
   display: block;
   width: 28px;
@@ -220,8 +233,8 @@
 }
 
 /* Layout-template icon — amber family */
-#view-templates .page-header > div:first-child::before,
-#view-template-editor .page-header > div:first-child::before {
+#view-templates .page-header > div > div:first-child::before,
+#view-template-editor .page-header .page-header-top > div:first-child::before {
   content: '';
   display: block;
   width: 28px;
@@ -274,6 +287,35 @@
 #view-template-editor .page-header .btn-danger:hover {
   background: rgba(255, 255, 255, 0.28);
   border-color: rgba(255, 255, 255, 0.45);
+}
+
+/* Back button inside gradient header — sits below the title/actions row */
+.header-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.80);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-full);
+  padding: 3px var(--space-3) 3px var(--space-2);
+  cursor: pointer;
+  transition: background var(--transition-interactive), color var(--transition-interactive);
+  align-self: flex-start;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+.header-back-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.header-back-btn svg,
+.header-back-btn i {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 /* About — commit history table */

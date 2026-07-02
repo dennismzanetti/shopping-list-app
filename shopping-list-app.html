@@ -105,18 +105,18 @@
 
       <!-- List Detail View -->
       <div class="view" id="view-list-detail">
-        <div class="list-detail-header">
-          <button class="back-btn" id="back-to-lists"><i data-lucide="arrow-left"></i> My Lists</button>
-        </div>
         <div class="page-header">
-          <div>
-            <h1 class="page-title" id="detail-list-name">List Name</h1>
+          <div class="page-header-top">
+            <div>
+              <h1 class="page-title" id="detail-list-name">List Name</h1>
+            </div>
+            <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" id="add-item-quick-btn"><i data-lucide="plus"></i> Add Item</button>
+              <button class="btn btn-ghost btn-sm" id="print-list-btn"><i data-lucide="printer"></i> Print</button>
+              <button class="btn btn-ghost btn-sm" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete</button>
+            </div>
           </div>
-          <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" id="add-item-quick-btn"><i data-lucide="plus"></i> Add Item</button>
-            <button class="btn btn-ghost btn-sm" id="print-list-btn"><i data-lucide="printer"></i> Print</button>
-            <button class="btn btn-ghost btn-sm" id="detail-delete-btn" style="color:var(--color-error);"><i data-lucide="trash-2"></i> Delete</button>
-          </div>
+          <button class="back-btn header-back-btn" id="back-to-lists"><i data-lucide="arrow-left"></i> My Lists</button>
         </div>
 
         <div class="tpl-editor-body">
@@ -196,18 +196,19 @@
 
       <!-- Template Editor View -->
       <div class="view" id="view-template-editor">
-        <div class="list-detail-header">
-          <button class="back-btn" id="back-to-templates"><i data-lucide="arrow-left"></i> Templates</button>
-        </div>
         <div class="page-header">
-          <div>
-            <h1 class="page-title" id="tpl-editor-title">New Template</h1>
+          <div class="page-header-top">
+            <div>
+              <h1 class="page-title" id="tpl-editor-title">New Template</h1>
+            </div>
+            <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn" disabled><i data-lucide="arrow-right-left"></i> Move to Template</button>
+              <button class="btn btn-ghost btn-sm" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
+              <button class="btn btn-primary btn-sm" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+              <button class="btn btn-danger btn-sm" id="tpl-delete-btn" style="display:none;"><i data-lucide="trash-2"></i> Delete</button>
+            </div>
           </div>
-          <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
-            <button class="btn btn-primary btn-sm" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
-            <button class="btn btn-danger btn-sm" id="tpl-delete-btn" style="display:none;"><i data-lucide="trash-2"></i> Delete</button>
-          </div>
+          <button class="back-btn header-back-btn" id="back-to-templates"><i data-lucide="arrow-left"></i> Templates</button>
         </div>
         <div class="tpl-editor-body">
           <div class="card">
@@ -526,59 +527,22 @@
       <button class="icon-btn" onclick="window.closeTplItemModal()" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label" for="tpl-item-name">Item name *</label><input class="form-input" id="tpl-item-name" type="text" placeholder="e.g. Whole milk"></div>
+      <div class="form-group"><label class="form-label" for="tpl-item-name">Item name *</label><input class="form-input" id="tpl-item-name" type="text" placeholder="e.g. Eggs"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label" for="tpl-item-qty">Quantity</label><input class="form-input" id="tpl-item-qty" type="text" placeholder="e.g. 2"></div>
-        <div class="form-group"><label class="form-label" for="tpl-item-unit">Unit</label><input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs, oz, pkg"></div>
+        <div class="form-group"><label class="form-label" for="tpl-item-qty">Qty</label><input class="form-input" id="tpl-item-qty" type="number" placeholder="1" min="0" step="0.1"></div>
+        <div class="form-group"><label class="form-label" for="tpl-item-unit">Unit</label><input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs" maxlength="20"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="tpl-item-category">Category <span style="color:var(--color-text-faint);font-weight:400;">(optional)</span></label>
-        <select class="form-select" id="tpl-item-category"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Stores <span style="color:var(--color-text-faint);font-weight:400;">(pick all that apply)</span></label>
-        <div class="store-checkboxes" id="tpl-item-store-checkboxes"></div>
-      </div>
-      <div class="form-group"><label class="form-label" for="tpl-item-tags">Tags <span style="color:var(--color-text-faint);font-weight:400;">(comma-separated)</span></label><input class="form-input" id="tpl-item-tags" type="text" placeholder="e.g. organic, weekly"></div>
-      <div class="form-group"><label class="form-label" for="tpl-item-notes">Notes</label><input class="form-input" id="tpl-item-notes" type="text" placeholder="e.g. brand preference"></div>
+      <div class="form-group"><label class="form-label" for="tpl-item-category">Category</label><select class="form-select" id="tpl-item-category"><option value="">No category</option></select></div>
+      <div class="form-group"><label class="form-label" for="tpl-item-notes">Note</label><textarea class="form-textarea" id="tpl-item-notes" placeholder="Brand, size, or other notes…" maxlength="200"></textarea></div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="tpl-item-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
       <button class="btn btn-ghost" onclick="window.closeTplItemModal()">Cancel</button>
-      <button class="btn btn-primary" id="tpl-item-save-btn"><i data-lucide="check"></i> Save Item</button>
+      <button class="btn btn-primary" id="tpl-item-save-btn"><i data-lucide="plus"></i> Add Item</button>
     </div>
   </div>
 </div>
 
-<!-- Confirm Dialog -->
-<div class="modal-overlay" id="modal-confirm">
-  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" style="max-width:360px;">
-    <div class="modal-header">
-      <span class="modal-title" id="confirm-title">Confirm</span>
-    </div>
-    <div class="modal-body">
-      <p id="confirm-message" style="font-size:var(--text-sm);color:var(--color-text-muted);"></p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
-      <button class="btn btn-danger" id="confirm-ok-btn">Delete</button>
-    </div>
-  </div>
-</div>
-
-<!-- Emoji Picker -->
-<div class="emoji-picker-overlay" id="emoji-picker-overlay">
-  <div class="emoji-picker" id="emoji-picker">
-    <div class="emoji-picker-header">
-      <input type="text" class="emoji-search" id="emoji-search" placeholder="Search emoji…">
-      <button class="icon-btn" id="emoji-picker-close" aria-label="Close picker"><i data-lucide="x"></i></button>
-    </div>
-    <div class="emoji-grid" id="emoji-grid"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast-container" id="toast-container"></div>
-
-<script type="module" src="js/app.js"></script>
+<script src="js/app.js" type="module"></script>
 </body>
 </html>
