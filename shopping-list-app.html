@@ -196,20 +196,17 @@
 
       <!-- Template Editor View -->
       <div class="view" id="view-template-editor">
-        <div class="page-header page-header--with-back">
-          <div class="page-header-top">
-            <div>
-              <h1 class="page-title" id="tpl-editor-title">New Template</h1>
-            </div>
-            <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
-              <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn" disabled><i data-lucide="arrow-right-left"></i> Move to Template</button>
-              <button class="btn btn-ghost btn-sm" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
-              <button class="btn btn-primary btn-sm" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
-              <button class="btn btn-danger btn-sm" id="tpl-delete-btn" style="display:none;"><i data-lucide="trash-2"></i> Delete</button>
-            </div>
+        <div class="list-detail-header">
+          <button class="back-btn" id="back-to-templates"><i data-lucide="arrow-left"></i> Templates</button>
+        </div>
+        <div class="page-header">
+          <div>
+            <h1 class="page-title" id="tpl-editor-title">New Template</h1>
           </div>
-          <div class="page-header-back">
-            <button class="back-btn back-btn--ghost" id="back-to-templates"><i data-lucide="arrow-left"></i> Templates</button>
+          <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" id="tpl-add-to-list-btn"><i data-lucide="shopping-cart"></i> Add to List</button>
+            <button class="btn btn-primary btn-sm" id="tpl-save-btn"><i data-lucide="save"></i> Save Template</button>
+            <button class="btn btn-danger btn-sm" id="tpl-delete-btn" style="display:none;"><i data-lucide="trash-2"></i> Delete</button>
           </div>
         </div>
         <div class="tpl-editor-body">

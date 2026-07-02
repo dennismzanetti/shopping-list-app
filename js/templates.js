@@ -91,6 +91,7 @@ export function setEmojiPickerValue(emoji) {
 }
 
 // -- Move/Copy toolbar button enable state ------------------------------------
+// Now operates on the inline button rendered inside tpl-select-all-row
 export function updateMoveItemsBtn() {
   const btn = document.getElementById('tpl-move-items-btn');
   if (!btn) return;
@@ -140,14 +141,11 @@ export async function executeMoveCopy({ mode, updateDoc, doc, templatesCol, buil
   const newDestItems = [...destItems, ...items];
 
   try {
-    // Always update destination with appended items
     await updateDoc(doc(templatesCol(), destId), { items: newDestItems });
 
     if (mode === 'move') {
-      // Remove moved items from source (by index, descending to avoid splice offset issues)
       const sorted = [...checkedIndexes].sort((a, b) => b - a);
       sorted.forEach(i => state.tplEditorItems.splice(i, 1));
-      // Save updated source template to Firestore
       if (state.editingTemplateId) {
         await updateDoc(doc(templatesCol(), state.editingTemplateId), { items: state.tplEditorItems });
       }
@@ -291,11 +289,14 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   }
 
   container.innerHTML = `
-    <div class="tpl-select-all-row">
+    <div class="tpl-select-all-row" style="display:flex;align-items:center;justify-content:space-between;">
       <label class="tpl-select-all-label" id="tpl-select-all-label">
         <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
         <span>Select all</span>
       </label>
+      <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn" disabled>
+        <i data-lucide="arrow-right-left"></i> Move to Template
+      </button>
     </div>
     ${state.tplEditorItems.map((it, i) => {
       const cat    = state.allCategories.find(c => c.name === (it.category || ''));
@@ -352,6 +353,9 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   container.querySelectorAll('input.tpl-item-select').forEach(cb =>
     cb.addEventListener('change', updateSelectAllState)
   );
+
+  // Wire the inline Move to Template button
+  document.getElementById('tpl-move-items-btn')?.addEventListener('click', openMoveToTemplateModal);
 
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
@@ -469,9 +473,6 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
     addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
   );
-
-  // Move / Copy to template
-  document.getElementById('tpl-move-items-btn').addEventListener('click', openMoveToTemplateModal);
 
   document.getElementById('tpl-move-move-btn').addEventListener('click', () =>
     executeMoveCopy({ mode: 'move', updateDoc, doc, templatesCol, buildCategoryOptions })
