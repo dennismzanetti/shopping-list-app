@@ -90,6 +90,78 @@ export function setEmojiPickerValue(emoji) {
   if (hidden) hidden.value   = emoji || '';
 }
 
+// -- Move/Copy toolbar button enable state ------------------------------------
+export function updateMoveItemsBtn() {
+  const btn = document.getElementById('tpl-move-items-btn');
+  if (!btn) return;
+  const checked = document.querySelectorAll('#tpl-editor-items input.tpl-item-select:not(#tpl-select-all):checked').length;
+  btn.disabled = checked === 0;
+}
+
+// -- Move / Copy items modal --------------------------------------------------
+export function openMoveToTemplateModal() {
+  const items = getCheckedTplItems();
+  if (items.length === 0) { window.showToast('No items selected \u2014 check at least one item first', 'error'); return; }
+
+  const others = state.allTemplates.filter(t => t.id !== state.editingTemplateId);
+  if (others.length === 0) { window.showToast('No other templates to move items to', 'error'); return; }
+
+  const select = document.getElementById('tpl-move-select');
+  if (select) {
+    select.innerHTML = others.map(t =>
+      `<option value="${escHtml(t.id)}">${escHtml(t.emoji || '\uD83D\uDCCB')} ${escHtml(t.name)}</option>`
+    ).join('');
+  }
+
+  const summary = document.getElementById('tpl-move-summary');
+  if (summary) {
+    summary.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} selected. Choose a destination template, then Move or Copy.`;
+  }
+
+  window.openModal('modal-tpl-move');
+}
+
+export async function executeMoveCopy({ mode, updateDoc, doc, templatesCol, buildCategoryOptions }) {
+  const checkedCbs = Array.from(
+    document.getElementById('tpl-editor-items')?.querySelectorAll('input[type=checkbox].tpl-item-select:not(#tpl-select-all):checked') || []
+  );
+  const checkedIndexes = checkedCbs.map(cb => parseInt(cb.dataset.idx));
+  const items = checkedIndexes.map(i => state.tplEditorItems[i]);
+
+  if (items.length === 0) { window.showToast('No items selected', 'error'); return; }
+
+  const destId = document.getElementById('tpl-move-select')?.value;
+  if (!destId) { window.showToast('No destination template selected', 'error'); return; }
+
+  const destTpl = state.allTemplates.find(t => t.id === destId);
+  if (!destTpl) { window.showToast('Destination template not found', 'error'); return; }
+
+  const destItems = (destTpl.items || []).map(normaliseItem);
+  const newDestItems = [...destItems, ...items];
+
+  try {
+    // Always update destination with appended items
+    await updateDoc(doc(templatesCol(), destId), { items: newDestItems });
+
+    if (mode === 'move') {
+      // Remove moved items from source (by index, descending to avoid splice offset issues)
+      const sorted = [...checkedIndexes].sort((a, b) => b - a);
+      sorted.forEach(i => state.tplEditorItems.splice(i, 1));
+      // Save updated source template to Firestore
+      if (state.editingTemplateId) {
+        await updateDoc(doc(templatesCol(), state.editingTemplateId), { items: state.tplEditorItems });
+      }
+    }
+
+    window.closeModal('modal-tpl-move');
+    renderTplEditorItems({ buildCategoryOptions });
+    const verb = mode === 'move' ? 'Moved' : 'Copied';
+    window.showToast(`${verb} ${items.length} item${items.length !== 1 ? 's' : ''} to \u201c${destTpl.name}\u201d`, 'success');
+  } catch (e) {
+    window.showToast('Error: ' + e.message, 'error');
+  }
+}
+
 // -- Add-to-List picker modal -------------------------------------------------
 export function openAddToListModal() {
   const items = getCheckedTplItems();
@@ -214,6 +286,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
 
   if (count === 0) {
     container.innerHTML = `<div class="empty-state" style="padding:var(--space-8) var(--space-4);"><div class="empty-state-icon"><i data-lucide="package-open"></i></div><p style="color:var(--color-text-muted);">No items yet. Add your first item below.</p></div>`;
+    updateMoveItemsBtn();
     createIcons(); return;
   }
 
@@ -225,9 +298,9 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       </label>
     </div>
     ${state.tplEditorItems.map((it, i) => {
-      const cat      = state.allCategories.find(c => c.name === (it.category || ''));
+      const cat    = state.allCategories.find(c => c.name === (it.category || ''));
       const catBadge = it.category
-        ? `<span class="item-cat-badge" title="${escHtml(it.category)}">${cat?.emoji || '\uD83C\uDFF7\uFE0F'}</span>`
+        ? `<span class="item-cat-badge">${cat?.emoji ? cat.emoji + ' ' : ''}${escHtml(it.category)}</span>`
         : '';
       const storesBadge = it.stores?.length
         ? `<span class="item-cat-badge" style="background:var(--color-blue-highlight);color:var(--color-blue);">${escHtml(it.stores.join(', '))}</span>`
@@ -264,6 +337,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       selectAllCb.checked = false;
       selectAllCb.indeterminate = true;
     }
+    updateMoveItemsBtn();
   }
 
   selectAllCb.addEventListener('change', () => {
@@ -296,6 +370,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     })
   );
 
+  updateMoveItemsBtn();
   createIcons();
 }
 
@@ -393,6 +468,17 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
 
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
     addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
+  );
+
+  // Move / Copy to template
+  document.getElementById('tpl-move-items-btn').addEventListener('click', openMoveToTemplateModal);
+
+  document.getElementById('tpl-move-move-btn').addEventListener('click', () =>
+    executeMoveCopy({ mode: 'move', updateDoc, doc, templatesCol, buildCategoryOptions })
+  );
+
+  document.getElementById('tpl-move-copy-btn').addEventListener('click', () =>
+    executeMoveCopy({ mode: 'copy', updateDoc, doc, templatesCol, buildCategoryOptions })
   );
 
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
