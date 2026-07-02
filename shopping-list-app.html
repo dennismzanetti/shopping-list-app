@@ -556,6 +556,20 @@
   </div>
 </div>
 
+<!-- Emoji Picker Overlay (shared) -->
+<div class="modal-overlay" id="emoji-picker-overlay">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <span class="modal-title">Pick an Emoji</span>
+      <button class="icon-btn" id="emoji-picker-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding-top:var(--space-2);">
+      <input class="form-input" id="emoji-search" type="text" placeholder="Search…" autocomplete="off" style="margin-bottom:var(--space-3);">
+      <div id="emoji-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:var(--space-1);max-height:300px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
 <script src="js/app.js" type="module"></script>
 </body>
 </html>
