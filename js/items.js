@@ -75,7 +75,6 @@ export function openAddItemModal(buildCategoryOptions) {
   document.getElementById('item-name-full').value = '';
   document.getElementById('item-qty').value   = '';
   document.getElementById('item-unit').value  = '';
-  document.getElementById('item-tags').value  = '';
   document.getElementById('item-notes').value = '';
   const catSel = document.getElementById('item-category');
   if (catSel) catSel.innerHTML = buildCategoryOptions('');
@@ -94,7 +93,6 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   document.getElementById('item-name-full').value = item.name  || '';
   document.getElementById('item-qty').value        = item.qty   || '';
   document.getElementById('item-unit').value       = item.unit  || '';
-  document.getElementById('item-tags').value       = toArray(item.tags).join(', ');
   document.getElementById('item-notes').value      = item.notes || '';
   const catSel = document.getElementById('item-category');
   if (catSel) catSel.innerHTML = buildCategoryOptions(item.category || '');
@@ -138,14 +136,12 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores }) {
   const name = document.getElementById('item-name-full').value.trim();
   if (!name) { window.showToast('Item name is required', 'error'); return; }
   if (!state.currentListId) { window.showToast('No list selected', 'error'); return; }
-  const tags = document.getElementById('item-tags').value.split(',').map(s => s.trim()).filter(Boolean);
   const data = {
     name,
     qty:      document.getElementById('item-qty').value.trim(),
     unit:     document.getElementById('item-unit').value.trim(),
     category: document.getElementById('item-category').value,
     stores:   getStores(),
-    tags,
     notes:    document.getElementById('item-notes').value.trim()
   };
   try {
@@ -157,6 +153,6 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores }) {
     }
     window.closeModal('modal-add-item');
     state.editingItemId = null;
-    ['item-name-full','item-qty','item-unit','item-tags','item-notes'].forEach(id => document.getElementById(id).value = '');
+    ['item-name-full','item-qty','item-unit','item-notes'].forEach(id => document.getElementById(id).value = '');
   } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
 }
