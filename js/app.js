@@ -36,8 +36,9 @@ const catsCol    = () => collection(db, 'users', uid(), 'categories');
 const storesCol  = () => collection(db, 'users', uid(), 'stores');
 const tplsCol    = () => collection(db, 'users', uid(), 'templates');
 
-// Expose state for duplicate-check in inline edit
+// Expose state and shared utilities for use in other modules
 window._state = state;
+window.openEmojiPicker = openEmojiPicker;
 
 // ---------------------------------------------------------------------------
 // Category <select> helper (shared by items + templates)
