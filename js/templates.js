@@ -1,6 +1,7 @@
 import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
 import { navigateTo } from './nav.js';
+import { openEmojiPicker } from './ui.js';
 
 // -- Helpers ------------------------------------------------------------------
 export function normaliseItem(it) {
@@ -75,31 +76,11 @@ function initVisibilityToggle() {
 
 // -- Emoji Picker -------------------------------------------------------------
 function initEmojiPicker() {
-  const btn     = document.getElementById('tpl-emoji-btn');
-  const hidden  = document.getElementById('tpl-emoji');
-  const popover = document.getElementById('emoji-picker-popover');
-  if (!btn || !hidden || !popover) return;
-
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    const isOpen = popover.classList.contains('open');
-    popover.classList.toggle('open', !isOpen);
-  });
-
-  popover.querySelectorAll('.emoji-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      const emoji = opt.dataset.emoji;
-      hidden.value  = emoji;
-      btn.textContent = emoji;
-      popover.classList.remove('open');
-    });
-  });
-
-  document.addEventListener('click', e => {
-    if (!document.getElementById('emoji-picker-wrap')?.contains(e.target)) {
-      popover.classList.remove('open');
-    }
-  });
+  const btn = document.getElementById('tpl-emoji-btn');
+  if (!btn) return;
+  btn.addEventListener('click', () =>
+    openEmojiPicker('tpl-emoji', 'tpl-emoji-btn')
+  );
 }
 
 export function setEmojiPickerValue(emoji) {
@@ -232,48 +213,47 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
 
   if (count === 0) {
-    container.innerHTML = `<div style="font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;padding:var(--space-4) var(--space-2);">No items yet - click "Add Item" below</div>`;
-    return;
+    container.innerHTML = `<div class="empty-state" style="padding:var(--space-8) var(--space-4);"><div class="empty-state-icon"><i data-lucide="package-open"></i></div><p style="color:var(--color-text-muted);">No items yet. Add your first item below.</p></div>`;
+    createIcons(); return;
   }
 
-  const selectAllRow = `<div id="tpl-select-all-row" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-1);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-1);">
-    <input type="checkbox" id="tpl-select-all" style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;" aria-label="Select all items">
-    <span style="font-size:var(--text-xs);color:var(--color-text-muted);user-select:none;cursor:pointer;" id="tpl-select-all-label">Select all</span>
-    <span id="tpl-select-all-count" style="font-size:var(--text-xs);color:var(--color-text-faint);margin-left:auto;"></span>
-  </div>`;
+  container.innerHTML = `
+    <div class="tpl-select-all-row">
+      <label class="tpl-select-all-label" id="tpl-select-all-label">
+        <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
+        <span>Select all</span>
+      </label>
+    </div>
+    ${state.tplEditorItems.map((it, i) => {
+      const cat    = state.allCategories.find(c => c.name === (it.category || ''));
+      const catBadge = it.category
+        ? `<span class="item-cat-badge">${cat?.emoji ? cat.emoji + ' ' : ''}${escHtml(it.category)}</span>`
+        : '';
+      const storesBadge = it.stores?.length
+        ? `<span class="item-cat-badge" style="background:var(--color-blue-highlight);color:var(--color-blue);">${escHtml(it.stores.join(', '))}</span>`
+        : '';
+      const qty = it.qty ? `<span class="tpl-item-qty">${escHtml(it.qty)}${it.unit ? ' ' + escHtml(it.unit) : ''}</span>` : '';
+      return `<div class="tpl-editor-item-row" data-tpl-item-idx="${i}">
+        <input type="checkbox" class="tpl-item-select" data-idx="${i}" aria-label="Select ${escHtml(it.name)}">
+        <div class="tpl-item-info">
+          <span class="tpl-item-name">${escHtml(it.name)}</span>${qty}
+          <div class="tpl-item-badges">${catBadge}${storesBadge}</div>
+        </div>
+        <div class="tpl-item-actions">
+          <button class="icon-btn" data-tpl-item-edit="${i}" aria-label="Edit item"><i data-lucide="pencil"></i></button>
+          <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item"><i data-lucide="trash-2"></i></button>
+        </div>
+      </div>`;
+    }).join('')}`;
 
-  const itemRows = state.tplEditorItems.map((it, i) => {
-    const qty   = it.qty  ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? ' '+escHtml(it.unit) : ''}</span>` : '';
-    const catObj = state.allCategories.find(c => c.name === it.category);
-    const cat   = it.category ? `<span title="${escHtml(it.category)}" style="font-size:var(--text-sm);line-height:1;">${catObj?.emoji || '\uD83C\uDFF7\uFE0F'}</span>` : '';
-    const store = toArray(it.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
-    const tags  = toArray(it.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
-    const notes = it.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(it.notes)}</span>` : '';
-    const meta  = [qty, cat, store, tags, notes].filter(Boolean).join('');
-    return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;" title="Click to edit">
-      <input type="checkbox" class="tpl-item-select" data-idx="${i}"
-             style="flex-shrink:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"
-             aria-label="Select ${escHtml(it.name || 'item')} for Add to List">
-      <div class="item-info" style="flex:1;min-width:0;">
-        <div class="item-name">${escHtml(it.name || '(unnamed)')}</div>
-        ${meta ? `<div class="item-meta">${meta}</div>` : ''}
-      </div>
-      <button class="icon-btn" data-tpl-item-edit="${i}" aria-label="Edit item" title="Edit item" style="color:var(--color-text-muted);"><i data-lucide="pencil"></i></button>
-      <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item" title="Delete item" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
-    </div>`;
-  }).join('');
-
-  container.innerHTML = selectAllRow + itemRows;
-
-  const selectAllCb = container.querySelector('#tpl-select-all');
-  const selectAllLabel = container.querySelector('#tpl-select-all-label');
-  const countLabel = container.querySelector('#tpl-select-all-count');
-  const itemCbs = () => Array.from(container.querySelectorAll('input.tpl-item-select'));
+  const selectAllCb    = document.getElementById('tpl-select-all');
+  const selectAllLabel = document.getElementById('tpl-select-all-label');
+  const itemCbs        = () => container.querySelectorAll('input.tpl-item-select:not(#tpl-select-all)');
 
   function updateSelectAllState() {
-    const all = itemCbs();
-    const checkedCount = all.filter(cb => cb.checked).length;
-    countLabel.textContent = checkedCount > 0 ? `${checkedCount} of ${all.length} selected` : '';
+    const all     = itemCbs();
+    const checked = Array.from(all).filter(cb => cb.checked);
+    const checkedCount = checked.length;
     if (checkedCount === 0) {
       selectAllCb.checked = false;
       selectAllCb.indeterminate = false;
@@ -418,6 +398,6 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
   document.getElementById('tpl-delete-btn').addEventListener('click', () => {
     if (!state.editingTemplateId) return;
     navigateTo('templates');
-    confirmDelete('template', state.editingTemplateId);
+    confirmDelete('template', state.editingTemplateId, () => {});
   });
 }
