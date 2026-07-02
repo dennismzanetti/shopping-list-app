@@ -132,12 +132,16 @@
 
 /* ============================================================
    PAGE HEADER — Option D: Bold Gradient Bar
-   My Lists → teal, Templates + Template Editor → amber
+   Teal family: My Lists, List Detail, Add List, Edit List
+   Amber family: Templates, Template Editor
    Other views (categories, stores, settings) keep default.
    ============================================================ */
 
-/* Shared gradient header base — all three views */
+/* Shared gradient header base — all styled views */
 #view-lists .page-header,
+#view-list-detail .page-header,
+#view-add-list .page-header,
+#view-edit-list .page-header,
 #view-templates .page-header,
 #view-template-editor .page-header {
   display: flex;
@@ -150,19 +154,25 @@
   gap: var(--space-4);
 }
 
-/* My Lists — dark teal gradient */
-#view-lists .page-header {
+/* Teal family — My Lists, List Detail, Add List, Edit List */
+#view-lists .page-header,
+#view-list-detail .page-header,
+#view-add-list .page-header,
+#view-edit-list .page-header {
   background: linear-gradient(120deg, #0f3638 0%, #01696f 60%, #0c8a92 100%);
 }
 
-/* Templates — dark amber/orange gradient */
+/* Amber family — Templates, Template Editor */
 #view-templates .page-header,
 #view-template-editor .page-header {
   background: linear-gradient(120deg, #5a2e00 0%, #964219 60%, #c55700 100%);
 }
 
-/* page-title inside gradient headers */
+/* page-title inside all gradient headers */
 #view-lists .page-header .page-title,
+#view-list-detail .page-header .page-title,
+#view-add-list .page-header .page-title,
+#view-edit-list .page-header .page-title,
 #view-templates .page-header .page-title,
 #view-template-editor .page-header .page-title {
   color: #fff;
@@ -171,8 +181,11 @@
   line-height: 1.15;
 }
 
-/* page-subtitle inside gradient headers */
+/* page-subtitle inside all gradient headers */
 #view-lists .page-header .page-subtitle,
+#view-list-detail .page-header .page-subtitle,
+#view-add-list .page-header .page-subtitle,
+#view-edit-list .page-header .page-subtitle,
 #view-templates .page-header .page-subtitle,
 #view-template-editor .page-header .page-subtitle {
   color: rgba(255, 255, 255, 0.72);
@@ -182,6 +195,9 @@
 
 /* Left side div: icon + text block */
 #view-lists .page-header > div:first-child,
+#view-list-detail .page-header > div:first-child,
+#view-add-list .page-header > div:first-child,
+#view-edit-list .page-header > div:first-child,
 #view-templates .page-header > div:first-child,
 #view-template-editor .page-header > div:first-child {
   display: flex;
@@ -189,8 +205,11 @@
   gap: var(--space-4);
 }
 
-/* Cart icon for My Lists */
-#view-lists .page-header > div:first-child::before {
+/* Cart icon — teal family */
+#view-lists .page-header > div:first-child::before,
+#view-list-detail .page-header > div:first-child::before,
+#view-add-list .page-header > div:first-child::before,
+#view-edit-list .page-header > div:first-child::before {
   content: '';
   display: block;
   width: 28px;
@@ -200,7 +219,7 @@
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='21' r='1'/%3E%3Ccircle cx='20' cy='21' r='1'/%3E%3Cpath d='M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6'/%3E%3C/svg%3E") no-repeat center/contain;
 }
 
-/* Layout-template icon for Templates list + Template Editor */
+/* Layout-template icon — amber family */
 #view-templates .page-header > div:first-child::before,
 #view-template-editor .page-header > div:first-child::before {
   content: '';
@@ -212,9 +231,18 @@
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cpath d='M3 9h18M9 21V9'/%3E%3C/svg%3E") no-repeat center/contain;
 }
 
-/* Ghost buttons inside gradient headers (btn-primary, btn-ghost, btn-danger) */
+/* Ghost buttons inside all gradient headers */
 #view-lists .page-header .btn-primary,
 #view-lists .page-header .btn-ghost,
+#view-list-detail .page-header .btn-primary,
+#view-list-detail .page-header .btn-ghost,
+#view-list-detail .page-header .btn-danger,
+#view-add-list .page-header .btn-primary,
+#view-add-list .page-header .btn-ghost,
+#view-add-list .page-header .btn-danger,
+#view-edit-list .page-header .btn-primary,
+#view-edit-list .page-header .btn-ghost,
+#view-edit-list .page-header .btn-danger,
 #view-templates .page-header .btn-primary,
 #view-templates .page-header .btn-ghost,
 #view-template-editor .page-header .btn-primary,
@@ -230,6 +258,15 @@
 
 #view-lists .page-header .btn-primary:hover,
 #view-lists .page-header .btn-ghost:hover,
+#view-list-detail .page-header .btn-primary:hover,
+#view-list-detail .page-header .btn-ghost:hover,
+#view-list-detail .page-header .btn-danger:hover,
+#view-add-list .page-header .btn-primary:hover,
+#view-add-list .page-header .btn-ghost:hover,
+#view-add-list .page-header .btn-danger:hover,
+#view-edit-list .page-header .btn-primary:hover,
+#view-edit-list .page-header .btn-ghost:hover,
+#view-edit-list .page-header .btn-danger:hover,
 #view-templates .page-header .btn-primary:hover,
 #view-templates .page-header .btn-ghost:hover,
 #view-template-editor .page-header .btn-primary:hover,
