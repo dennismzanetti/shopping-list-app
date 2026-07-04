@@ -20,6 +20,16 @@
 /* Lists grid & cards */
 .lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--space-5)}
 
+/* Page nav bar — action buttons below the page-header gradient */
+.page-nav-bar{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3);
+  padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-border);
+  background:var(--color-surface);
+}
+
 /* List card — colored top accent border cycling through accent palette */
 .list-card{
   background:var(--color-surface);
@@ -27,401 +37,98 @@
   border-radius:var(--radius-lg);
   padding:var(--space-5);
   padding-top:calc(var(--space-5) + 3px);
-  box-shadow:var(--shadow-sm);
   cursor:pointer;
-  transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;
+  transition:box-shadow var(--transition-interactive), transform var(--transition-interactive), border-color var(--transition-interactive);
   position:relative;
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-3);
 }
-/* Top accent stripe — injected via nth-child cycling */
 .list-card::before{
   content:'';
   position:absolute;
-  top:0;left:0;right:0;
+  inset:0 0 auto 0;
   height:3px;
-  background:var(--card-accent, var(--accent-1));
   border-radius:var(--radius-lg) var(--radius-lg) 0 0;
 }
-.list-card:nth-child(5n+1){--card-accent:var(--accent-1)}
-.list-card:nth-child(5n+2){--card-accent:var(--accent-2)}
-.list-card:nth-child(5n+3){--card-accent:var(--accent-3)}
-.list-card:nth-child(5n+4){--card-accent:var(--accent-4)}
-.list-card:nth-child(5n+5){--card-accent:var(--accent-5)}
-.list-card:hover{box-shadow:var(--shadow-md);border-color:oklch(from var(--color-primary) l c h/.4);transform:translateY(-1px)}
-.list-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--space-3)}
-.list-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text);padding-right:calc(36px * 2 + var(--space-1) + var(--space-2))}
-.list-card-meta{font-size:var(--text-xs);color:var(--color-text-muted);display:flex;gap:var(--space-3);margin-top:var(--space-2)}
-.list-card-progress{height:4px;background:var(--color-surface-offset);border-radius:var(--radius-full);margin-top:var(--space-3);overflow:hidden}
-.list-card-progress-bar{height:100%;background:linear-gradient(90deg,var(--color-primary),var(--color-success));border-radius:var(--radius-full);transition:width .4s ease}
-.list-card-actions{position:absolute;top:var(--space-3);right:var(--space-3);display:flex;gap:var(--space-1);z-index:1}
+.list-card:nth-child(6n+1)::before{background:var(--color-primary)}
+.list-card:nth-child(6n+2)::before{background:var(--color-orange)}
+.list-card:nth-child(6n+3)::before{background:var(--color-blue)}
+.list-card:nth-child(6n+4)::before{background:var(--color-error)}
+.list-card:nth-child(6n+5)::before{background:var(--color-gold)}
+.list-card:nth-child(6n+6)::before{background:var(--color-success)}
+.list-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary);transform:translateY(-1px)}
+.list-card-header{display:flex;align-items:flex-start;gap:var(--space-3);}
+.list-card-emoji{font-size:1.5rem;line-height:1;flex-shrink:0;width:2rem;text-align:center;}
+.list-card-info{flex:1;min-width:0;}
+.list-card-name{font-weight:600;font-size:var(--text-base);color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.list-card-desc{font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.list-card-meta{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;}
+.list-card-badge{display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--color-text-muted);background:var(--color-surface-offset);border-radius:var(--radius-full);padding:2px var(--space-2);}
+.list-card-badge svg{width:11px;height:11px;}
+.list-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
+.list-card-actions{display:flex;gap:var(--space-1);opacity:0;transition:opacity var(--transition-interactive);}
+.list-card:hover .list-card-actions{opacity:1;}
+.list-card-actions .icon-btn{width:28px;height:28px;font-size:12px;}
 
-/* Template cards */
-.template-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition-interactive),border-color var(--transition-interactive),transform 120ms ease;display:flex;flex-direction:column;gap:var(--space-3)}
-.template-card:hover{box-shadow:var(--shadow-md);border-color:oklch(from var(--color-primary) l c h/.4);transform:translateY(-1px)}
-/* Template emoji in a colored pill background */
-.template-card-emoji{
-  font-size:1.6rem;line-height:1;
-  width:44px;height:44px;
-  background:var(--color-primary-highlight);
-  border-radius:var(--radius-md);
-  display:flex;align-items:center;justify-content:center;
-}
-.template-card-title{font-size:var(--text-base);font-weight:600;color:var(--color-text)}
-.template-card-desc{font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5}
-.template-card-items{display:flex;flex-wrap:wrap;gap:var(--space-1);margin-top:var(--space-1)}
-.template-item-chip{font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-text-muted);padding:2px 8px;border-radius:var(--radius-full)}
-.template-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:var(--space-3);border-top:1px solid var(--color-divider)}
-.template-item-count{font-size:var(--text-xs);color:var(--color-text-faint)}
-.template-card-edit-btn{color:var(--color-text-faint);transition:color var(--transition-interactive)}
-.template-card-edit-btn:hover{color:var(--color-primary)}
-
-/* Template editor — full-page layout */
-#view-template-editor .tpl-editor-body{
-  max-width:720px;
+/* Template card — same structure as list card */
+.template-card{
+  background:var(--color-surface);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-lg);
+  padding:var(--space-5);
+  padding-top:calc(var(--space-5) + 3px);
+  cursor:pointer;
+  transition:box-shadow var(--transition-interactive), transform var(--transition-interactive), border-color var(--transition-interactive);
+  position:relative;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
-  gap:var(--space-4);
+  gap:var(--space-3);
 }
-
-/* Visibility toggle — prevent stretching full width in editor views */
-#view-template-editor .vis-toggle,
-#view-list-detail .vis-toggle {
-  align-self: flex-start;
-  width: auto;
+.template-card::before{
+  content:'';
+  position:absolute;
+  inset:0 0 auto 0;
+  height:3px;
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  background:var(--color-primary);
 }
+.template-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary);transform:translateY(-1px)}
 
-.tpl-editor-items{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3)}
-
-/* Template editor item rows — match list item rows exactly */
-.tpl-editor-item-row{
-  display:flex;align-items:center;gap:var(--space-3);
-  padding:var(--space-3) var(--space-4);
-  background:var(--color-surface);
-  border:1px solid oklch(from var(--color-border) l c h / 0.7);
+/* Template editor */
+.tpl-editor-body{display:flex;flex-direction:column;gap:var(--space-4);}
+.tpl-editor-items{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3);}
+.tpl-item-row{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3);
+  padding:var(--space-3);
+  background:var(--color-surface-offset);
   border-radius:var(--radius-md);
-  transition:background var(--transition-lift),box-shadow var(--transition-lift),transform var(--transition-lift),border-color var(--transition-lift);
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:background var(--transition-interactive), border-color var(--transition-interactive);
 }
-.tpl-editor-item-row:hover{
-  box-shadow:var(--shadow-hover);
-  transform:translateY(-1px);
-  border-color:oklch(from var(--color-border) l c h / 0.9);
-}
-.tpl-item-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.tpl-item-name{font-size:var(--text-sm);font-weight:500;color:var(--color-text)}
-.tpl-item-qty{font-size:var(--text-xs);color:var(--color-text-muted);margin-left:var(--space-2)}
-.tpl-item-badges{display:flex;flex-wrap:wrap;gap:var(--space-1);margin-top:2px}
-.tpl-item-actions{display:flex;gap:var(--space-1);flex-shrink:0}
-.item-cat-badge{
-  display:inline-flex;align-items:center;font-size:var(--text-xs);
-  background:var(--color-primary-highlight);color:var(--color-primary);
-  padding:1px 7px;border-radius:var(--radius-full);font-weight:500;
-}
-.tpl-select-all-row{padding:var(--space-2) var(--space-1)}
-.tpl-select-all-label{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm);color:var(--color-text-muted);cursor:pointer;user-select:none}
+.tpl-item-row:hover{background:var(--color-surface-dynamic);border-color:var(--color-border);}
+.tpl-item-drag{color:var(--color-text-faint);cursor:grab;flex-shrink:0;}
+.tpl-item-drag:active{cursor:grabbing;}
+.tpl-item-info{flex:1;min-width:0;}
+.tpl-item-name{font-size:var(--text-sm);font-weight:500;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tpl-item-meta{font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px;}
+.tpl-item-del{color:var(--color-text-faint);transition:color var(--transition-interactive);flex-shrink:0;}
+.tpl-item-del:hover{color:var(--color-error);}
 
-.tpl-editor-item{display:grid;grid-template-columns:1fr auto auto auto auto;gap:var(--space-2);align-items:center;padding:var(--space-2) var(--space-3);background:var(--color-surface-offset);border-radius:var(--radius-md);border:1px solid var(--color-border)}
-.tpl-editor-item input,.tpl-editor-item select{padding:var(--space-1) var(--space-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface);font-size:var(--text-xs);color:var(--color-text)}
-.tpl-editor-item input:focus,.tpl-editor-item select:focus{outline:none;border-color:var(--color-primary)}
-.tpl-editor-item .item-name-input{grid-column:1;min-width:0}
-.tpl-editor-item .item-qty-input{width:60px}
-.tpl-editor-item .item-store-select{width:110px}
-.tpl-editor-item .item-tags-input{width:120px}
-.tpl-editor-add-row{display:flex;gap:var(--space-2);margin-top:var(--space-2)}
-.tpl-editor-add-row input{flex:1;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-size:var(--text-sm);color:var(--color-text)}
-.tpl-editor-add-row input:focus{outline:none;border-color:var(--color-primary)}
-
-/* ============================================================
-   COLLAPSIBLE CARD SECTIONS
-   Used on Template Editor and List Detail cards
-   ============================================================ */
-
-/* Make header clickable and show pointer when collapsible */
-.card-header-collapsible {
-  cursor: pointer;
-  user-select: none;
-}
-.card-header-collapsible:hover {
-  background: oklch(from var(--color-primary) l c h / 0.04);
-}
-
-/* Chevron toggle button */
-.card-collapse-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-left: auto;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-              color var(--transition-interactive),
-              background var(--transition-interactive);
-}
-.card-collapse-btn:hover {
-  color: var(--color-text);
-  background: oklch(from var(--color-primary) l c h / 0.08);
-}
-
-/* Rotate chevron when collapsed */
-.card-collapse-btn[aria-expanded="false"] {
-  transform: rotate(-90deg);
-}
-
-/* Collapsible body wrapper — animates via grid-template-rows */
-.card-body-collapsible {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows 260ms cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-.card-body-collapsible.collapsed {
-  grid-template-rows: 0fr;
-}
-
-/* Inner wrapper must have min-height:0 for the animation to work */
-.card-body-collapsible-inner {
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ============================================================
-   PAGE HEADER — Gradient Bars by View
-   Teal family:   My Lists, List Detail, Add List, Edit List
-   Amber family:  Templates, Template Editor
-   Purple family: Categories
-   Blue family:   Stores
-   Slate family:  Settings
-   ============================================================ */
-
-/* Shared gradient header base — all styled views */
-#view-lists .page-header,
-#view-list-detail .page-header,
-#view-add-list .page-header,
-#view-edit-list .page-header,
-#view-templates .page-header,
-#view-template-editor .page-header,
-#view-categories .page-header,
-#view-stores .page-header,
-#view-settings .page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-5) var(--space-6);
-  border-radius: var(--radius-xl);
-  margin-bottom: var(--space-2);
-  color: #fff;
-  gap: var(--space-4);
-}
-
-/* Teal family — My Lists, List Detail, Add List, Edit List */
-#view-lists .page-header,
-#view-list-detail .page-header,
-#view-add-list .page-header,
-#view-edit-list .page-header {
-  background: linear-gradient(120deg, #0f3638 0%, #01696f 60%, #0c8a92 100%);
-}
-
-/* Amber family — Templates, Template Editor */
-#view-templates .page-header,
-#view-template-editor .page-header {
-  background: linear-gradient(120deg, #5a2e00 0%, #964219 60%, #c55700 100%);
-}
-
-/* Purple family — Categories */
-#view-categories .page-header {
-  background: linear-gradient(120deg, #2a1050 0%, #7a39bb 60%, #9b52e0 100%);
-}
-
-/* Blue family — Stores */
-#view-stores .page-header {
-  background: linear-gradient(120deg, #072a40 0%, #006494 60%, #0a7fbf 100%);
-}
-
-/* Slate family — Settings */
-#view-settings .page-header {
-  background: linear-gradient(120deg, #1a1916 0%, #3a3835 60%, #5a5855 100%);
-}
-
-/* page-title inside all gradient headers */
-#view-lists .page-header .page-title,
-#view-list-detail .page-header .page-title,
-#view-add-list .page-header .page-title,
-#view-edit-list .page-header .page-title,
-#view-templates .page-header .page-title,
-#view-template-editor .page-header .page-title,
-#view-categories .page-header .page-title,
-#view-stores .page-header .page-title,
-#view-settings .page-header .page-title {
-  color: #fff;
-  font-size: var(--text-xl);
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-/* page-subtitle inside all gradient headers */
-#view-lists .page-header .page-subtitle,
-#view-list-detail .page-header .page-subtitle,
-#view-add-list .page-header .page-subtitle,
-#view-edit-list .page-header .page-subtitle,
-#view-templates .page-header .page-subtitle,
-#view-template-editor .page-header .page-subtitle,
-#view-categories .page-header .page-subtitle,
-#view-stores .page-header .page-subtitle,
-#view-settings .page-header .page-subtitle {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--text-sm);
-  margin-top: var(--space-1);
-}
-
-/* Left side div: icon + text block */
-#view-lists .page-header > div:first-child,
-#view-list-detail .page-header > div:first-child,
-#view-add-list .page-header > div:first-child,
-#view-edit-list .page-header > div:first-child,
-#view-templates .page-header > div:first-child,
-#view-template-editor .page-header > div:first-child,
-#view-categories .page-header > div:first-child,
-#view-stores .page-header > div:first-child,
-#view-settings .page-header > div:first-child {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-/* Cart icon — teal family */
-#view-lists .page-header > div:first-child::before,
-#view-list-detail .page-header > div:first-child::before,
-#view-add-list .page-header > div:first-child::before,
-#view-edit-list .page-header > div:first-child::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  opacity: 0.9;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='21' r='1'/%3E%3Ccircle cx='20' cy='21' r='1'/%3E%3Cpath d='M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6'/%3E%3C/svg%3E") no-repeat center/contain;
-}
-
-/* Layout-template icon — amber family */
-#view-templates .page-header > div:first-child::before,
-#view-template-editor .page-header > div:first-child::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  opacity: 0.9;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cpath d='M3 9h18M9 21V9'/%3E%3C/svg%3E") no-repeat center/contain;
-}
-
-/* Tag icon — purple / categories */
-#view-categories .page-header > div:first-child::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  opacity: 0.9;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E%3C/svg%3E") no-repeat center/contain;
-}
-
-/* Store icon — blue / stores */
-#view-stores .page-header > div:first-child::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  opacity: 0.9;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l1-5h16l1 5'/%3E%3Cpath d='M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2'/%3E%3Cpath d='M5 11v8a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-8'/%3E%3C/svg%3E") no-repeat center/contain;
-}
-
-/* Settings icon — slate / settings */
-#view-settings .page-header > div:first-child::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  opacity: 0.9;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E") no-repeat center/contain;
-}
-
-/* Ghost/primary buttons inside ALL gradient headers */
-#view-lists .page-header .btn-primary,
-#view-lists .page-header .btn-ghost,
-#view-list-detail .page-header .btn-primary,
-#view-list-detail .page-header .btn-ghost,
-#view-list-detail .page-header .btn-danger,
-#view-add-list .page-header .btn-primary,
-#view-add-list .page-header .btn-ghost,
-#view-add-list .page-header .btn-danger,
-#view-edit-list .page-header .btn-primary,
-#view-edit-list .page-header .btn-ghost,
-#view-edit-list .page-header .btn-danger,
-#view-templates .page-header .btn-primary,
-#view-templates .page-header .btn-ghost,
-#view-template-editor .page-header .btn-primary,
-#view-template-editor .page-header .btn-ghost,
-#view-template-editor .page-header .btn-danger,
-#view-categories .page-header .btn-primary,
-#view-categories .page-header .btn-ghost,
-#view-stores .page-header .btn-primary,
-#view-stores .page-header .btn-ghost,
-#view-settings .page-header .btn-primary,
-#view-settings .page-header .btn-ghost {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  color: #fff;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  flex-shrink: 0;
-}
-
-#view-lists .page-header .btn-primary:hover,
-#view-lists .page-header .btn-ghost:hover,
-#view-list-detail .page-header .btn-primary:hover,
-#view-list-detail .page-header .btn-ghost:hover,
-#view-list-detail .page-header .btn-danger:hover,
-#view-add-list .page-header .btn-primary:hover,
-#view-add-list .page-header .btn-ghost:hover,
-#view-add-list .page-header .btn-danger:hover,
-#view-edit-list .page-header .btn-primary:hover,
-#view-edit-list .page-header .btn-ghost:hover,
-#view-edit-list .page-header .btn-danger:hover,
-#view-templates .page-header .btn-primary:hover,
-#view-templates .page-header .btn-ghost:hover,
-#view-template-editor .page-header .btn-primary:hover,
-#view-template-editor .page-header .btn-ghost:hover,
-#view-template-editor .page-header .btn-danger:hover,
-#view-categories .page-header .btn-primary:hover,
-#view-categories .page-header .btn-ghost:hover,
-#view-stores .page-header .btn-primary:hover,
-#view-stores .page-header .btn-ghost:hover,
-#view-settings .page-header .btn-primary:hover,
-#view-settings .page-header .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.28);
-  border-color: rgba(255, 255, 255, 0.45);
-}
-
-/* About — commit history table */
-.about-commit-table{width:100%;border-collapse:collapse;font-size:var(--text-xs)}
-.about-commit-table thead tr{background:var(--color-surface-offset)}
-.about-commit-table th{padding:var(--space-2) var(--space-4);text-align:left;font-weight:600;font-size:var(--text-xs);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--color-divider)}
-.about-commit-table td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-divider);vertical-align:top;color:var(--color-text);font-size:var(--text-xs)}
-.about-commit-table tbody tr:last-child td{border-bottom:none}
-.about-commit-table tbody tr:hover{background:var(--color-surface-offset)}
-.about-commit-table .col-date{width:180px;white-space:nowrap;color:var(--color-text-muted)}
-.about-commit-table .col-sha{width:120px}
-.about-commit-table .col-msg{word-break:break-word}
-.commit-sha-pill{display:inline-block;font-family:monospace;font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-primary);padding:2px 6px;border-radius:var(--radius-sm);border:1px solid var(--color-border);letter-spacing:.02em;cursor:default}
-.commit-sha-pill a{color:inherit;text-decoration:none}
-.commit-sha-pill a:hover{text-decoration:underline}
-
-/* Build footer */
-.build-footer{padding:var(--space-3) var(--space-6);border-top:1px solid var(--color-divider);text-align:center}
-.build-footer small{font-size:var(--text-xs);color:var(--color-text-faint)}
-.build-footer a{color:var(--color-text-faint);text-decoration:none;border-bottom:1px solid transparent;transition:color var(--transition-interactive),border-color var(--transition-interactive)}
-.build-footer a:hover{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+/* About / commit table */
+.about-commit-table{width:100%;border-collapse:collapse;font-size:var(--text-xs);}
+.about-commit-table thead tr{background:var(--color-surface-offset);}
+.about-commit-table th,.about-commit-table td{padding:var(--space-2) var(--space-3);text-align:left;border-bottom:1px solid var(--color-border);vertical-align:top;}
+.about-commit-table th{font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;font-size:10px;}
+.about-commit-table tbody tr:last-child td{border-bottom:none;}
+.about-commit-table tbody tr:hover td{background:var(--color-surface-offset);}
+.col-date{width:140px;white-space:nowrap;color:var(--color-text-muted);}
+.col-sha{width:80px;}
+.col-sha a{font-family:monospace;color:var(--color-primary);text-decoration:none;}
+.col-sha a:hover{text-decoration:underline;}
+.col-msg{color:var(--color-text);}
