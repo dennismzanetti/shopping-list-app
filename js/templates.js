@@ -91,7 +91,6 @@ export function setEmojiPickerValue(emoji) {
 }
 
 // -- Move/Copy toolbar button enable state ------------------------------------
-// Now operates on the inline button rendered inside tpl-select-all-row
 export function updateMoveItemsBtn() {
   const btn = document.getElementById('tpl-move-items-btn');
   if (!btn) return;
@@ -290,8 +289,8 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   }
 
   container.innerHTML = `
-    <div class="tpl-select-all-row" style="display:flex;align-items:center;justify-content:space-between;">
-      <label class="tpl-select-all-label" id="tpl-select-all-label">
+    <div class="tpl-select-all-row" style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) 0 var(--space-2) 0;">
+      <label class="tpl-select-all-label" id="tpl-select-all-label" style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);color:var(--color-text-muted);">
         <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
         <span>Select all</span>
       </label>
@@ -300,26 +299,39 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       </button>
     </div>
     ${state.tplEditorItems.map((it, i) => {
-      const cat    = state.allCategories.find(c => c.name === (it.category || ''));
+      const cat = state.allCategories.find(c => c.name === (it.category || ''));
       const catBadge = it.category
         ? `<span class="item-cat-badge">${cat?.emoji ? cat.emoji + ' ' : ''}${escHtml(it.category)}</span>`
         : '';
-      const storesBadge = it.stores?.length
-        ? `<span class="item-cat-badge" style="background:var(--color-blue-highlight);color:var(--color-blue);">${escHtml(it.stores.join(', '))}</span>`
+      const storeChips = it.stores?.length
+        ? it.stores.map(s => `<span class="item-store-chip">${escHtml(s)}</span>`).join('')
         : '';
-      const qty = it.qty ? `<span class="tpl-item-qty">${escHtml(it.qty)}${it.unit ? ' ' + escHtml(it.unit) : ''}</span>` : '';
-      return `<div class="tpl-editor-item-row" data-tpl-item-idx="${i}">
-        <input type="checkbox" class="tpl-item-select" data-idx="${i}" aria-label="Select ${escHtml(it.name)}">
-        <div class="tpl-item-info">
-          <span class="tpl-item-name">${escHtml(it.name)}</span>${qty}
-          <div class="tpl-item-badges">${catBadge}${storesBadge}</div>
+      const qtyBadge = it.qty
+        ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? '\u00a0' + escHtml(it.unit) : ''}</span>`
+        : '';
+      const meta = (qtyBadge || catBadge || storeChips)
+        ? `<div class="item-meta">${qtyBadge}${catBadge}${storeChips}</div>`
+        : '';
+      return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;">
+        <input type="checkbox" class="tpl-item-select" data-idx="${i}" aria-label="Select ${escHtml(it.name)}" style="flex-shrink:0;width:16px;height:16px;cursor:pointer;">
+        <div class="item-info">
+          <span class="item-name">${escHtml(it.name)}</span>
+          ${meta}
         </div>
-        <div class="tpl-item-actions">
+        <div class="tpl-item-actions" style="display:flex;gap:var(--space-1);flex-shrink:0;opacity:0;transition:opacity var(--transition-interactive);">
           <button class="icon-btn" data-tpl-item-edit="${i}" aria-label="Edit item"><i data-lucide="pencil"></i></button>
           <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item"><i data-lucide="trash-2"></i></button>
         </div>
       </div>`;
     }).join('')}`;
+
+  // Show action buttons on row hover
+  container.querySelectorAll('.item-row[data-tpl-item-idx]').forEach(row => {
+    const actions = row.querySelector('.tpl-item-actions');
+    if (!actions) return;
+    row.addEventListener('mouseenter', () => actions.style.opacity = '1');
+    row.addEventListener('mouseleave', () => actions.style.opacity = '0');
+  });
 
   const selectAllCb    = document.getElementById('tpl-select-all');
   const selectAllLabel = document.getElementById('tpl-select-all-label');
