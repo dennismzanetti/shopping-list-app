@@ -131,6 +131,62 @@
 .tpl-editor-add-row input:focus{outline:none;border-color:var(--color-primary)}
 
 /* ============================================================
+   COLLAPSIBLE CARD SECTIONS
+   Used on Template Editor and List Detail cards
+   ============================================================ */
+
+/* Make header clickable and show pointer when collapsible */
+.card-header-collapsible {
+  cursor: pointer;
+  user-select: none;
+}
+.card-header-collapsible:hover {
+  background: oklch(from var(--color-primary) l c h / 0.04);
+}
+
+/* Chevron toggle button */
+.card-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              color var(--transition-interactive),
+              background var(--transition-interactive);
+}
+.card-collapse-btn:hover {
+  color: var(--color-text);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+}
+
+/* Rotate chevron when collapsed */
+.card-collapse-btn[aria-expanded="false"] {
+  transform: rotate(-90deg);
+}
+
+/* Collapsible body wrapper — animates via grid-template-rows */
+.card-body-collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.card-body-collapsible.collapsed {
+  grid-template-rows: 0fr;
+}
+
+/* Inner wrapper must have min-height:0 for the animation to work */
+.card-body-collapsible-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================================================
    PAGE HEADER — Gradient Bars by View
    Teal family:   My Lists, List Detail, Add List, Edit List
    Amber family:  Templates, Template Editor
