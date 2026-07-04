@@ -274,6 +274,7 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
   navigateTo('template-editor');
+  createIcons();
 }
 
 export function renderTplEditorItems({ buildCategoryOptions } = {}) {
@@ -486,5 +487,16 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     if (!state.editingTemplateId) return;
     navigateTo('templates');
     confirmDelete('template', state.editingTemplateId, () => {});
+  });
+
+  // -- Collapsible card sections ---------------------------------------------
+  document.getElementById('view-template-editor')?.addEventListener('click', e => {
+    const btn = e.target.closest('.card-collapse-btn');
+    if (!btn) return;
+    const targetId = btn.dataset.collapseTarget;
+    const body = document.getElementById(targetId);
+    if (!body) return;
+    const isCollapsed = body.classList.toggle('collapsed');
+    btn.setAttribute('aria-expanded', String(!isCollapsed));
   });
 }
