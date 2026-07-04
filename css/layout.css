@@ -45,7 +45,7 @@
 .view{display:none}
 .view.active{display:block}
 
-/* Page header — gradient title band above the nav bar */
+/* Page header — Option C: multi-point radial mesh, gradient-clipped title */
 .page-header{
   display:flex;
   align-items:center;
@@ -53,24 +53,31 @@
   gap:var(--space-4);
   padding:var(--space-5) var(--space-6);
   background:
-    radial-gradient(ellipse at 100% 0%, oklch(from var(--color-primary) l c h / 0.12) 0%, transparent 55%),
-    linear-gradient(105deg, oklch(from var(--color-primary) l c h / 0.14) 0%, oklch(from var(--color-primary) l c h / 0.05) 50%, var(--color-surface) 100%);
-  border-bottom:1px solid oklch(from var(--color-primary) l c h / 0.2);
+    radial-gradient(ellipse at 5%  80%, oklch(from var(--color-primary) l c h / 0.13) 0%, transparent 45%),
+    radial-gradient(ellipse at 95% 20%, oklch(from var(--color-primary) l c h / 0.11) 0%, transparent 45%),
+    radial-gradient(ellipse at 55% 110%, oklch(from var(--color-primary) l c h / 0.07) 0%, transparent 50%),
+    var(--color-surface);
+  border-bottom:1px solid oklch(from var(--color-primary) l c h / 0.16);
   margin:-clamp(var(--space-5),4vw,var(--space-10));
   margin-bottom:0;
 }
 [data-theme="dark"] .page-header{
   background:
-    radial-gradient(ellipse at 100% 0%, oklch(from var(--color-primary) l c h / 0.18) 0%, transparent 55%),
-    linear-gradient(105deg, oklch(from var(--color-primary) l c h / 0.20) 0%, oklch(from var(--color-primary) l c h / 0.07) 50%, var(--color-surface) 100%);
-  border-bottom-color:oklch(from var(--color-primary) l c h / 0.25);
+    radial-gradient(ellipse at 5%  80%, oklch(from var(--color-primary) l c h / 0.20) 0%, transparent 45%),
+    radial-gradient(ellipse at 95% 20%, oklch(from var(--color-primary) l c h / 0.17) 0%, transparent 45%),
+    radial-gradient(ellipse at 55% 110%, oklch(from var(--color-primary) l c h / 0.11) 0%, transparent 50%),
+    var(--color-surface);
+  border-bottom-color:oklch(from var(--color-primary) l c h / 0.22);
 }
 .page-title{
   font-size:var(--text-xl);
   font-weight:700;
-  color:var(--color-primary);
+  background:linear-gradient(100deg, var(--color-primary) 0%, oklch(from var(--color-primary) calc(l + 0.08) c h) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
   letter-spacing:-.02em;
-  line-height:1.1;
+  line-height:1.15;
 }
 .page-subtitle{
   font-size:var(--text-sm);
