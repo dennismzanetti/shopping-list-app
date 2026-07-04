@@ -132,3 +132,12 @@
 .col-sha a{font-family:monospace;color:var(--color-primary);text-decoration:none;}
 .col-sha a:hover{text-decoration:underline;}
 .col-msg{color:var(--color-text);}
+
+/* Collapsible card sections */
+.card-header-collapsible { cursor: pointer; user-select: none; }
+.card-collapse-btn { color: var(--color-text-muted); transition: transform var(--transition-interactive); flex-shrink: 0; }
+.card-body-collapsible { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 220ms ease; }
+.card-body-collapsible.collapsed { grid-template-rows: 0fr; }
+.card-body-collapsible-inner { overflow: hidden; }
+.card-body-collapsible.collapsed + * .card-collapse-btn,
+.card-header-collapsible:has(+ .card-body-collapsible.collapsed) .card-collapse-btn { transform: rotate(-90deg); }
