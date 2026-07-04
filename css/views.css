@@ -161,11 +161,57 @@
 .col-sha a:hover{text-decoration:underline;}
 .col-msg{color:var(--color-text);}
 
-/* Collapsible card sections */
-.card-header-collapsible { cursor: pointer; user-select: none; }
-.card-collapse-btn { color: var(--color-text-muted); transition: transform var(--transition-interactive); flex-shrink: 0; }
-.card-body-collapsible { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 220ms ease; }
-.card-body-collapsible.collapsed { grid-template-rows: 0fr; }
-.card-body-collapsible-inner { overflow: hidden; }
-.card-body-collapsible.collapsed + * .card-collapse-btn,
-.card-header-collapsible:has(+ .card-body-collapsible.collapsed) .card-collapse-btn { transform: rotate(-90deg); }
+/* ============================================================
+   Collapsible card sections
+   ============================================================ */
+
+/* Header becomes clickable */
+.card-header-collapsible {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Chevron button — inherits icon-btn reset, just needs rotation */
+.card-collapse-btn {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-interactive),
+              background var(--transition-interactive),
+              transform 220ms ease;
+}
+.card-collapse-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-offset);
+}
+
+/* Chevron rotates -90deg when collapsed (aria-expanded=false) */
+.card-collapse-btn[aria-expanded="false"] {
+  transform: rotate(-90deg);
+}
+
+/* Smooth open/close via grid-template-rows trick */
+.card-body-collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 220ms ease;
+}
+.card-body-collapsible.collapsed {
+  grid-template-rows: 0fr;
+}
+
+/* Inner wrapper — must have overflow:hidden and min-height:0 */
+.card-body-collapsible-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Remove bottom border on card when collapsed so it looks flush */
+.card:has(.card-body-collapsible.collapsed) {
+  border-bottom-color: transparent;
+}
