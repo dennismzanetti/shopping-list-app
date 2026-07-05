@@ -160,8 +160,6 @@ export async function executeMoveCopy({ mode, updateDoc, doc, templatesCol, buil
 }
 
 // -- Add-to-List picker modal -------------------------------------------------
-// Falls back to ALL template items when none are individually checked,
-// so the toolbar "Add to List" button always works without pre-selecting items.
 export function openAddToListModal() {
   if (state.tplEditorItems.length === 0) {
     window.showToast('This template has no items to add', 'error');
@@ -169,7 +167,6 @@ export function openAddToListModal() {
   }
 
   const checked = getCheckedTplItems();
-  // If nothing checked, use all items (toolbar flow); if some checked, use selection only.
   const items = checked.length > 0 ? checked : state.tplEditorItems;
 
   const select   = document.getElementById('tpl-list-select');
@@ -193,7 +190,6 @@ export function openAddToListModal() {
 
   if (newInput) newInput.value = '';
 
-  // Store the resolved item set so addSelectedItemsToList can use it
   state._tplAddToListItems = items;
 
   window.openModal('modal-tpl-add-to-list');
@@ -206,7 +202,6 @@ function getCheckedTplItems() {
 }
 
 export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db }) {
-  // Use items resolved at modal-open time (all or checked subset)
   const items = state._tplAddToListItems || getCheckedTplItems();
   if (items.length === 0) { window.showToast('No items to add', 'error'); return; }
 
@@ -256,15 +251,22 @@ export function renderTemplates(onEdit) {
     const more    = items.length - preview.length;
     const chips   = preview.map(it => {
       const cat    = state.allCategories.find(c => c.name === (it.category || ''));
-      const prefix = cat?.emoji ? cat.emoji + ' ' : '';
+      const prefix = cat?.emoji ? cat.emoji + '\u00a0' : '';
       return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
     }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
-    return `<div class="template-card" data-tpl-id="${t.id}" style="cursor:pointer;" title="Edit template">
-      <div class="template-card-emoji">${t.emoji || '\uD83D\uDCCB'}</div>
-      <div><div class="template-card-title">${escHtml(t.name)}</div><div class="template-card-desc">${escHtml(t.desc || '')}</div></div>
-      <div class="template-card-items">${chips}${moreChip}</div>
-      <div class="template-card-footer"><span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span></div>
+    return `<div class="template-card" data-tpl-id="${t.id}" title="Edit template">
+      <div class="template-card-header">
+        <div class="template-card-emoji">${t.emoji || '\uD83D\uDCCB'}</div>
+        <div class="template-card-info">
+          <div class="template-card-title">${escHtml(t.name)}</div>
+          ${t.desc ? `<div class="template-card-desc">${escHtml(t.desc)}</div>` : ''}
+        </div>
+      </div>
+      ${items.length > 0 ? `<div class="template-card-items">${chips}${moreChip}</div>` : ''}
+      <div class="template-card-footer">
+        <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+      </div>
     </div>`;
   }).join('');
   grid.querySelectorAll('.template-card').forEach(card =>
@@ -285,7 +287,6 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   setVisibilityValue(tpl ? (tpl.visibility || 'private') : 'private');
   populateTplStoreCheckboxes(tpl ? toArray(tpl.stores) : []);
 
-  // Reset collapsible sections to expanded so the Add Item button is always reachable
   ['tpl-details-collapsible', 'tpl-items-collapsible'].forEach(id => {
     const body = document.getElementById(id);
     const btn  = document.querySelector(`[data-collapse-btn="${id}"]`);
@@ -317,6 +318,9 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
         <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
         <span>Select all</span>
       </label>
+      <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn-inline" disabled>
+        <i data-lucide="arrow-right-left"></i> Move to Template
+      </button>
     </div>
     ${state.tplEditorItems.map((it, i) => {
       const cat = state.allCategories.find(c => c.name === (it.category || ''));
@@ -345,7 +349,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       </div>`;
     }).join('')}`;
 
-  // Show action buttons on row hover
   container.querySelectorAll('.item-row[data-tpl-item-idx]').forEach(row => {
     const actions = row.querySelector('.tpl-item-actions');
     if (!actions) return;
@@ -372,7 +375,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       selectAllCb.indeterminate = true;
     }
     updateMoveItemsBtn();
-    // Also sync the inline btn
     const inlineBtn = document.getElementById('tpl-move-items-btn-inline');
     if (inlineBtn) inlineBtn.disabled = checkedCount === 0;
   }
@@ -390,7 +392,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     cb.addEventListener('change', updateSelectAllState)
   );
 
-  // Wire the inline Move to Template button (unique id, no collision with toolbar btn)
   document.getElementById('tpl-move-items-btn-inline')?.addEventListener('click', openMoveToTemplateModal);
 
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
@@ -504,7 +505,6 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });
 
-  // Toolbar "Add to List" — adds all items if none checked, else checked subset
   document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
 
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
