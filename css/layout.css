@@ -4,21 +4,19 @@
 
 .app-layout{display:grid;grid-template-columns:1fr;grid-template-rows:var(--header-height) 1fr;grid-template-areas:"header" "main";min-height:100dvh}
 
-/* Header — frosted glass, crisper indigo border */
+/* Header — frosted glass, no bottom border */
 .app-header{
   grid-area:header;
   background:rgba(255,255,255,.82);
   backdrop-filter:blur(14px) saturate(1.2);
   -webkit-backdrop-filter:blur(14px) saturate(1.2);
-  border-bottom:1px solid rgba(79,110,247,.14);
   display:flex;align-items:center;justify-content:space-between;
   padding:0 var(--space-6);height:var(--header-height);
   position:sticky;top:0;z-index:10;
-  transition:background var(--transition-interactive),border-color var(--transition-interactive);
+  transition:background var(--transition-interactive);
 }
 [data-theme="dark"] .app-header{
   background:rgba(23,28,40,.84);
-  border-bottom-color:rgba(123,147,255,.18);
 }
 
 .header-logo{display:flex;align-items:center;gap:var(--space-2)}
@@ -44,7 +42,6 @@
   position:relative;
   display:flex;align-items:center;gap:var(--space-2);
   padding:var(--space-2) var(--space-3);
-  /* Keep height full so ::after can sit at the very bottom of the header */
   height:var(--header-height);
   font-size:var(--text-sm);font-weight:500;
   color:var(--color-text-muted);
@@ -83,21 +80,14 @@
 .view{display:none}
 .view.active{display:block}
 
-/* Page header — flat surface, simple divider, no gradient mesh */
+/* Page header — no background box, no border, flush with content */
 .page-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:var(--space-4);
-  padding:var(--space-5) var(--space-6);
-  background:var(--color-surface);
-  border-bottom:1px solid var(--color-divider);
-  margin:-clamp(var(--space-5),4vw,var(--space-10));
-  margin-bottom:0;
-}
-[data-theme="dark"] .page-header{
-  background:var(--color-surface);
-  border-bottom-color:var(--color-divider);
+  padding-bottom:var(--space-4);
+  margin-bottom:var(--space-2);
 }
 
 /* Page title — plain, no gradient clip */
