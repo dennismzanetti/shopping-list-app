@@ -510,9 +510,6 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
   // Toolbar "Add to List" — adds all items if none checked, else checked subset
   document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
 
-  // Toolbar "Move to Template" — requires items to be checked first
-  document.getElementById('tpl-move-items-btn').addEventListener('click', openMoveToTemplateModal);
-
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
     addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
   );
