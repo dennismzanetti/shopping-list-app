@@ -52,6 +52,16 @@
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
+/* Indigo signature accent bar — marks this card as a LIST */
+.list-card::before{
+  content:"";
+  position:absolute;
+  top:0;left:0;bottom:0;
+  width:4px;
+  background:var(--color-primary);
+  border-top-left-radius:var(--radius-2xl);
+  border-bottom-left-radius:var(--radius-2xl);
+}
 [data-theme="dark"] .list-card{
   background:rgba(23,28,40,.78);
   border-color:rgba(54,64,86,.92);
@@ -70,10 +80,10 @@
 .list-card:hover .list-card-actions{opacity:1;}
 .list-card-actions .icon-btn{width:28px;height:28px;font-size:12px;}
 
-/* Template card — same glassy treatment as list card */
+/* Template card — dashed "blueprint" treatment + gold accent to distinguish from lists */
 .template-card{
   background:rgba(255,255,255,.78);
-  border:1px solid rgba(207,215,230,.9);
+  border:1px dashed rgba(209,153,0,.55);
   border-radius:var(--radius-2xl);
   padding:var(--space-5);
   cursor:pointer;
@@ -86,11 +96,44 @@
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
+/* Gold signature accent bar — marks this card as a TEMPLATE */
+.template-card::before{
+  content:"";
+  position:absolute;
+  top:0;left:0;bottom:0;
+  width:4px;
+  background:var(--accent-3);
+  border-top-left-radius:var(--radius-2xl);
+  border-bottom-left-radius:var(--radius-2xl);
+}
 [data-theme="dark"] .template-card{
   background:rgba(23,28,40,.78);
-  border-color:rgba(54,64,86,.92);
+  border-color:rgba(232,175,52,.4);
 }
 .template-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
+
+/* Card type badge — visual + textual distinction between lists & templates */
+.card-type-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  border-radius:var(--radius-full);
+  padding:2px var(--space-2);
+  line-height:1.5;
+  flex-shrink:0;
+}
+.card-type-badge--list{
+  background:var(--color-primary-highlight);
+  color:var(--color-primary);
+}
+.card-type-badge--tpl{
+  background:color-mix(in srgb, var(--accent-3) 16%, transparent);
+  color:var(--accent-3);
+}
 
 /* Template card inner elements */
 .template-card-header{

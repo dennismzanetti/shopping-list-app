@@ -265,8 +265,9 @@ export function renderTemplates(onEdit) {
         </div>
       </div>
       ${items.length > 0 ? `<div class="template-card-items">${chips}${moreChip}</div>` : ''}
-      <div class="template-card-footer">
+      <div class="template-card-footer" style="justify-content:space-between;">
         <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+        <span class="card-type-badge card-type-badge--tpl">📋 Template</span>
       </div>
     </div>`;
   }).join('');
