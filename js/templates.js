@@ -317,9 +317,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
         <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
         <span>Select all</span>
       </label>
-      <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn-inline" disabled>
-        <i data-lucide="arrow-right-left"></i> Move to Template
-      </button>
     </div>
     ${state.tplEditorItems.map((it, i) => {
       const cat = state.allCategories.find(c => c.name === (it.category || ''));
