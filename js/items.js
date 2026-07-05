@@ -1,8 +1,13 @@
 import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
+import { applyItemFilters, buildFilterToolbarHTML, initFilterToolbar } from './item-filters.js';
 import {
   doc, updateDoc, addDoc, deleteDoc, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+
+// -- Filter state for list detail ---------------------------------------------
+const listFilterState = { search: '', category: '', store: '', sort: 'added' };
+let _listFilterTeardown = null;
 
 // -- Item Store Checkboxes ----------------------------------------------------
 export function populateItemStoreCheckboxes(selectedStores = []) {
@@ -27,13 +32,85 @@ export function getSelectedStores() {
 export function renderItems(onToggle, onEdit, onDelete) {
   const list_ = document.getElementById('items-list');
   const empty = document.getElementById('items-empty');
-  const unchecked = state.allItems.filter(i => !i.checked);
-  const checked   = state.allItems.filter(i =>  i.checked);
-  const total = state.allItems.length, doneCount = checked.length;
+  const total = state.allItems.length, doneCount = state.allItems.filter(i => i.checked).length;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   document.getElementById('progress-bar').style.width = pct + '%';
   document.getElementById('progress-label').textContent = `${doneCount} of ${total} checked`;
+
+  // --- filter toolbar ---
+  _renderListFilterToolbar(onToggle, onEdit, onDelete);
+
   if (total === 0) { empty.style.display = 'flex'; list_.innerHTML = ''; return; }
+  empty.style.display = 'none';
+
+  _renderItemList(onToggle, onEdit, onDelete);
+}
+
+function _renderListFilterToolbar(onToggle, onEdit, onDelete) {
+  const wrap = document.getElementById('list-filter-toolbar-wrap');
+  if (!wrap) return;
+
+  // tear down previous listeners before re-rendering
+  if (_listFilterTeardown) { _listFilterTeardown(); _listFilterTeardown = null; }
+
+  wrap.innerHTML = buildFilterToolbarHTML('list', state.allCategories, state.allStores, listFilterState);
+  createIcons();
+
+  _listFilterTeardown = initFilterToolbar('list', (newState) => {
+    Object.assign(listFilterState, newState);
+    _renderItemList(onToggle, onEdit, onDelete);
+    // update clear button presence without full toolbar re-render
+    _refreshClearBtn('list', listFilterState, () => _renderListFilterToolbar(onToggle, onEdit, onDelete));
+  }, listFilterState);
+}
+
+function _refreshClearBtn(prefix, filterState, rerender) {
+  const toolbar = document.getElementById(`${prefix}-filter-toolbar`);
+  if (!toolbar) return;
+  const hasFilter = filterState.search || filterState.category || filterState.store || filterState.sort !== 'added';
+  const existing  = document.getElementById(`${prefix}-filter-clear`);
+  if (hasFilter && !existing) {
+    // append clear button
+    const btn = document.createElement('button');
+    btn.className = 'item-filter-clear';
+    btn.id = `${prefix}-filter-clear`;
+    btn.setAttribute('aria-label', 'Clear filters');
+    btn.title = 'Clear all filters';
+    btn.innerHTML = '<i data-lucide="x"></i> Clear';
+    btn.addEventListener('click', () => {
+      filterState.search = ''; filterState.category = ''; filterState.store = ''; filterState.sort = 'added';
+      rerender();
+    });
+    toolbar.appendChild(btn);
+    createIcons();
+  } else if (!hasFilter && existing) {
+    existing.remove();
+  }
+}
+
+function _renderItemList(onToggle, onEdit, onDelete) {
+  const list_ = document.getElementById('items-list');
+  const empty = document.getElementById('items-empty');
+  if (!list_) return;
+
+  const filtered = applyItemFilters(state.allItems, listFilterState);
+  const unchecked = filtered.filter(i => !i.checked);
+  const checked   = filtered.filter(i =>  i.checked);
+
+  if (filtered.length === 0 && state.allItems.length > 0) {
+    empty.style.display = 'flex';
+    empty.querySelector('h3').textContent = 'No items match';
+    empty.querySelector('p').innerHTML    = 'Try adjusting your filters.';
+    list_.innerHTML = '';
+    return;
+  }
+  if (state.allItems.length === 0) {
+    empty.style.display = 'flex';
+    empty.querySelector('h3').textContent = 'List is empty';
+    empty.querySelector('p').innerHTML    = 'Tap <strong>Add Item</strong> to get started.';
+    list_.innerHTML = '';
+    return;
+  }
   empty.style.display = 'none';
 
   const renderGroup = items => items.map(item => {
