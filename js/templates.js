@@ -375,6 +375,9 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       selectAllCb.indeterminate = true;
     }
     updateMoveItemsBtn();
+    // Also sync the inline btn
+    const inlineBtn = document.getElementById('tpl-move-items-btn-inline');
+    if (inlineBtn) inlineBtn.disabled = checkedCount === 0;
   }
 
   selectAllCb.addEventListener('change', () => {
@@ -413,12 +416,6 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   updateMoveItemsBtn();
   createIcons();
 }
-
-// -- updateMoveItemsBtn also syncs the inline btn ------------------------------
-// Override to keep both toolbar and inline btns in sync
-const _origUpdateMoveItemsBtn = updateMoveItemsBtn;
-export { updateMoveItemsBtn };
-// (inline btn disabled state is handled via updateSelectAllState above)
 
 // -- Template Item sub-modal --------------------------------------------------
 export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
