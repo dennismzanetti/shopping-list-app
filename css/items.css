@@ -75,5 +75,6 @@
 .item-qty-badge{font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-text-muted);padding:2px 7px;border-radius:var(--radius-full);font-weight:500}
 .tag-chip{display:inline-flex;align-items:center;font-size:var(--text-xs);background:var(--color-primary-highlight);color:var(--color-primary);padding:2px 8px;border-radius:var(--radius-full);font-weight:500}
 
-/* Template editor item rows — smaller, lighter name text */
-.tpl-editor-items .item-name{font-size:var(--text-xs);font-weight:500}
+/* Template editor & list detail item rows — smaller, lighter name text */
+.tpl-editor-items .item-name,
+#items-list .item-name{font-size:var(--text-xs);font-weight:500}
