@@ -77,4 +77,4 @@
 
 /* Template editor & list detail item rows — smaller, lighter name text */
 .tpl-editor-items .item-name,
-#items-list .item-name{font-size:var(--text-xs);font-weight:500}
+#items-list .item-name{font-size:0.7rem;font-weight:500}
