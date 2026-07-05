@@ -423,7 +423,6 @@ export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
   document.getElementById('tpl-item-name').value              = it ? it.name  : '';
   document.getElementById('tpl-item-qty').value               = it ? it.qty   : '';
   document.getElementById('tpl-item-unit').value              = it ? it.unit  : '';
-  document.getElementById('tpl-item-tags').value              = it ? toArray(it.tags).join(', ') : '';
   document.getElementById('tpl-item-notes').value             = it ? it.notes : '';
   const tplCatSel = document.getElementById('tpl-item-category');
   if (tplCatSel && buildCategoryOptions) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
@@ -442,7 +441,7 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
     unit:     document.getElementById('tpl-item-unit').value.trim(),
     category: document.getElementById('tpl-item-category').value,
     stores:   getTplItemSelectedStores(),
-    tags:     document.getElementById('tpl-item-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+    tags:     [],
     notes:    document.getElementById('tpl-item-notes').value.trim()
   };
   if (state.tplItemEditingIdx >= 0) {
