@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopping App Slate Indigo Mockup</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-bg:#f4f6fb;
+      --color-surface:#ffffff;
+      --color-surface-2:#f8faff;
+      --color-surface-offset:#eef2fb;
+      --color-surface-offset-2:#e7ecf7;
+      --color-surface-dynamic:#dfe7f4;
+      --color-divider:#d7deeb;
+      --color-border:#cfd7e6;
+      --color-text:#171b25;
+      --color-text-muted:#5f687a;
+      --color-text-faint:#8b95a9;
+      --color-text-inverse:#f8faff;
+      --color-primary:#4f6ef7;
+      --color-primary-hover:#3f5ce0;
+      --color-primary-active:#3149bf;
+      --color-primary-highlight:#e4ebff;
+      --color-success:#2f8f67;
+      --color-warning:#b36b10;
+      --color-error:#c23c7a;
+      --shadow-sm:0 1px 2px rgba(16,24,40,.04), 0 8px 20px rgba(21,34,66,.04);
+      --shadow-md:0 2px 8px rgba(16,24,40,.06), 0 16px 32px rgba(21,34,66,.08);
+      --shadow-lg:0 10px 24px rgba(16,24,40,.08), 0 24px 56px rgba(21,34,66,.12);
+      --shadow-hover:0 6px 16px rgba(16,24,40,.08), 0 18px 36px rgba(21,34,66,.10);
+      --radius-sm:.5rem;
+      --radius-md:.75rem;
+      --radius-lg:1rem;
+      --radius-xl:1.25rem;
+      --radius-full:9999px;
+      --space-1:.25rem; --space-2:.5rem; --space-3:.75rem; --space-4:1rem;
+      --space-5:1.25rem; --space-6:1.5rem; --space-8:2rem; --space-10:2.5rem;
+      --space-12:3rem; --space-16:4rem;
+      --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);
+      --text-sm:clamp(.875rem,.8rem + .35vw,1rem);
+      --text-base:clamp(1rem,.95rem + .25vw,1.125rem);
+      --text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+      --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.1rem);
+      --font-body:'Satoshi', system-ui, sans-serif;
+      --transition:180ms cubic-bezier(.16,1,.3,1);
+      --header-height:64px;
+    }
+
+    [data-theme="dark"] {
+      --color-bg:#0f131c;
+      --color-surface:#171c28;
+      --color-surface-2:#1b2130;
+      --color-surface-offset:#202839;
+      --color-surface-offset-2:#252e41;
+      --color-surface-dynamic:#313c52;
+      --color-divider:#2e374a;
+      --color-border:#364056;
+      --color-text:#edf2ff;
+      --color-text-muted:#aab4c9;
+      --color-text-faint:#808ba3;
+      --color-text-inverse:#eef3ff;
+      --color-primary:#7b93ff;
+      --color-primary-hover:#99abff;
+      --color-primary-active:#5f79e8;
+      --color-primary-highlight:#212d54;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.18), 0 8px 20px rgba(0,0,0,.16);
+      --shadow-md:0 2px 8px rgba(0,0,0,.26), 0 16px 32px rgba(0,0,0,.24);
+      --shadow-lg:0 10px 24px rgba(0,0,0,.30), 0 24px 56px rgba(0,0,0,.32);
+      --shadow-hover:0 6px 16px rgba(0,0,0,.28), 0 18px 36px rgba(0,0,0,.30);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+    body {
+      margin: 0; min-height: 100dvh;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      color: var(--color-text);
+      background:
+        radial-gradient(circle at top left, rgba(79,110,247,.08), transparent 26%),
+        radial-gradient(circle at top right, rgba(79,110,247,.05), transparent 28%),
+        var(--color-bg);
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    .app-layout { min-height: 100dvh; display: grid; grid-template-rows: var(--header-height) 1fr; }
+
+    /* Header */
+    .app-header {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(16px, 4vw, 32px);
+      background: rgba(255,255,255,.82);
+      border-bottom: 1px solid rgba(79,110,247,.14);
+      backdrop-filter: blur(14px) saturate(1.2);
+      -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    }
+    [data-theme="dark"] .app-header {
+      background: rgba(23,28,40,.84);
+      border-bottom-color: rgba(123,147,255,.18);
+    }
+    .header-logo { display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:-.02em; }
+    .logo-icon {
+      width:34px; height:34px; border-radius:12px;
+      background: linear-gradient(145deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, white));
+      display:grid; place-items:center; color:white;
+      box-shadow:0 8px 20px rgba(79,110,247,.25);
+      font-size:1rem; font-weight:900;
+    }
+    .logo-text { color:var(--color-text); font-size:1rem; }
+    .header-nav { display:flex; gap:20px; }
+    .header-nav-item {
+      position:relative; padding:18px 2px 16px;
+      font-size:.95rem; font-weight:600; color:var(--color-text-muted); cursor:default;
+    }
+    .header-nav-item.active { color:var(--color-text); }
+    .header-nav-item.active::after {
+      content:""; position:absolute; left:0; right:0; bottom:-1px;
+      height:3px; border-radius:999px; background:var(--color-primary);
+    }
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .theme-btn {
+      border:none; background:var(--color-surface); color:var(--color-text-muted);
+      height:40px; border-radius:12px; padding:0 14px;
+      display:inline-flex; align-items:center; gap:8px;
+      box-shadow:var(--shadow-sm); cursor:pointer;
+    }
+    .icon-btn {
+      border:none; background:var(--color-surface); color:var(--color-text-muted);
+      width:40px; height:40px; border-radius:12px;
+      display:grid; place-items:center; box-shadow:var(--shadow-sm); cursor:pointer;
+    }
+    .avatar {
+      width:36px; height:36px; border-radius:50%;
+      background:var(--color-primary-highlight); color:var(--color-primary);
+      display:grid; place-items:center; font-weight:800; font-size:.85rem;
+      border:1px solid rgba(79,110,247,.12);
+    }
+
+    /* Layout */
+    .app-main { padding: clamp(18px,3vw,32px); }
+    .page-shell { max-width:1360px; margin:0 auto; display:grid; gap:24px; }
+
+    /* Hero */
+    .hero { display:grid; grid-template-columns:1.3fr .9fr; gap:24px; align-items:stretch; }
+    .hero-panel, .card {
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(207,215,230,.9);
+      border-radius:24px; box-shadow:var(--shadow-md);
+      backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    }
+    [data-theme="dark"] .hero-panel,
+    [data-theme="dark"] .card {
+      background:rgba(23,28,40,.78); border-color:rgba(54,64,86,.92);
+    }
+    .hero-panel { padding:28px; display:flex; flex-direction:column; justify-content:space-between; gap:28px; min-height:240px; }
+    .eyebrow {
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+      border-radius:999px; background:var(--color-primary-highlight);
+      color:var(--color-primary); font-size:.82rem; font-weight:700; width:max-content;
+    }
+    .hero-title {
+      margin:14px 0 10px;
+      font-size:clamp(2rem,4vw,3.4rem);
+      line-height:1; letter-spacing:-.045em; font-weight:900; max-width:11ch;
+    }
+    .hero-copy { max-width:50ch; color:var(--color-text-muted); }
+    .hero-actions { display:flex; gap:12px; flex-wrap:wrap; }
+    .hero-aside { padding:24px; display:grid; gap:16px; align-content:start; }
+    .quick-stat {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px; background:var(--color-surface-2);
+      border:1px solid rgba(79,110,247,.08); border-radius:18px;
+    }
+    .quick-stat strong { font-size:1.2rem; letter-spacing:-.03em; }
+    .quick-stat span { color:var(--color-text-muted); font-size:.9rem; }
+
+    /* Buttons */
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding:12px 18px; border-radius:999px; border:none; cursor:default;
+      font-size:.94rem; font-weight:700;
+    }
+    .btn-primary { background:var(--color-primary); color:white; box-shadow:0 10px 22px rgba(79,110,247,.24); }
+    .btn-secondary { background:var(--color-surface); color:var(--color-text); border:1px solid var(--color-border); }
+
+    /* Content grid */
+    .content-grid { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr); gap:24px; align-items:start; }
+    .stack { display:grid; gap:24px; }
+    .card { overflow:hidden; }
+    .card-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 22px; border-bottom:1px solid rgba(207,215,230,.82);
+    }
+    [data-theme="dark"] .card-header { border-bottom-color:rgba(54,64,86,.8); }
+    .card-title { font-size:1.02rem; font-weight:800; letter-spacing:-.02em; }
+    .muted { color:var(--color-text-muted); font-size:.9rem; margin-top:2px; }
+    .card-body { padding:20px 22px 22px; }
+
+    /* List toolbar */
+    .list-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    .search {
+      flex:1; display:flex; align-items:center; gap:10px;
+      border:1px solid var(--color-border); background:var(--color-surface-2);
+      border-radius:16px; padding:12px 14px; color:var(--color-text-muted);
+    }
+    .search input { border:none; outline:none; width:100%; background:transparent; color:var(--color-text); }
+
+    /* Item rows */
+    .item-list { display:grid; gap:12px; }
+    .item-row {
+      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
+      padding:14px 16px; border-radius:18px;
+      border:1px solid rgba(207,215,230,.76);
+      background:linear-gradient(180deg, rgba(255,255,255,.8), rgba(248,250,255,.92));
+    }
+    [data-theme="dark"] .item-row {
+      background:linear-gradient(180deg, rgba(27,33,48,.96), rgba(23,28,40,.98));
+      border-color:rgba(54,64,86,.82);
+    }
+    .item-row.featured { border-color:rgba(79,110,247,.34); box-shadow:0 8px 18px rgba(79,110,247,.08); }
+    .check {
+      width:22px; height:22px; border-radius:8px;
+      border:2px solid var(--color-border); background:var(--color-surface); position:relative;
+    }
+    .check.checked { background:var(--color-primary); border-color:var(--color-primary); }
+    .check.checked::after {
+      content:""; position:absolute; left:6px; top:2px; width:5px; height:10px;
+      border:2px solid white; border-top:none; border-left:none; transform:rotate(45deg);
+    }
+    .item-name { font-weight:700; letter-spacing:-.02em; }
+    .item-meta { font-size:.88rem; color:var(--color-text-muted); margin-top:2px; }
+
+    /* Pills */
+    .pill {
+      display:inline-flex; align-items:center; gap:8px; padding:7px 11px;
+      border-radius:999px; font-size:.8rem; font-weight:700;
+      background:var(--color-surface-offset); color:var(--color-text-muted);
+    }
+    .pill.primary { background:var(--color-primary-highlight); color:var(--color-primary); }
+    .pill.success { background:color-mix(in srgb, var(--color-success) 16%, white); color:var(--color-success); }
+
+    /* Templates */
+    .template-row {
+      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+      padding:14px 0; border-bottom:1px solid var(--color-divider);
+    }
+    .template-row:last-child { border-bottom:none; padding-bottom:0; }
+    .template-name { font-weight:700; }
+    .template-copy { color:var(--color-text-muted); font-size:.9rem; margin-top:2px; }
+
+    /* Summary tiles */
+    .summary-grid { display:grid; gap:12px; }
+    .summary-tile {
+      padding:16px 18px; border-radius:20px;
+      background:var(--color-surface-2); border:1px solid rgba(79,110,247,.08);
+    }
+    .summary-label { font-size:.84rem; color:var(--color-text-muted); margin-bottom:6px; }
+    .summary-value { font-size:1.5rem; font-weight:900; letter-spacing:-.04em; }
+
+    /* Mobile phone frame */
+    .mobile-preview { margin-top:8px; display:grid; justify-content:center; }
+    .phone {
+      width:310px; border-radius:34px; padding:14px;
+      background:#0f131c; box-shadow:0 28px 60px rgba(15,19,28,.28);
+      border:1px solid rgba(15,19,28,.2);
+    }
+    .phone-screen {
+      border-radius:26px; overflow:hidden; background:var(--color-bg); min-height:610px;
+      display:grid; grid-template-rows:auto auto 1fr auto;
+    }
+    .phone-topbar {
+      padding:14px 18px 10px; display:flex; justify-content:space-between; align-items:center;
+      font-size:.88rem; font-weight:700; color:var(--color-text-muted);
+    }
+    .phone-header {
+      padding:10px 18px 16px; border-bottom:1px solid rgba(79,110,247,.12);
+      background:rgba(255,255,255,.75); backdrop-filter:blur(12px);
+    }
+    [data-theme="dark"] .phone-header { background:rgba(23,28,40,.80); }
+    .phone-title { font-size:1.45rem; font-weight:900; letter-spacing:-.04em; margin:0; }
+    .phone-subtitle { margin:4px 0 0; font-size:.9rem; color:var(--color-text-muted); }
+    .phone-content { padding:14px; display:grid; gap:10px; }
+    .phone-item {
+      display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
+      padding:14px; border-radius:18px;
+      background:var(--color-surface); border:1px solid var(--color-border);
+    }
+    .bottom-nav {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:10px 12px 14px;
+      border-top:1px solid rgba(79,110,247,.12);
+      background:rgba(255,255,255,.82); backdrop-filter:blur(14px);
+    }
+    [data-theme="dark"] .bottom-nav { background:rgba(23,28,40,.84); }
+    .bottom-nav-item {
+      display:grid; gap:6px; justify-items:center; padding:8px 4px; border-radius:16px;
+      color:var(--color-text-faint); font-size:.72rem; font-weight:700;
+    }
+    .bottom-nav-item.active { color:var(--color-primary); background:var(--color-primary-highlight); }
+
+    /* Responsive */
+    @media (max-width:1080px) {
+      .hero, .content-grid { grid-template-columns:1fr; }
+      .header-nav { display:none; }
+    }
+    @media (max-width:720px) {
+      .list-toolbar { flex-direction:column; align-items:stretch; }
+      .hero-actions { flex-direction:column; }
+      .btn { width:100%; justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-icon">S</div>
+        <div class="logo-text">Shopping Lists</div>
+      </div>
+      <nav class="header-nav">
+        <div class="header-nav-item active">Dashboard</div>
+        <div class="header-nav-item">Lists</div>
+        <div class="header-nav-item">Templates</div>
+        <div class="header-nav-item">Stores</div>
+      </nav>
+      <div class="header-actions">
+        <button class="theme-btn" id="themeToggle" type="button">◐ Theme</button>
+        <button class="icon-btn" type="button">⌕</button>
+        <div class="avatar">DZ</div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="page-shell">
+
+        <!-- Hero -->
+        <section class="hero">
+          <div class="hero-panel">
+            <div>
+              <div class="eyebrow">Cool slate + indigo concept</div>
+              <h1 class="hero-title">A sharper shopping app without sidebars.</h1>
+              <p class="hero-copy">Cleaner surfaces, stronger typography, and a single indigo accent. Top navigation stays, content gets more breathing room, and the warmer teal palette shifts to a crisper cool slate.</p>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-primary" type="button">New list</button>
+              <button class="btn btn-secondary" type="button">Browse templates</button>
+            </div>
+          </div>
+          <aside class="hero-panel hero-aside">
+            <div class="quick-stat"><span>Open lists</span><strong>6</strong></div>
+            <div class="quick-stat"><span>Items this week</span><strong>84</strong></div>
+            <div class="quick-stat"><span>Templates</span><strong>12</strong></div>
+            <div class="quick-stat"><span>Shared stores</span><strong>4</strong></div>
+          </aside>
+        </section>
+
+        <!-- Content grid -->
+        <section class="content-grid">
+          <div class="stack">
+
+            <!-- Shopping list card -->
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Current shopping list</div>
+                  <div class="muted">Focused rows, custom checks, softer elevation</div>
+                </div>
+                <div class="pill primary">14 items</div>
+              </div>
+              <div class="card-body">
+                <div class="list-toolbar">
+                  <label class="search">
+                    <span>⌕</span>
+                    <input type="text" value="Search items…" readonly />
+                  </label>
+                  <button class="btn btn-primary" type="button">Add item</button>
+                </div>
+                <div class="item-list">
+                  <div class="item-row featured">
+                    <div class="check checked"></div>
+                    <div><div class="item-name">Avocados</div><div class="item-meta">Produce · Whole Foods · Qty 4</div></div>
+                    <div class="pill success">Bought</div>
+                  </div>
+                  <div class="item-row">
+                    <div class="check"></div>
+                    <div><div class="item-name">Greek yogurt</div><div class="item-meta">Dairy · Market Basket · Qty 2</div></div>
+                    <div class="pill">Dairy</div>
+                  </div>
+                  <div class="item-row">
+                    <div class="check"></div>
+                    <div><div class="item-name">Sourdough bread</div><div class="item-meta">Bakery · Local store · Qty 1</div></div>
+                    <div class="pill">Bakery</div>
+                  </div>
+                  <div class="item-row">
+                    <div class="check"></div>
+                    <div><div class="item-name">Frozen blueberries</div><div class="item-meta">Frozen · Costco · Qty 1</div></div>
+                    <div class="pill">Frozen</div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Templates card -->
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Templates</div>
+                  <div class="muted">Clean dividers, no decorative mesh headers</div>
+                </div>
+                <button class="btn btn-secondary" type="button">Create template</button>
+              </div>
+              <div class="card-body">
+                <div class="template-row">
+                  <div><div class="template-name">Weekly groceries</div><div class="template-copy">Produce, dairy, pantry staples, frozen fruit, snacks.</div></div>
+                  <div class="pill primary">Default</div>
+                </div>
+                <div class="template-row">
+                  <div><div class="template-name">Costco run</div><div class="template-copy">Bulk items and freezer restock with larger quantities.</div></div>
+                  <div class="pill">Bulk</div>
+                </div>
+                <div class="template-row">
+                  <div><div class="template-name">Game night</div><div class="template-copy">Drinks, chips, wings, paper goods, last-minute extras.</div></div>
+                  <div class="pill">Occasion</div>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <aside class="stack">
+
+            <!-- Summary -->
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">At a glance</div>
+                  <div class="muted">Summary tiles, no loud card accents</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="summary-grid">
+                  <div class="summary-tile"><div class="summary-label">Pending items</div><div class="summary-value">11</div></div>
+                  <div class="summary-tile"><div class="summary-label">Completed today</div><div class="summary-value">7</div></div>
+                  <div class="summary-tile"><div class="summary-label">Stores this week</div><div class="summary-value">3</div></div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Mobile preview -->
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Mobile preview</div>
+                  <div class="muted">Bottom nav, no sidebar</div>
+                </div>
+              </div>
+              <div class="card-body mobile-preview">
+                <div class="phone">
+                  <div class="phone-screen">
+                    <div class="phone-topbar"><span>9:41</span><span>◉◉◉</span></div>
+                    <div class="phone-header">
+                      <h2 class="phone-title">Saturday list</h2>
+                      <p class="phone-subtitle">Focused and thumb-friendly.</p>
+                    </div>
+                    <div class="phone-content">
+                      <div class="phone-item">
+                        <div class="check checked"></div>
+                        <div><div class="item-name">Baby spinach</div><div class="item-meta">Produce</div></div>
+                        <div class="pill primary">Now</div>
+                      </div>
+                      <div class="phone-item">
+                        <div class="check"></div>
+                        <div><div class="item-name">Oat milk</div><div class="item-meta">Dairy alt</div></div>
+                        <div class="pill">2</div>
+                      </div>
+                      <div class="phone-item">
+                        <div class="check"></div>
+                        <div><div class="item-name">Chicken thighs</div><div class="item-meta">Meat</div></div>
+                        <div class="pill">1</div>
+                      </div>
+                    </div>
+                    <div class="bottom-nav">
+                      <div class="bottom-nav-item active">Home</div>
+                      <div class="bottom-nav-item">Lists</div>
+                      <div class="bottom-nav-item">Templates</div>
+                      <div class="bottom-nav-item">Stores</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    });
+  </script>
+</body>
+</html>
