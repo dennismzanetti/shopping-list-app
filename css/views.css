@@ -27,12 +27,14 @@
 /* Lists grid */
 .lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--space-5)}
 
-/* Page nav bar — no background, no border */
+/* Page nav bar — transparent with subtle edge */
 .page-nav-bar{
   display:flex;
   align-items:center;
   gap:var(--space-3);
   padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-border);
+  background:transparent;
 }
 
 /* List card — glassy, elevation only, no colored top border */
