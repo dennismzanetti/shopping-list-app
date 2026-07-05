@@ -160,12 +160,20 @@ export async function executeMoveCopy({ mode, updateDoc, doc, templatesCol, buil
 }
 
 // -- Add-to-List picker modal -------------------------------------------------
+// Falls back to ALL template items when none are individually checked,
+// so the toolbar "Add to List" button always works without pre-selecting items.
 export function openAddToListModal() {
-  const items = getCheckedTplItems();
-  if (items.length === 0) { window.showToast('No items selected - check at least one item first', 'error'); return; }
+  if (state.tplEditorItems.length === 0) {
+    window.showToast('This template has no items to add', 'error');
+    return;
+  }
 
-  const select = document.getElementById('tpl-list-select');
-  const newRow  = document.getElementById('tpl-new-list-row');
+  const checked = getCheckedTplItems();
+  // If nothing checked, use all items (toolbar flow); if some checked, use selection only.
+  const items = checked.length > 0 ? checked : state.tplEditorItems;
+
+  const select   = document.getElementById('tpl-list-select');
+  const newRow   = document.getElementById('tpl-new-list-row');
   const newInput = document.getElementById('tpl-new-list-name');
 
   if (select) {
@@ -184,18 +192,23 @@ export function openAddToListModal() {
   }
 
   if (newInput) newInput.value = '';
+
+  // Store the resolved item set so addSelectedItemsToList can use it
+  state._tplAddToListItems = items;
+
   window.openModal('modal-tpl-add-to-list');
 }
 
 function getCheckedTplItems() {
   return Array.from(
-    document.getElementById('tpl-editor-items')?.querySelectorAll('input[type=checkbox].tpl-item-select:checked') || []
+    document.getElementById('tpl-editor-items')?.querySelectorAll('input[type=checkbox].tpl-item-select:not(#tpl-select-all):checked') || []
   ).map(cb => state.tplEditorItems[parseInt(cb.dataset.idx)]);
 }
 
 export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db }) {
-  const items = getCheckedTplItems();
-  if (items.length === 0) { window.showToast('No items selected', 'error'); return; }
+  // Use items resolved at modal-open time (all or checked subset)
+  const items = state._tplAddToListItems || getCheckedTplItems();
+  if (items.length === 0) { window.showToast('No items to add', 'error'); return; }
 
   const select = document.getElementById('tpl-list-select');
   if (!select) { window.showToast('Could not find list selector', 'error'); return; }
@@ -222,6 +235,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
       batch.set(ref, { ...it, checked: false, createdAt: serverTimestamp() });
     });
     await batch.commit();
+    state._tplAddToListItems = null;
     window.showToast(`${items.length} item${items.length !== 1 ? 's' : ''} added to list!`, 'success');
     window.closeModal('modal-tpl-add-to-list');
     navigateTo('templates');
@@ -303,7 +317,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
         <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
         <span>Select all</span>
       </label>
-      <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn" disabled>
+      <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn-inline" disabled>
         <i data-lucide="arrow-right-left"></i> Move to Template
       </button>
     </div>
@@ -376,8 +390,8 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
     cb.addEventListener('change', updateSelectAllState)
   );
 
-  // Wire the inline Move to Template button
-  document.getElementById('tpl-move-items-btn')?.addEventListener('click', openMoveToTemplateModal);
+  // Wire the inline Move to Template button (unique id, no collision with toolbar btn)
+  document.getElementById('tpl-move-items-btn-inline')?.addEventListener('click', openMoveToTemplateModal);
 
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
@@ -399,6 +413,12 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   updateMoveItemsBtn();
   createIcons();
 }
+
+// -- updateMoveItemsBtn also syncs the inline btn ------------------------------
+// Override to keep both toolbar and inline btns in sync
+const _origUpdateMoveItemsBtn = updateMoveItemsBtn;
+export { updateMoveItemsBtn };
+// (inline btn disabled state is handled via updateSelectAllState above)
 
 // -- Template Item sub-modal --------------------------------------------------
 export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
@@ -490,7 +510,11 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });
 
+  // Toolbar "Add to List" — adds all items if none checked, else checked subset
   document.getElementById('tpl-add-to-list-btn').addEventListener('click', openAddToListModal);
+
+  // Toolbar "Move to Template" — requires items to be checked first
+  document.getElementById('tpl-move-items-btn').addEventListener('click', openMoveToTemplateModal);
 
   document.getElementById('tpl-atl-confirm-btn').addEventListener('click', () =>
     addSelectedItemsToList({ listsCol, itemsCol, addDoc, writeBatch, doc, serverTimestamp, db })
