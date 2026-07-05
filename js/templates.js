@@ -2,6 +2,7 @@ import { escHtml, toArray, createIcons } from './utils.js';
 import { state } from './state.js';
 import { navigateTo } from './nav.js';
 import { openEmojiPicker } from './ui.js';
+import { applyItemFilters, buildFilterToolbarHTML, initFilterToolbar } from './item-filters.js';
 
 // -- Helpers ------------------------------------------------------------------
 export function normaliseItem(it) {
@@ -275,6 +276,10 @@ export function renderTemplates(onEdit) {
   createIcons();
 }
 
+// -- Filter state for template editor -----------------------------------------
+const tplFilterState = { search: '', category: '', store: '', sort: 'added' };
+let _tplFilterTeardown = null;
+
 // -- Editor -------------------------------------------------------------------
 export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   state.editingTemplateId = tplId || null;
@@ -294,6 +299,9 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
     if (btn)  btn.setAttribute('aria-expanded', 'true');
   });
 
+  // reset filters when opening a new/different template
+  tplFilterState.search = ''; tplFilterState.category = ''; tplFilterState.store = ''; tplFilterState.sort = 'added';
+
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
   navigateTo('template-editor');
@@ -306,11 +314,80 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
   const count = state.tplEditorItems.length;
   document.getElementById('tpl-item-count').textContent = `${count} item${count !== 1 ? 's' : ''}`;
 
+  // --- filter toolbar (rendered into its own stable wrapper) ---
+  _renderTplFilterToolbar(buildCategoryOptions);
+
   if (count === 0) {
     container.innerHTML = `<div class="empty-state" style="padding:var(--space-8) var(--space-4);"><div class="empty-state-icon"><i data-lucide="package-open"></i></div><p style="color:var(--color-text-muted);">No items yet. Add your first item below.</p></div>`;
     updateMoveItemsBtn();
     createIcons(); return;
   }
+
+  _renderTplItemList(buildCategoryOptions);
+}
+
+function _renderTplFilterToolbar(buildCategoryOptions) {
+  const wrap = document.getElementById('tpl-filter-toolbar-wrap');
+  if (!wrap) return;
+  if (_tplFilterTeardown) { _tplFilterTeardown(); _tplFilterTeardown = null; }
+  wrap.innerHTML = buildFilterToolbarHTML('tpl', state.allCategories, state.allStores, tplFilterState);
+  createIcons();
+  _tplFilterTeardown = initFilterToolbar('tpl', (newState) => {
+    Object.assign(tplFilterState, newState);
+    _renderTplItemList(buildCategoryOptions);
+    _refreshTplClearBtn(buildCategoryOptions);
+  }, tplFilterState);
+}
+
+function _refreshTplClearBtn(buildCategoryOptions) {
+  const toolbar = document.getElementById('tpl-filter-toolbar');
+  if (!toolbar) return;
+  const hasFilter = tplFilterState.search || tplFilterState.category || tplFilterState.store || tplFilterState.sort !== 'added';
+  const existing  = document.getElementById('tpl-filter-clear');
+  if (hasFilter && !existing) {
+    const btn = document.createElement('button');
+    btn.className = 'item-filter-clear';
+    btn.id = 'tpl-filter-clear';
+    btn.setAttribute('aria-label', 'Clear filters');
+    btn.title = 'Clear all filters';
+    btn.innerHTML = '<i data-lucide="x"></i> Clear';
+    btn.addEventListener('click', () => {
+      tplFilterState.search = ''; tplFilterState.category = ''; tplFilterState.store = ''; tplFilterState.sort = 'added';
+      _renderTplFilterToolbar(buildCategoryOptions);
+      _renderTplItemList(buildCategoryOptions);
+    });
+    toolbar.appendChild(btn);
+    createIcons();
+  } else if (!hasFilter && existing) {
+    existing.remove();
+  }
+}
+
+function _renderTplItemList(buildCategoryOptions) {
+  const container = document.getElementById('tpl-editor-items');
+  if (!container) return;
+
+  const filtered = applyItemFilters(state.tplEditorItems, tplFilterState);
+
+  if (filtered.length === 0 && state.tplEditorItems.length > 0) {
+    container.innerHTML = `<div class="empty-state" style="padding:var(--space-6) var(--space-4);"><p style="color:var(--color-text-muted);">No items match the current filters.</p></div>`;
+    updateMoveItemsBtn();
+    createIcons();
+    return;
+  }
+
+  if (state.tplEditorItems.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="padding:var(--space-8) var(--space-4);"><div class="empty-state-icon"><i data-lucide="package-open"></i></div><p style="color:var(--color-text-muted);">No items yet. Add your first item below.</p></div>`;
+    updateMoveItemsBtn();
+    createIcons();
+    return;
+  }
+
+  // Map filtered items back to their original indexes so edit/remove still work
+  const indexedFiltered = filtered.map(it => ({
+    it,
+    origIdx: state.tplEditorItems.indexOf(it)
+  }));
 
   container.innerHTML = `
     <div class="tpl-select-all-row" style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) 0 var(--space-2) 0;">
@@ -322,7 +399,7 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
         <i data-lucide="arrow-right-left"></i> Move to Template
       </button>
     </div>
-    ${state.tplEditorItems.map((it, i) => {
+    ${indexedFiltered.map(({ it, origIdx }) => {
       const cat = state.allCategories.find(c => c.name === (it.category || ''));
       const catBadge = it.category
         ? `<span class="item-cat-badge">${cat?.emoji ? cat.emoji + ' ' : ''}${escHtml(it.category)}</span>`
@@ -336,15 +413,15 @@ export function renderTplEditorItems({ buildCategoryOptions } = {}) {
       const meta = (qtyBadge || catBadge || storeChips)
         ? `<div class="item-meta">${qtyBadge}${catBadge}${storeChips}</div>`
         : '';
-      return `<div class="item-row" data-tpl-item-idx="${i}" style="cursor:pointer;">
-        <input type="checkbox" class="tpl-item-select" data-idx="${i}" aria-label="Select ${escHtml(it.name)}" style="flex-shrink:0;width:16px;height:16px;cursor:pointer;">
+      return `<div class="item-row" data-tpl-item-idx="${origIdx}" style="cursor:pointer;">
+        <input type="checkbox" class="tpl-item-select" data-idx="${origIdx}" aria-label="Select ${escHtml(it.name)}" style="flex-shrink:0;width:16px;height:16px;cursor:pointer;">
         <div class="item-info">
           <span class="item-name">${escHtml(it.name)}</span>
           ${meta}
         </div>
         <div class="tpl-item-actions" style="display:flex;gap:var(--space-1);flex-shrink:0;opacity:0;transition:opacity var(--transition-interactive);">
-          <button class="icon-btn" data-tpl-item-edit="${i}" aria-label="Edit item"><i data-lucide="pencil"></i></button>
-          <button class="icon-btn" data-tpl-item-remove="${i}" aria-label="Remove item"><i data-lucide="trash-2"></i></button>
+          <button class="icon-btn" data-tpl-item-edit="${origIdx}" aria-label="Edit item"><i data-lucide="pencil"></i></button>
+          <button class="icon-btn" data-tpl-item-remove="${origIdx}" aria-label="Remove item"><i data-lucide="trash-2"></i></button>
         </div>
       </div>`;
     }).join('')}`;
