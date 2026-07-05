@@ -270,6 +270,15 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
   setVisibilityValue(tpl ? (tpl.visibility || 'private') : 'private');
   populateTplStoreCheckboxes(tpl ? toArray(tpl.stores) : []);
+
+  // Reset collapsible sections to expanded so the Add Item button is always reachable
+  ['tpl-details-collapsible', 'tpl-items-collapsible'].forEach(id => {
+    const body = document.getElementById(id);
+    const btn  = document.querySelector(`[data-collapse-btn="${id}"]`);
+    if (body) body.classList.remove('collapsed');
+    if (btn)  btn.setAttribute('aria-expanded', 'true');
+  });
+
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
   navigateTo('template-editor');
@@ -499,16 +508,5 @@ export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc,
     if (!state.editingTemplateId) return;
     navigateTo('templates');
     confirmDelete('template', state.editingTemplateId, () => {});
-  });
-
-  // -- Collapsible card sections ---------------------------------------------
-  document.getElementById('view-template-editor')?.addEventListener('click', e => {
-    const btn = e.target.closest('.card-collapse-btn');
-    if (!btn) return;
-    const targetId = btn.dataset.collapseTarget;
-    const body = document.getElementById(targetId);
-    if (!body) return;
-    const isCollapsed = body.classList.toggle('collapsed');
-    btn.setAttribute('aria-expanded', String(!isCollapsed));
   });
 }
