@@ -83,8 +83,8 @@
 .store-checkbox-label input[type=checkbox]:checked::after{content:'';position:absolute;left:2px;top:-1px;width:6px;height:9px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg)}
 .store-checkbox-label:has(input:checked){background:var(--color-primary-highlight);border-color:var(--color-primary);color:var(--color-primary)}
 
-/* Visibility Toggle */
-.vis-toggle{display:inline-flex;align-self:flex-start;border:1px solid var(--color-border);border-radius:var(--radius-full);overflow:hidden;background:var(--color-surface-offset)}
+/* Visibility Toggle — no outer border */
+.vis-toggle{display:inline-flex;align-self:flex-start;border-radius:var(--radius-full);overflow:hidden;background:var(--color-surface-offset)}
 .vis-toggle-btn{display:inline-flex;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-4);font-size:var(--text-xs);font-weight:500;color:var(--color-text-muted);background:none;border:none;cursor:pointer;transition:background var(--transition-interactive),color var(--transition-interactive);white-space:nowrap;line-height:1.6}
 .vis-toggle-btn svg{width:12px;height:12px;flex-shrink:0}
 .vis-toggle-btn:hover{background:var(--color-surface-dynamic);color:var(--color-text)}
