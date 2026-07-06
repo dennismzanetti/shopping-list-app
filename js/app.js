@@ -8,7 +8,7 @@ import {
 import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
-import { backfillPublicDocs }                            from './seed.js';
+import { backfillPublicDocs, backfillGlobalCatsStores }  from './seed.js';
 import { openModal, closeModal, showToast, openEmojiPicker,
          buildCategoryOptions, setHashListId, getHashListId,
          setUserUI }                                    from './ui.js';
@@ -50,6 +50,10 @@ window.backfillPublicDocs = () => backfillPublicDocs({
   db, uid: uid(), displayName: state.currentUser?.displayName,
   email: state.currentUser?.email,
   collection, getDocs, query, where, addDoc, updateDoc, doc, serverTimestamp
+});
+window.backfillGlobalCatsStores = () => backfillGlobalCatsStores({
+  db, uid: uid(),
+  collection, getDocs, addDoc, query, orderBy, serverTimestamp
 });
 window.openEmojiPicker = openEmojiPicker;
 
