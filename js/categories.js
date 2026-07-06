@@ -137,10 +137,13 @@ export function renderStores(allStores, onDelete, onUpdate) {
   grid.innerHTML = allStores.map(store => `
     <div class="card" data-store-id="${store.id}">
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);">
-        <div class="store-display" style="display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
+        <button type="button" class="store-display store-display-clickable" data-open-store="${store.id}"
+          style="display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;background:none;border:none;cursor:pointer;padding:0;text-align:left;"
+          title="View items for this store" aria-label="View items for ${escHtml(store.name)}">
           <span class="store-emoji-display" style="font-size:1.1rem;">${store.emoji || '\uD83C\uDFEA'}</span>
-          <span class="store-name-display" style="font-size:var(--text-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(store.name)}</span>
-        </div>
+          <span class="store-name-display" style="font-size:var(--text-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text);">${escHtml(store.name)}</span>
+          <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;margin-left:auto;"></i>
+        </button>
         <div class="store-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
           <button type="button" class="store-emoji-picker-btn"
             id="store-emoji-btn-${store.id}"
@@ -173,7 +176,7 @@ export function renderStores(allStores, onDelete, onUpdate) {
   allStores.forEach(store => {
     const card      = grid.querySelector(`[data-store-id="${store.id}"]`);
     if (!card) return;
-    const display   = card.querySelector('.store-display');
+    const displayBtn = card.querySelector('[data-open-store]');
     const editRow   = card.querySelector('.store-edit-row');
     const editBtn   = card.querySelector('[data-edit-store]');
     const saveBtn   = card.querySelector('[data-save-store]');
@@ -183,8 +186,15 @@ export function renderStores(allStores, onDelete, onUpdate) {
     const emojiInput = card.querySelector(`#store-edit-emoji-${store.id}`);
     const emojiBtn   = card.querySelector(`#store-emoji-btn-${store.id}`);
 
+    // Clicking the store name/emoji area opens the detail view
+    if (displayBtn) {
+      displayBtn.addEventListener('click', () => {
+        if (window.openStoreDetail) window.openStoreDetail(store.id);
+      });
+    }
+
     function enterEdit() {
-      display.style.display   = 'none';
+      if (displayBtn) displayBtn.style.display = 'none';
       editRow.style.display   = 'flex';
       editBtn.style.display   = 'none';
       deleteBtn.style.display = 'none';
@@ -195,7 +205,7 @@ export function renderStores(allStores, onDelete, onUpdate) {
     }
 
     function exitEdit() {
-      display.style.display   = '';
+      if (displayBtn) displayBtn.style.display = '';
       editRow.style.display   = 'none';
       editBtn.style.display   = '';
       deleteBtn.style.display = '';

@@ -25,6 +25,7 @@ import { renderTemplates, initTemplates,
 import { initVisToggle, setVisToggleValue, getVisToggleValue } from './lists-crud.js';
 import { createIcons }                                  from './utils.js';
 import { printList }                                    from './print.js';
+import { initStoreDetail }                              from './store-detail.js';
 
 // ---------------------------------------------------------------------------
 // Firestore collection helpers
@@ -187,7 +188,7 @@ function initNewListModal() {
     if (nameInput)  nameInput.value  = '';
     if (descInput)  descInput.value  = '';
     if (emojiInput) emojiInput.value = '';
-    if (emojiBtn)   emojiBtn.textContent = '🛒';
+    if (emojiBtn)   emojiBtn.textContent = '\uD83D\uDED2';
     setVisToggleValue('new-list-visibility', 'private');
     // Uncheck all store pills
     document.querySelectorAll('#new-list-store input[type=checkbox]').forEach(cb => cb.checked = false);
@@ -492,6 +493,9 @@ function init() {
   initItemModal();
   initCatStoreModals();
   initListDetailNav();
+
+  // Store Detail view
+  initStoreDetail({ getDocs, listsCol, itemsCol });
 
   initConfirm({
     db, listsCol, itemsCol,

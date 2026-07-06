@@ -304,6 +304,53 @@
         <div class="lists-grid" id="stores-grid"></div>
       </div>
 
+      <!-- Store Detail View -->
+      <div class="view editor-page" id="view-store-detail">
+        <div class="page-header">
+          <button class="back-btn header-back-btn" id="store-detail-back-btn"><i data-lucide="arrow-left"></i> Stores</button>
+          <h1 class="page-title" id="store-detail-title">Store</h1>
+        </div>
+        <div class="tpl-editor-body">
+
+          <!-- Template Items Card -->
+          <div class="card">
+            <div class="card-header card-header-collapsible" data-collapse-target="store-detail-tpl-collapsible">
+              <span style="font-weight:600;"><i data-lucide="layout-template" style="width:15px;height:15px;vertical-align:-2px;margin-right:var(--space-1);"></i> Template Items</span>
+              <button type="button" class="card-collapse-btn" aria-expanded="true" aria-label="Toggle Template Items section" data-collapse-btn="store-detail-tpl-collapsible">
+                <i data-lucide="chevron-down"></i>
+              </button>
+            </div>
+            <div class="card-body-collapsible" id="store-detail-tpl-collapsible">
+              <div class="card-body-collapsible-inner">
+                <div class="card-body" style="padding-bottom:var(--space-3);">
+                  <p id="store-detail-template-empty" class="store-detail-empty" style="display:none;">No template items are tagged to this store.</p>
+                  <ul class="store-detail-list" id="store-detail-template-items"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shopping List Items Card -->
+          <div class="card">
+            <div class="card-header card-header-collapsible" data-collapse-target="store-detail-list-collapsible">
+              <span style="font-weight:600;"><i data-lucide="shopping-cart" style="width:15px;height:15px;vertical-align:-2px;margin-right:var(--space-1);"></i> Shopping List Items</span>
+              <button type="button" class="card-collapse-btn" aria-expanded="true" aria-label="Toggle Shopping List Items section" data-collapse-btn="store-detail-list-collapsible">
+                <i data-lucide="chevron-down"></i>
+              </button>
+            </div>
+            <div class="card-body-collapsible" id="store-detail-list-collapsible">
+              <div class="card-body-collapsible-inner">
+                <div class="card-body" style="padding-bottom:var(--space-3);">
+                  <p id="store-detail-list-items-empty" class="store-detail-empty" style="display:none;">No shopping list items are tagged to this store.</p>
+                  <ul class="store-detail-list" id="store-detail-list-items"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Settings View -->
       <div class="view" id="view-settings">
         <div class="page-header">
@@ -631,6 +678,61 @@
     </div>
   </div>
 </div>
+
+<style>
+/* Store Detail View */
+.store-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.store-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-offset);
+  font-size: var(--text-sm);
+}
+.store-detail-item--checked .store-detail-item-name {
+  text-decoration: line-through;
+  color: var(--color-text-faint);
+}
+.store-detail-item-name {
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.store-detail-item-source {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.store-detail-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+  padding: var(--space-4) 0;
+  margin: 0;
+}
+.store-detail-loading {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-4) 0;
+}
+</style>
 
 <script>
 // Collapsible card sections
