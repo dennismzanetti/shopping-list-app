@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { escHtml, createIcons } from './utils.js';
 
 // -- Lists --------------------------------------------------------------------
-export function renderLists(onOpen, onDelete) {
+export function renderLists(onOpen, onDelete, onVisibilityChange) {
   const grid = document.getElementById('lists-grid');
   if (!grid) return;
   if (state.allLists.length === 0) {
@@ -14,45 +14,85 @@ export function renderLists(onOpen, onDelete) {
     </div>`;
     createIcons(); return;
   }
+
+  const uid = state.currentUser?.uid;
+
   grid.innerHTML = state.allLists.map(list => {
     const total   = list.itemCount   || 0;
     const checked = list.checkedCount || 0;
     const pct     = total > 0 ? Math.round((checked / total) * 100) : 0;
+    const isOwned = list.ownerId === uid;
     const isPublic = list.visibility === 'public';
-    const isOwned  = !list.ownerId || list.ownerId === state.currentUser?.uid;
-    const visBadge = isPublic
-      ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Public</span>`
-      : `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);"><i data-lucide="lock" style="width:11px;height:11px;"></i> Private</span>`;
+
+    // Visibility control: toggle for owner, static badge for others
+    const visControl = isOwned
+      ? `<div class="vis-toggle" data-list-id="${list.id}" role="group" aria-label="Visibility">
+           <button class="vis-toggle-btn${!isPublic ? ' active' : ''}" data-vis-value="private" aria-pressed="${String(!isPublic)}">
+             <i data-lucide="lock"></i> Private
+           </button>
+           <button class="vis-toggle-btn${isPublic ? ' active' : ''}" data-vis-value="public" aria-pressed="${String(isPublic)}">
+             <i data-lucide="users"></i> Public
+           </button>
+         </div>`
+      : `<span class="badge-shared" style="${!isPublic ? 'background:var(--color-surface-offset);color:var(--color-text-muted);' : ''}">
+           <i data-lucide="${isPublic ? 'users' : 'lock'}" style="width:11px;height:11px;"></i>
+           ${isPublic ? 'Public' : 'Private'}
+         </span>`;
+
+    // Owner label for shared/public lists from other users
     const ownerBadge = (!isOwned && list.ownerName)
       ? `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);font-size:var(--text-xs);">— ${escHtml(list.ownerName)}</span>`
       : '';
+
+    // Delete button only for owner
+    const deleteBtn = isOwned
+      ? `<button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>`
+      : '';
+
     return `
     <div class="list-card" data-list-id="${list.id}">
       <div class="list-card-header">
         <div class="list-card-icon"><i data-lucide="shopping-cart"></i></div>
-        <div class="list-card-actions" style="margin-left:auto;">
-          <button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
-        </div>
+        <div class="list-card-actions" style="margin-left:auto;">${deleteBtn}</div>
       </div>
       <h3 class="list-card-name">${escHtml(list.name)}</h3>
       <div class="list-card-meta">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done</div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div style="margin-top:var(--space-2);display:flex;gap:var(--space-1);align-items:center;">${ownerBadge}${visBadge}</div>
+      <div style="margin-top:var(--space-2);display:flex;gap:var(--space-1);align-items:center;flex-wrap:wrap;">
+        ${ownerBadge}${visControl}
+      </div>
     </div>`;
   }).join('');
 
+  // Open list on card click (but not when interacting with controls)
   grid.querySelectorAll('.list-card').forEach(card => {
     card.addEventListener('click', e => {
       if (e.target.closest('[data-delete-list]')) return;
+      if (e.target.closest('.vis-toggle')) return;
       onOpen(card.dataset.listId);
     });
   });
+
+  // Delete
   grid.querySelectorAll('[data-delete-list]').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       onDelete('list', btn.dataset.deleteList);
     });
   });
+
+  // Inline visibility toggle on card (owner only)
+  grid.querySelectorAll('.vis-toggle').forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      e.stopPropagation();
+      const btn = e.target.closest('.vis-toggle-btn');
+      if (!btn) return;
+      const listId = toggle.dataset.listId;
+      const newVis = btn.dataset.visValue;
+      if (onVisibilityChange) onVisibilityChange(listId, newVis);
+    });
+  });
+
   createIcons();
 }
 
@@ -85,15 +125,16 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
   state.currentListId = listId;
   setHashListId(listId);
   const list = state.allLists.find(l => l.id === listId);
+  const isOwned = !list?.ownerId || list.ownerId === state.currentUser?.uid;
 
   // Populate page title
   const nameEl = document.getElementById('detail-list-name');
   if (nameEl) nameEl.textContent = list ? list.name : '';
 
   // Populate Details card fields
-  const nameInput = document.getElementById('detail-list-name-input');
-  const descInput = document.getElementById('detail-list-desc');
-  const emojiBtn  = document.getElementById('detail-emoji-btn');
+  const nameInput  = document.getElementById('detail-list-name-input');
+  const descInput  = document.getElementById('detail-list-desc');
+  const emojiBtn   = document.getElementById('detail-emoji-btn');
   const emojiInput = document.getElementById('detail-list-emoji');
 
   if (nameInput) nameInput.value = list ? (list.name || '') : '';
@@ -103,23 +144,54 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
   if (emojiInput) emojiInput.value = emoji;
   if (emojiBtn)   emojiBtn.textContent = emoji || '🛒';
 
+  // Disable editing controls for non-owners
+  [nameInput, descInput].forEach(el => {
+    if (el) el.disabled = !isOwned;
+  });
+  if (emojiBtn) emojiBtn.disabled = !isOwned;
+
   // Populate store checkboxes
   const selectedStores = list?.stores || (list?.store ? [list.store] : []);
   populateDetailStoreCheckboxes(state.allStores, selectedStores);
 
-  // Sync visibility toggle
+  // Disable store checkboxes for non-owners
+  const storeContainer = document.getElementById('detail-store-checkboxes');
+  if (storeContainer && !isOwned) {
+    storeContainer.querySelectorAll('input').forEach(i => i.disabled = true);
+  }
+
+  // Sync visibility toggle in detail panel (owner only)
   const vis = list?.visibility === 'public' ? 'public' : 'private';
   const toggle = document.getElementById('detail-visibility-toggle');
   if (toggle) {
+    // Show/hide toggle based on ownership
+    toggle.style.display = isOwned ? '' : 'none';
     toggle.querySelectorAll('.vis-toggle-btn').forEach(btn => {
       const active = btn.dataset.value === vis;
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-pressed', String(active));
     });
+
+    // Wire click handler for detail-panel vis toggle
+    toggle.onclick = async (e) => {
+      const btn = e.target.closest('.vis-toggle-btn');
+      if (!btn || !state.currentListId) return;
+      const newVis = btn.dataset.value;
+      try {
+        await updateDoc(doc(listsCol(), state.currentListId), { visibility: newVis });
+        toggle.querySelectorAll('.vis-toggle-btn').forEach(b => {
+          const a = b.dataset.value === newVis;
+          b.classList.toggle('active', a);
+          b.setAttribute('aria-pressed', String(a));
+        });
+      } catch (err) {
+        if (showToast) showToast('Error saving visibility: ' + err.message, 'error');
+      }
+    };
   }
 
-  // Auto-save name on blur
-  if (nameInput) {
+  // Auto-save name on blur (owner only)
+  if (nameInput && isOwned) {
     nameInput.onblur = async () => {
       const newName = nameInput.value.trim();
       if (!newName || !state.currentListId) return;
@@ -132,8 +204,8 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
     nameInput.onkeydown = (e) => { if (e.key === 'Enter') nameInput.blur(); };
   }
 
-  // Auto-save description on blur
-  if (descInput) {
+  // Auto-save description on blur (owner only)
+  if (descInput && isOwned) {
     descInput.onblur = async () => {
       if (!state.currentListId) return;
       try {
@@ -142,8 +214,8 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
     };
   }
 
-  // Auto-save emoji via picker button
-  if (emojiBtn && openEmojiPicker) {
+  // Auto-save emoji via picker button (owner only)
+  if (emojiBtn && openEmojiPicker && isOwned) {
     emojiBtn.onclick = () => openEmojiPicker('detail-list-emoji', 'detail-emoji-btn', async (picked) => {
       if (!state.currentListId) return;
       try {
@@ -152,9 +224,8 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
     });
   }
 
-  // Auto-save stores on checkbox change
-  const storeContainer = document.getElementById('detail-store-checkboxes');
-  if (storeContainer) {
+  // Auto-save stores on checkbox change (owner only)
+  if (storeContainer && isOwned) {
     storeContainer.onchange = async () => {
       if (!state.currentListId) return;
       const stores = getDetailSelectedStores();
