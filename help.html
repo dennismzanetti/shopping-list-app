@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopList Help</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/mobile.css">
+  <style>
+    .help-shell {
+      min-height: 100dvh;
+      background: var(--color-bg);
+    }
+
+    .help-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-6);
+      background: color-mix(in oklab, var(--color-bg) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .help-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+
+    .help-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: var(--radius-md);
+      background: var(--color-primary-highlight);
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+
+    .help-brand-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .help-eyebrow {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .help-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.2;
+    }
+
+    .help-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+
+    .help-main {
+      width: min(100%, 960px);
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-4) var(--space-16);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    .help-hero {
+      background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--color-primary) 10%, var(--color-surface)) 0%,
+        var(--color-surface) 100%
+      );
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .help-hero h1 {
+      font-size: var(--text-xl);
+      margin-bottom: var(--space-3);
+    }
+
+    .help-hero p {
+      color: var(--color-text-muted);
+      max-width: 68ch;
+      margin: 0;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .help-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .help-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--color-divider);
+    }
+
+    .help-card-header i {
+      width: 1rem;
+      height: 1rem;
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+
+    .help-card-header h2 {
+      font-size: var(--text-base);
+      font-weight: 700;
+    }
+
+    .help-card-body {
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .help-card-body p {
+      margin: 0;
+      color: var(--color-text-muted);
+    }
+
+    .help-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--color-text-muted);
+    }
+
+    .help-list li::marker {
+      color: var(--color-primary);
+    }
+
+    .help-tip {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-offset);
+      border: 1px solid var(--color-border);
+    }
+
+    .help-tip i {
+      width: 1rem;
+      height: 1rem;
+      color: var(--color-primary);
+      margin-top: 0.15rem;
+      flex-shrink: 0;
+    }
+
+    .help-tip p {
+      margin: 0;
+      color: var(--color-text-muted);
+    }
+
+    .help-footer {
+      padding-top: var(--space-2);
+      color: var(--color-text-faint);
+      font-size: var(--text-sm);
+    }
+
+    @media (max-width: 768px) {
+      .help-header {
+        padding: var(--space-4);
+      }
+
+      .help-main {
+        padding: var(--space-6) var(--space-4) var(--space-12);
+      }
+
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .help-hero,
+      .help-card-body {
+        padding: var(--space-4);
+      }
+
+      .help-card-header {
+        padding: var(--space-4);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="help-shell">
+    <header class="help-header">
+      <div class="help-brand" aria-label="ShopList Help">
+        <div class="help-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <div class="help-brand-text">
+          <span class="help-eyebrow">Help Center</span>
+          <span class="help-title">ShopList</span>
+        </div>
+      </div>
+
+      <div class="help-actions">
+        <button class="icon-btn" id="help-theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+          <i data-lucide="moon"></i>
+        </button>
+        <a
+          class="btn btn-secondary btn-sm"
+          href="./shopping-list-app.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i data-lucide="arrow-up-right"></i>
+          Open App
+        </a>
+      </div>
+    </header>
+
+    <main class="help-main">
+      <section class="help-hero">
+        <h1>How ShopList works</h1>
+        <p>
+          ShopList is a simple shopping-list app for creating grocery lists, organizing reusable templates,
+          managing item categories, and keeping track of favorite stores. You can build lists from scratch,
+          add items manually, or start from a saved template to speed things up.
+        </p>
+      </section>
+
+      <section class="help-grid">
+        <article class="help-card">
+          <div class="help-card-header">
+            <i data-lucide="shopping-cart"></i>
+            <h2>My Lists</h2>
+          </div>
+          <div class="help-card-body">
+            <p>
+              My Lists is where your active shopping lists live. Create a list, give it a name and optional description,
+              choose one or more stores, and then add the items you want to buy.
+            </p>
+            <ul class="help-list">
+              <li>Use New List to create a fresh shopping list.</li>
+              <li>Open a list to add items, notes, quantities, units, stores, and categories.</li>
+              <li>Mark items complete as you shop to track progress.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="help-card">
+          <div class="help-card-header">
+            <i data-lucide="layout-template"></i>
+            <h2>Templates</h2>
+          </div>
+          <div class="help-card-body">
+            <p>
+              Templates help you save common groups of items, such as weekly groceries, party supplies,
+              or holiday shopping staples. They are useful when you buy the same things often.
+            </p>
+            <ul class="help-list">
+              <li>Create a template once and reuse it anytime.</li>
+              <li>Add a template directly into an existing list or a new one.</li>
+              <li>Use templates to avoid retyping recurring items.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="help-card">
+          <div class="help-card-header">
+            <i data-lucide="tag"></i>
+            <h2>Categories</h2>
+          </div>
+          <div class="help-card-body">
+            <p>
+              Categories help organize items into groups like Produce, Dairy, Frozen, or Bakery.
+              This makes lists easier to scan and manage.
+            </p>
+            <ul class="help-list">
+              <li>Create your own categories with names and emojis.</li>
+              <li>Assign categories to items for better organization.</li>
+              <li>Review which template and list items belong to each category.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="help-card">
+          <div class="help-card-header">
+            <i data-lucide="store"></i>
+            <h2>Stores</h2>
+          </div>
+          <div class="help-card-body">
+            <p>
+              Stores let you save the places where you shop most often. You can connect items, templates,
+              and lists to one or more stores.
+            </p>
+            <ul class="help-list">
+              <li>Save favorite stores with a name and emoji.</li>
+              <li>Tag items or lists to one or more stores.</li>
+              <li>Review which items are connected to each store.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="help-card">
+          <div class="help-card-header">
+            <i data-lucide="settings"></i>
+            <h2>Settings</h2>
+          </div>
+          <div class="help-card-body">
+            <p>
+              Settings contains your profile, appearance options, and data tools. It is also where you can
+              export or import your data and sign out of the app.
+            </p>
+            <ul class="help-list">
+              <li>Switch between light and dark mode.</li>
+              <li>Export your data for backup.</li>
+              <li>Import saved data when needed.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="help-card">
+          <div class="help-card-header">
+            <i data-lucide="sparkles"></i>
+            <h2>Best way to use it</h2>
+          </div>
+          <div class="help-card-body">
+            <p>
+              A simple workflow is to create your stores and categories first, then build templates for repeated
+              shopping, and finally create active lists from scratch or from those templates.
+            </p>
+            <ul class="help-list">
+              <li>Set up stores and categories one time.</li>
+              <li>Build templates for repeat trips.</li>
+              <li>Create a fresh list each week and check items off as you shop.</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="help-tip" aria-label="Helpful tip">
+        <i data-lucide="lightbulb"></i>
+        <p>
+          Tip: if you shop at the same places every week, combining templates with store tags can make list creation much faster.
+        </p>
+      </section>
+
+      <div class="help-footer">
+        Need a quick refresher later? Use the help icon in the app header anytime.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const button = document.getElementById('help-theme-toggle');
+
+      function setTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        if (button) {
+          button.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+          button.setAttribute('title', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+          const icon = theme === 'dark' ? 'sun' : 'moon';
+          const iconNode = button.querySelector('i');
+          if (iconNode) iconNode.setAttribute('data-lucide', icon);
+          if (window.lucide) window.lucide.createIcons();
+        }
+      }
+
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      let currentTheme = prefersDark ? 'dark' : 'light';
+      setTheme(currentTheme);
+
+      if (button) {
+        button.addEventListener('click', function () {
+          currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          setTheme(currentTheme);
+        });
+      }
+
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    })();
+  </script>
+</body>
+</html>
