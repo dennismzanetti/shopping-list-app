@@ -35,7 +35,7 @@
   /* Card accent palette — updated to deep blue-adjacent hues */
   --accent-1:#1d4ed8;  /* deep blue */
   --accent-2:#0ea5e9;  /* sky     */
-  --accent-3:#d19900;  /* gold    */
+  --accent-3:#2563eb;  /* cobalt blue */
   --accent-4:#da7101;  /* orange  */
   --accent-5:#7a39bb;  /* purple  */
 
@@ -103,7 +103,7 @@
   /* Card accent palette */
   --accent-1:#60a5fa;  /* deep blue */
   --accent-2:#38bdf8;  /* sky     */
-  --accent-3:#e8af34;  /* gold    */
+  --accent-3:#818cf8;  /* indigo blue */
   --accent-4:#fdab43;  /* orange  */
   --accent-5:#a86fdf;  /* purple  */
 
