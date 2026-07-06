@@ -267,6 +267,11 @@ export function renderTemplates(onEdit, onDelete) {
           <div class="template-card-title">${escHtml(t.name)}</div>
           ${t.desc ? `<div class="template-card-desc">${escHtml(t.desc)}</div>` : ''}
         </div>
+        <div class="list-card-actions" style="margin-left:auto;">
+          <button class="icon-btn" data-delete-tpl="${t.id}" aria-label="Delete template" style="color:var(--color-error);">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
       </div>
       ${items.length > 0 ? `<div class="template-card-items">${chips}${moreChip}</div>` : ''}
       <div class="template-card-footer" style="justify-content:space-between;">
