@@ -322,6 +322,33 @@
   }
 }
 
+/* Templates page — match the template editor header treatment */
+#view-templates .page-header{
+  position:relative;
+  padding:var(--space-5) var(--space-6);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-2xl);
+  overflow:hidden;
+  margin-bottom:var(--space-3);
+  background:color-mix(in srgb, var(--accent-3) 10%, var(--color-surface));
+}
+
+#view-templates .page-header::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:var(--accent-3);
+}
+
+@media (max-width: 640px){
+  #view-templates .page-header{
+    padding:var(--space-4);
+  }
+}
+
 /* Legacy tpl-item-row */
 .tpl-item-row{
   display:flex;
