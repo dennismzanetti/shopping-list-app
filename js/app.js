@@ -8,7 +8,7 @@ import {
 import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
-import { backfillPublicDocs, backfillGlobalCatsStores }  from './seed.js';
+import { backfillGlobalCatsStores }                     from './seed.js';
 import { openModal, closeModal, showToast, openEmojiPicker,
          buildCategoryOptions, setHashListId, getHashListId,
          setUserUI }                                    from './ui.js';
@@ -35,22 +35,14 @@ import { initCategoryDetail }                           from './category-detail.
 // Firestore collection helpers
 // ---------------------------------------------------------------------------
 const uid        = () => state.currentUser?.uid;
-const listsCol   = () => collection(db, 'users', uid(), 'lists');
-const itemsCol   = (listId) => collection(db, 'users', uid(), 'lists', listId, 'items');
+const listsCol   = () => collection(db, 'lists');
+const itemsCol   = (listId) => collection(db, 'lists', listId, 'items');
 const catsCol    = () => collection(db, 'categories');
 const storesCol  = () => collection(db, 'stores');
-const tplsCol    = () => collection(db, 'users', uid(), 'templates');
-const publicTplsCol  = () => collection(db, 'publicTemplates');
-const publicListsCol = () => collection(db, 'publicLists');
+const tplsCol    = () => collection(db, 'templates');
 
 // Expose state and shared utilities for use in other modules
 window._state = state;
-// Expose backfill utility for one-time migration from browser console
-window.backfillPublicDocs = () => backfillPublicDocs({
-  db, uid: uid(), displayName: state.currentUser?.displayName,
-  email: state.currentUser?.email,
-  collection, getDocs, query, where, addDoc, updateDoc, doc, serverTimestamp
-});
 window.backfillGlobalCatsStores = () => backfillGlobalCatsStores({
   db, uid: uid(),
   collection, getDocs, addDoc, query, orderBy, serverTimestamp
@@ -231,9 +223,6 @@ function initNewListModal() {
           checkedCount: 0
         };
         const ref = await addDoc(listsCol(), listData);
-        if (visibility === 'public') {
-          addDoc(publicListsCol(), { ...listData, _mirrorId: ref.id }).catch(() => {});
-        }
         closeModal('modal-new-list');
         openList(ref.id, openListOpts());
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
@@ -387,25 +376,6 @@ function initListDetailNav() {
         });
         try {
           await updateDoc(doc(listsCol(), state.currentListId), { visibility: newVis });
-          // Sync public mirror — use setDoc with explicit ID so it always upserts correctly
-          if (newVis === 'public') {
-            const list = state.allLists.find(l => l.id === state.currentListId);
-            const mirrorData = {
-              ...(list || {}),
-              id: state.currentListId,
-              visibility: 'public',
-              ownerId: uid(),
-              ownerName: state.currentUser?.displayName || state.currentUser?.email || '',
-              _mirrorId: state.currentListId
-            };
-            // Remove client-only fields not needed in the mirror
-            delete mirrorData._isPublicMirror;
-            setDoc(doc(publicListsCol(), state.currentListId), mirrorData).catch(e2 =>
-              console.error('publicLists mirror write failed:', e2)
-            );
-          } else if (newVis === 'private') {
-            deleteDoc(doc(publicListsCol(), state.currentListId)).catch(() => {});
-          }
           showToast(
             newVis === 'public' ? 'List set to Public' : 'List set to Private',
             'success'
@@ -422,8 +392,8 @@ function initListDetailNav() {
 // Firestore real-time subscriptions (start after sign-in)
 // ---------------------------------------------------------------------------
 function startListeners() {
-  // Own + public lists
-  let _ownLists = [];
+  // Own lists + other users' public lists — two queries, merged in memory
+  let _ownLists    = [];
   let _publicLists = [];
 
   function _mergeAndRenderLists() {
@@ -445,8 +415,9 @@ function startListeners() {
     }
   }
 
+  // My lists (private + public)
   state.unsubLists = onSnapshot(
-    query(listsCol(), orderBy('createdAt')),
+    query(listsCol(), where('ownerId', '==', uid()), orderBy('createdAt')),
     snap => {
       _ownLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       _mergeAndRenderLists();
@@ -454,10 +425,11 @@ function startListeners() {
     err => { if (err.code !== 'permission-denied') console.error('lists:', err); }
   );
 
+  // Other users' public lists
   state.unsubPublicLists = onSnapshot(
-    query(publicListsCol(), orderBy('createdAt')),
+    query(listsCol(), where('visibility', '==', 'public'), where('ownerId', '!=', uid()), orderBy('ownerId'), orderBy('createdAt')),
     snap => {
-      _publicLists = snap.docs.map(d => ({ id: d.id, ...d.data(), _isPublicMirror: true }));
+      _publicLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       _mergeAndRenderLists();
     },
     err => { if (err.code !== 'permission-denied') console.error('publicLists:', err); }
@@ -484,8 +456,8 @@ function startListeners() {
     err => { console.error('stores:', err.code, err.message); }
   );
 
-  // Own + public templates
-  let _ownTemplates = [];
+  // Own templates + other users' public templates — two queries, merged in memory
+  let _ownTemplates    = [];
   let _publicTemplates = [];
 
   function _mergeAndRenderTemplates() {
@@ -495,8 +467,9 @@ function startListeners() {
     renderTemplates((id) => openTemplateEditor(id, { buildCategoryOptions }), (type, id) => confirmDelete(type, id));
   }
 
+  // My templates (private + public)
   state.unsubTemplates = onSnapshot(
-    query(tplsCol(), orderBy('createdAt')),
+    query(tplsCol(), where('ownerId', '==', uid()), orderBy('createdAt')),
     snap => {
       _ownTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       _mergeAndRenderTemplates();
@@ -504,10 +477,11 @@ function startListeners() {
     err => { if (err.code !== 'permission-denied') console.error('templates:', err); }
   );
 
+  // Other users' public templates
   state.unsubPublicTemplates = onSnapshot(
-    query(publicTplsCol(), orderBy('createdAt')),
+    query(tplsCol(), where('visibility', '==', 'public'), where('ownerId', '!=', uid()), orderBy('ownerId'), orderBy('createdAt')),
     snap => {
-      _publicTemplates = snap.docs.map(d => ({ id: d.id, ...d.data(), _isPublicMirror: true }));
+      _publicTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       _mergeAndRenderTemplates();
     },
     err => { if (err.code !== 'permission-denied') console.error('publicTemplates:', err); }
@@ -547,8 +521,6 @@ function init() {
     categoriesCol: catsCol,
     storesCol,
     templatesCol: tplsCol,
-    publicListsCol: publicListsCol,
-    publicTemplatesCol: publicTplsCol,
     getDocs, writeBatch, doc, serverTimestamp, deleteDoc,
     setHashListId
   });
@@ -562,7 +534,7 @@ function init() {
   });
 
   initTemplates({
-    templatesCol: tplsCol, publicTemplatesCol: publicTplsCol, addDoc, setDoc, updateDoc, deleteDoc, doc, serverTimestamp,
+    templatesCol: tplsCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
     buildCategoryOptions, confirmDelete,
     listsCol, itemsCol, writeBatch, db,
     getCurrentUid: uid
