@@ -240,3 +240,66 @@ export async function backfillPublicDocs({ db, uid, displayName, email,
     window.showToast && window.showToast('Backfill error: ' + e.message, 'error');
   }
 }
+
+// ---------------------------------------------------------------------------
+// backfillGlobalCatsStores — one-time migration for categories and stores.
+// Copies each user's per-user categories/stores into the new global
+// top-level collections, skipping any that already exist by name.
+// Call window.backfillGlobalCatsStores() from the browser console once.
+// ---------------------------------------------------------------------------
+export async function backfillGlobalCatsStores({ db, uid,
+  collection, getDocs, addDoc, query, orderBy, serverTimestamp }) {
+  let catCount = 0, storeCount = 0;
+
+  try {
+    // ── Fetch existing global names to avoid duplicates ──────────────────────
+    const [globalCatsSnap, globalStoresSnap] = await Promise.all([
+      getDocs(collection(db, 'categories')),
+      getDocs(collection(db, 'stores'))
+    ]);
+    const existingCatNames   = new Set(globalCatsSnap.docs.map(d => (d.data().name || '').toLowerCase()));
+    const existingStoreNames = new Set(globalStoresSnap.docs.map(d => (d.data().name || '').toLowerCase()));
+
+    // ── Copy user's categories ────────────────────────────────────────────────
+    const userCatsSnap = await getDocs(
+      query(collection(db, 'users', uid, 'categories'), orderBy('createdAt'))
+    );
+    for (const d of userCatsSnap.docs) {
+      const data = d.data();
+      if (!existingCatNames.has((data.name || '').toLowerCase())) {
+        await addDoc(collection(db, 'categories'), {
+          name: data.name || '',
+          emoji: data.emoji || '',
+          createdAt: data.createdAt || serverTimestamp()
+        });
+        existingCatNames.add((data.name || '').toLowerCase());
+        catCount++;
+      }
+    }
+
+    // ── Copy user's stores ────────────────────────────────────────────────────
+    const userStoresSnap = await getDocs(
+      query(collection(db, 'users', uid, 'stores'), orderBy('createdAt'))
+    );
+    for (const d of userStoresSnap.docs) {
+      const data = d.data();
+      if (!existingStoreNames.has((data.name || '').toLowerCase())) {
+        await addDoc(collection(db, 'stores'), {
+          name: data.name || '',
+          emoji: data.emoji || '',
+          createdAt: data.createdAt || serverTimestamp()
+        });
+        existingStoreNames.add((data.name || '').toLowerCase());
+        storeCount++;
+      }
+    }
+
+    console.log(`[backfill] Done: ${catCount} category/ies, ${storeCount} store(s) migrated to global collections.`);
+    window.showToast && window.showToast(
+      `Backfill complete: ${catCount} categories and ${storeCount} stores added to global collections`, 'success'
+    );
+  } catch (e) {
+    console.error('[backfill] Error:', e);
+    window.showToast && window.showToast('Backfill error: ' + e.message, 'error');
+  }
+}
