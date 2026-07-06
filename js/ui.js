@@ -325,6 +325,7 @@ const EMOJI_LIST = [
 
 let _emojiTargetInput = null;
 let _emojiTargetBtn   = null;
+let _emojiOnPick      = null;
 let _emojiInitialized = false;
 
 function _buildGridHTML(filter = '') {
@@ -359,6 +360,7 @@ function _attachGridClicks(grid) {
           }
         }
       }
+      if (typeof _emojiOnPick === 'function') _emojiOnPick(em);
       _closeEmojiPicker();
     });
   });
@@ -408,17 +410,20 @@ function _closeEmojiPicker() {
   }
   _emojiTargetInput = null;
   _emojiTargetBtn   = null;
+  _emojiOnPick      = null;
 }
 
 /**
  * Open the shared emoji picker overlay.
- * @param {string} targetInputId  – id of the <input> to receive the emoji value
- * @param {string|null} targetBtnId – id of the trigger <button> to update its label (optional)
+ * @param {string}        targetInputId – id of the <input type="hidden"> to receive the emoji value
+ * @param {string|null}   targetBtnId   – id of the trigger <button> to update its label (optional)
+ * @param {Function|null} onPick        – optional callback fired with the chosen emoji (optional)
  */
-export function openEmojiPicker(targetInputId, targetBtnId = null) {
+export function openEmojiPicker(targetInputId, targetBtnId = null, onPick = null) {
   _initEmojiPickerDOM();
   _emojiTargetInput = targetInputId;
   _emojiTargetBtn   = targetBtnId;
+  _emojiOnPick      = typeof onPick === 'function' ? onPick : null;
   const overlay  = document.getElementById('emoji-picker-overlay');
   const searchEl = document.getElementById('emoji-search');
   if (searchEl) searchEl.value = '';
