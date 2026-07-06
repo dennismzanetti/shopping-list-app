@@ -293,7 +293,9 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   setEmojiPickerValue(tpl ? (tpl.emoji || '') : '');
   document.getElementById('tpl-name').value                   = tpl ? tpl.name          : '';
   document.getElementById('tpl-desc').value                   = tpl ? (tpl.desc  || '') : '';
-  document.getElementById('tpl-delete-btn').style.display     = tpl ? 'inline-flex' : 'none';
+  const _isOwned = !tpl?.ownerId || tpl?.ownerId === state.currentUser?.uid;
+  document.getElementById('tpl-delete-btn').style.display     = (tpl && _isOwned) ? 'inline-flex' : 'none';
+  state.editingTemplateIsOwned = _isOwned;
   setVisibilityValue(tpl ? (tpl.visibility || 'private') : 'private');
   populateTplStoreCheckboxes(tpl ? toArray(tpl.stores) : []);
 
@@ -544,8 +546,8 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
 }
 
 // -- initTemplates - wires all template UI listeners -------------------------
-export function initTemplates({ templatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
-                                 listsCol, itemsCol, writeBatch, db }) {
+export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+                                 listsCol, itemsCol, writeBatch, db, getCurrentUid }) {
 
   initEmojiPicker();
   initVisibilityToggle();
