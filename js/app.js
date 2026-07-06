@@ -547,6 +547,8 @@ function init() {
     categoriesCol: catsCol,
     storesCol,
     templatesCol: tplsCol,
+    publicListsCol: publicListsCol,
+    publicTemplatesCol: publicTplsCol,
     getDocs, writeBatch, doc, serverTimestamp, deleteDoc,
     setHashListId
   });
