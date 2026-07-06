@@ -19,21 +19,25 @@ export function renderLists(onOpen, onDelete) {
     const checked = list.checkedCount || 0;
     const pct     = total > 0 ? Math.round((checked / total) * 100) : 0;
     const isPublic = list.visibility === 'public';
+    const isOwned  = !list.ownerId || list.ownerId === state.currentUser?.uid;
     const visBadge = isPublic
       ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Public</span>`
       : `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);"><i data-lucide="lock" style="width:11px;height:11px;"></i> Private</span>`;
+    const ownerBadge = (!isOwned && list.ownerName)
+      ? `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);font-size:var(--text-xs);">— ${escHtml(list.ownerName)}</span>`
+      : '';
     return `
     <div class="list-card" data-list-id="${list.id}">
       <div class="list-card-header">
         <div class="list-card-icon"><i data-lucide="shopping-cart"></i></div>
         <div class="list-card-actions" style="margin-left:auto;">
-          <button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
+          ${isOwned ? `<button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>` : ''}
         </div>
       </div>
       <h3 class="list-card-name">${escHtml(list.name)}</h3>
       <div class="list-card-meta">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done</div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div style="margin-top:var(--space-2);">${visBadge}</div>
+      <div style="margin-top:var(--space-2);display:flex;gap:var(--space-1);align-items:center;">${ownerBadge}${visBadge}</div>
     </div>`;
   }).join('');
 
