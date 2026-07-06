@@ -495,3 +495,59 @@
 .card:has(.card-body-collapsible.collapsed) {
   border-bottom-color: transparent;
 }
+
+/* ============================================================
+   Store Detail View & Category Detail View (shared classes)
+   ============================================================ */
+
+.store-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.store-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-offset);
+  font-size: var(--text-sm);
+}
+.store-detail-item--checked .store-detail-item-name {
+  text-decoration: line-through;
+  color: var(--color-text-faint);
+}
+.store-detail-item-name {
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.store-detail-item-source {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.store-detail-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+  padding: var(--space-4) 0;
+  margin: 0;
+}
+.store-detail-loading {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-4) 0;
+}

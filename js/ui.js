@@ -208,3 +208,20 @@ export function openEmojiPicker(targetInputId, targetBtnId = null) {
   if (overlay)  overlay.classList.add('open');
   setTimeout(() => searchEl?.focus(), 50);
 }
+
+// ── Collapsible card sections ─────────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-collapse-btn]');
+  const header = e.target.closest('[data-collapse-target]');
+  const targetId = (btn && btn.dataset.collapseBtn) || (header && header.dataset.collapseTarget);
+  if (!targetId) return;
+  if (!btn && header) {
+    const clickedInteractive = e.target.closest('button, a, input, select');
+    if (clickedInteractive) return;
+  }
+  const body = document.getElementById(targetId);
+  const toggleBtn = document.querySelector('[data-collapse-btn="' + targetId + '"]');
+  if (!body || !toggleBtn) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+});
