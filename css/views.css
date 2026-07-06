@@ -295,6 +295,33 @@
   }
 }
 
+/* Lists page — match the list editor header treatment */
+#view-lists .page-header{
+  position:relative;
+  padding:var(--space-5) var(--space-6);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-2xl);
+  overflow:hidden;
+  margin-bottom:var(--space-3);
+  background:color-mix(in srgb, var(--color-primary-highlight) 70%, var(--color-surface));
+}
+
+#view-lists .page-header::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:var(--color-primary);
+}
+
+@media (max-width: 640px){
+  #view-lists .page-header{
+    padding:var(--space-4);
+  }
+}
+
 /* Legacy tpl-item-row */
 .tpl-item-row{
   display:flex;
