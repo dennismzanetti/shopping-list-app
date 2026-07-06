@@ -256,6 +256,10 @@ export function renderTemplates(onEdit) {
       return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
     }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
+    const isPublic = t.visibility === 'public';
+    const visBadge = isPublic
+      ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Public</span>`
+      : `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);"><i data-lucide="lock" style="width:11px;height:11px;"></i> Private</span>`;
     return `<div class="template-card" data-tpl-id="${t.id}" title="Edit template">
       <div class="template-card-header">
         <div class="template-card-emoji">${t.emoji || '\uD83D\uDCCB'}</div>
@@ -267,7 +271,7 @@ export function renderTemplates(onEdit) {
       ${items.length > 0 ? `<div class="template-card-items">${chips}${moreChip}</div>` : ''}
       <div class="template-card-footer" style="justify-content:space-between;">
         <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
-        <span class="card-type-badge card-type-badge--tpl">📋 Template</span>
+        ${visBadge}
       </div>
     </div>`;
   }).join('');
