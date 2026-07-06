@@ -15,10 +15,13 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
   grid.innerHTML = allCategories.map(cat => `
     <div class="card" data-cat-id="${cat.id}">
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);">
-        <div class="cat-display" style="display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
+        <button type="button" class="cat-display cat-display-clickable" data-open-cat="${cat.id}"
+          style="display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0;background:none;border:none;cursor:pointer;padding:0;text-align:left;"
+          title="View items for this category" aria-label="View items for ${escHtml(cat.name)}">
           <span class="cat-emoji-display" style="font-size:1.1rem;">${cat.emoji || '\uD83C\uDFF7\uFE0F'}</span>
-          <span class="cat-name-display" style="font-size:var(--text-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(cat.name)}</span>
-        </div>
+          <span class="cat-name-display" style="font-size:var(--text-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text);">${escHtml(cat.name)}</span>
+          <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;margin-left:auto;"></i>
+        </button>
         <div class="cat-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
           <button type="button" class="cat-emoji-picker-btn"
             id="cat-emoji-btn-${cat.id}"
@@ -51,7 +54,7 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
   allCategories.forEach(cat => {
     const card       = grid.querySelector(`[data-cat-id="${cat.id}"]`);
     if (!card) return;
-    const display    = card.querySelector('.cat-display');
+    const displayBtn = card.querySelector('[data-open-cat]');
     const editRow    = card.querySelector('.cat-edit-row');
     const editBtn    = card.querySelector('[data-edit-cat]');
     const saveBtn    = card.querySelector('[data-save-cat]');
@@ -61,8 +64,15 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
     const emojiInput = card.querySelector(`#cat-edit-emoji-${cat.id}`);
     const emojiBtn   = card.querySelector(`#cat-emoji-btn-${cat.id}`);
 
+    // Clicking the category name/emoji area opens the detail view
+    if (displayBtn) {
+      displayBtn.addEventListener('click', () => {
+        if (window.openCategoryDetail) window.openCategoryDetail(cat.id);
+      });
+    }
+
     function enterEdit() {
-      display.style.display   = 'none';
+      if (displayBtn) displayBtn.style.display = 'none';
       editRow.style.display   = 'flex';
       editBtn.style.display   = 'none';
       deleteBtn.style.display = 'none';
@@ -73,7 +83,7 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
     }
 
     function exitEdit() {
-      display.style.display   = '';
+      if (displayBtn) displayBtn.style.display = '';
       editRow.style.display   = 'none';
       editBtn.style.display   = '';
       deleteBtn.style.display = '';
