@@ -251,9 +251,15 @@ export function renderTemplates(onEdit, onDelete) {
     const preview = items.slice(0, 5);
     const more    = items.length - preview.length;
     const chips   = preview.map(it => {
-      const cat    = state.allCategories.find(c => c.name === (it.category || ''));
-      const prefix = cat?.emoji ? cat.emoji + '\u00a0' : '';
-      return `<span class="template-item-chip">${prefix}${escHtml(it.name || it)}</span>`;
+      const cat       = state.allCategories.find(c => c.name === (it.category || ''));
+      const prefix    = cat?.emoji ? cat.emoji + '\u00a0' : '';
+      const qtyStr    = it.qty
+        ? `<span style="color:var(--color-text-muted);font-size:var(--text-xs);margin-right:2px;">${escHtml(it.qty)}${it.unit ? '\u00a0' + escHtml(it.unit) : ''}</span>`
+        : '';
+      const notesIcon = it.notes
+        ? ` <i data-lucide="file-text" style="width:10px;height:10px;opacity:0.5;vertical-align:middle;" title="${escHtml(it.notes)}"></i>`
+        : '';
+      return `<span class="template-item-chip">${prefix}${qtyStr}${escHtml(it.name || it)}${notesIcon}</span>`;
     }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
     const isPublic = t.visibility === 'public';
