@@ -1,7 +1,7 @@
 /* ============================================================
    TOKENS — CSS custom properties (design tokens)
    Light mode, dark mode, spacing, type, radius, shadows
-   Palette: cool slate surfaces + indigo primary accent
+   Palette: cool slate surfaces + deep blue primary accent
    ============================================================ */
 
 :root, [data-theme="light"] {
@@ -21,19 +21,19 @@
   --color-text-faint:#8b95a9;
   --color-text-inverse:#f8faff;
 
-  /* Primary — indigo */
-  --color-primary:#4f6ef7;
-  --color-primary-hover:#3f5ce0;
-  --color-primary-active:#3149bf;
-  --color-primary-highlight:#e4ebff;
+  /* Primary — deep blue */
+  --color-primary:#1d4ed8;
+  --color-primary-hover:#1e40af;
+  --color-primary-active:#1e3a8a;
+  --color-primary-highlight:#dbeafe;
 
   /* Semantic */
   --color-success:#2f8f67;
   --color-warning:#b36b10;
   --color-error:#c23c7a;
 
-  /* Card accent palette — updated to indigo-adjacent hues */
-  --accent-1:#4f6ef7;  /* indigo  */
+  /* Card accent palette — updated to deep blue-adjacent hues */
+  --accent-1:#1d4ed8;  /* deep blue */
   --accent-2:#0ea5e9;  /* sky     */
   --accent-3:#d19900;  /* gold    */
   --accent-4:#da7101;  /* orange  */
@@ -89,11 +89,11 @@
   --color-text-faint:#808ba3;
   --color-text-inverse:#eef3ff;
 
-  /* Primary — indigo (lighter for dark bg) */
-  --color-primary:#7b93ff;
-  --color-primary-hover:#99abff;
-  --color-primary-active:#5f79e8;
-  --color-primary-highlight:#212d54;
+  /* Primary — deep blue (lighter for dark bg) */
+  --color-primary:#60a5fa;
+  --color-primary-hover:#93c5fd;
+  --color-primary-active:#3b82f6;
+  --color-primary-highlight:#1e3a5f;
 
   /* Semantic */
   --color-success:#4aad82;
@@ -101,7 +101,7 @@
   --color-error:#e06898;
 
   /* Card accent palette */
-  --accent-1:#7b93ff;  /* indigo  */
+  --accent-1:#60a5fa;  /* deep blue */
   --accent-2:#38bdf8;  /* sky     */
   --accent-3:#e8af34;  /* gold    */
   --accent-4:#fdab43;  /* orange  */
