@@ -8,6 +8,7 @@ import {
 import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
+import { backfillPublicDocs }                            from './seed.js';
 import { openModal, closeModal, showToast, openEmojiPicker,
          buildCategoryOptions, setHashListId, getHashListId,
          setUserUI }                                    from './ui.js';
@@ -44,6 +45,12 @@ const publicListsCol = () => collection(db, 'publicLists');
 
 // Expose state and shared utilities for use in other modules
 window._state = state;
+// Expose backfill utility for one-time migration from browser console
+window.backfillPublicDocs = () => backfillPublicDocs({
+  db, uid: uid(), displayName: state.currentUser?.displayName,
+  email: state.currentUser?.email,
+  collection, getDocs, query, where, addDoc, updateDoc, doc, serverTimestamp
+});
 window.openEmojiPicker = openEmojiPicker;
 
 // ---------------------------------------------------------------------------
