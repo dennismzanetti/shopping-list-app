@@ -34,15 +34,15 @@ export function initCategoryDetail({ getDocs, listsCol, itemsCol }) {
 
 /**
  * Navigate to the category detail view and populate it.
- * @param {string} catId
+ * @param {string} categoryId
  */
-export async function openCategoryDetail(catId) {
-  const cat = state.allCategories.find(c => c.id === catId);
-  if (!cat) return;
+export async function openCategoryDetail(categoryId) {
+  const category = state.allCategories.find(c => c.id === categoryId);
+  if (!category) return;
 
   // Update header
   const titleEl = document.getElementById('category-detail-title');
-  if (titleEl) titleEl.textContent = (cat.emoji ? cat.emoji + '\u00a0' : '') + cat.name;
+  if (titleEl) titleEl.textContent = (category.emoji ? category.emoji + '\u00a0' : '') + category.name;
 
   // Show view immediately (with loading state)
   navigateTo('category-detail');
@@ -64,8 +64,11 @@ export async function openCategoryDetail(catId) {
   const tplItems = [];
   (state.allTemplates || []).forEach(tpl => {
     (tpl.items || []).forEach(item => {
-      const itemCat = item.category || '';
-      const match = itemCat.toLowerCase() === cat.name.toLowerCase();
+      const itemCategory = item.category || item.categoryId || '';
+      const match =
+        itemCategory === categoryId ||
+        (typeof itemCategory === 'string' &&
+          itemCategory.toLowerCase() === category.name.toLowerCase());
       if (match) tplItems.push({ ...item, _tplName: tpl.name, _tplEmoji: tpl.emoji || '\uD83D\uDCCB' });
     });
   });
@@ -94,12 +97,16 @@ export async function openCategoryDetail(catId) {
         const itemsSnap = await _getDocs(_itemsCol(listDoc.id));
         itemsSnap.docs.forEach(itemDoc => {
           const item = itemDoc.data();
-          const itemCat = item.category || '';
-          if (itemCat.toLowerCase() === cat.name.toLowerCase()) {
+          const itemCategory = item.category || item.categoryId || '';
+          const match =
+            itemCategory === categoryId ||
+            (typeof itemCategory === 'string' &&
+              itemCategory.toLowerCase() === category.name.toLowerCase());
+          if (match) {
             listItems.push({
               ...item,
               id: itemDoc.id,
-              _listName:  listData.name  || 'Unnamed List',
+              _listName: listData.name || 'Unnamed List',
               _listEmoji: listData.emoji || '\uD83D\uDED2',
             });
           }

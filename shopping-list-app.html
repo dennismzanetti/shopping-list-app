@@ -39,7 +39,7 @@
     </div>
     <div id="auth-loading" class="auth-loading" style="display:none;">
       <div class="spinner"></div>
-      <span>Signing you in…</span>
+      <span>Signing you in&hellip;</span>
     </div>
   </div>
 </div>
@@ -293,6 +293,53 @@
         <div class="lists-grid" id="categories-grid"></div>
       </div>
 
+      <!-- Category Detail View -->
+      <div class="view editor-page" id="view-category-detail">
+        <div class="page-header">
+          <button class="back-btn header-back-btn" id="category-detail-back-btn"><i data-lucide="arrow-left"></i> Categories</button>
+          <h1 class="page-title" id="category-detail-title">Category</h1>
+        </div>
+        <div class="tpl-editor-body">
+
+          <!-- Template Items Card -->
+          <div class="card">
+            <div class="card-header card-header-collapsible" data-collapse-target="category-detail-tpl-collapsible">
+              <span style="font-weight:600;"><i data-lucide="layout-template" style="width:15px;height:15px;vertical-align:-2px;margin-right:var(--space-1);"></i> Template Items</span>
+              <button type="button" class="card-collapse-btn" aria-expanded="true" aria-label="Toggle Template Items section" data-collapse-btn="category-detail-tpl-collapsible">
+                <i data-lucide="chevron-down"></i>
+              </button>
+            </div>
+            <div class="card-body-collapsible" id="category-detail-tpl-collapsible">
+              <div class="card-body-collapsible-inner">
+                <div class="card-body" style="padding-bottom:var(--space-3);">
+                  <p id="category-detail-template-empty" class="store-detail-empty" style="display:none;">No template items are tagged to this category.</p>
+                  <ul class="store-detail-list" id="category-detail-template-items"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shopping List Items Card -->
+          <div class="card">
+            <div class="card-header card-header-collapsible" data-collapse-target="category-detail-list-collapsible">
+              <span style="font-weight:600;"><i data-lucide="shopping-cart" style="width:15px;height:15px;vertical-align:-2px;margin-right:var(--space-1);"></i> Shopping List Items</span>
+              <button type="button" class="card-collapse-btn" aria-expanded="true" aria-label="Toggle Shopping List Items section" data-collapse-btn="category-detail-list-collapsible">
+                <i data-lucide="chevron-down"></i>
+              </button>
+            </div>
+            <div class="card-body-collapsible" id="category-detail-list-collapsible">
+              <div class="card-body-collapsible-inner">
+                <div class="card-body" style="padding-bottom:var(--space-3);">
+                  <p id="category-detail-list-items-empty" class="store-detail-empty" style="display:none;">No shopping list items are tagged to this category.</p>
+                  <ul class="store-detail-list" id="category-detail-list-items"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Stores View -->
       <div class="view" id="view-stores">
         <div class="page-header">
@@ -362,8 +409,8 @@
             <div class="card-body" style="display:flex;align-items:center;gap:var(--space-4);">
               <div class="user-avatar" style="width:56px;height:56px;font-size:var(--text-lg);" id="settings-avatar">U</div>
               <div style="flex:1;">
-                <div style="font-weight:600;" id="settings-name">—</div>
-                <div style="font-size:var(--text-sm);color:var(--color-text-muted);" id="settings-email">—</div>
+                <div style="font-weight:600;" id="settings-name">&mdash;</div>
+                <div style="font-size:var(--text-sm);color:var(--color-text-muted);" id="settings-email">&mdash;</div>
               </div>
               <button class="btn btn-danger btn-sm" id="signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
             </div>
@@ -395,7 +442,7 @@
                   </tr>
                 </thead>
                 <tbody id="about-commits-tbody">
-                  <tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-xs);">Loading commits…</td></tr>
+                  <tr><td colspan="3" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-xs);">Loading commits&hellip;</td></tr>
                 </tbody>
               </table>
             </div>
@@ -513,7 +560,7 @@
       </div>
       <div class="form-group">
         <label class="form-label" for="item-notes">Note</label>
-        <textarea class="form-textarea" id="item-notes" placeholder="Brand, size, or other notes…" maxlength="200"></textarea>
+        <textarea class="form-textarea" id="item-notes" placeholder="Brand, size, or other notes&hellip;" maxlength="200"></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -638,7 +685,7 @@
         <div class="form-group"><label class="form-label" for="tpl-item-unit">Unit</label><input class="form-input" id="tpl-item-unit" type="text" placeholder="e.g. lbs" maxlength="20"></div>
       </div>
       <div class="form-group"><label class="form-label" for="tpl-item-category">Category</label><select class="form-select" id="tpl-item-category"><option value="">No category</option></select></div>
-      <div class="form-group"><label class="form-label" for="tpl-item-notes">Note</label><textarea class="form-textarea" id="tpl-item-notes" placeholder="Brand, size, or other notes…" maxlength="200"></textarea></div>
+      <div class="form-group"><label class="form-label" for="tpl-item-notes">Note</label><textarea class="form-textarea" id="tpl-item-notes" placeholder="Brand, size, or other notes&hellip;" maxlength="200"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="tpl-item-delete-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
@@ -673,14 +720,14 @@
       <button class="icon-btn" id="emoji-picker-close" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body" style="padding-top:var(--space-2);">
-      <input class="form-input" id="emoji-search" type="text" placeholder="Search…" autocomplete="off" style="margin-bottom:var(--space-3);">
+      <input class="form-input" id="emoji-search" type="text" placeholder="Search&hellip;" autocomplete="off" style="margin-bottom:var(--space-3);">
       <div id="emoji-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:var(--space-1);max-height:300px;overflow-y:auto;"></div>
     </div>
   </div>
 </div>
 
 <style>
-/* Store Detail View */
+/* Store Detail View & Category Detail View (shared classes) */
 .store-detail-list {
   list-style: none;
   padding: 0;
@@ -740,10 +787,7 @@ document.addEventListener('click', function(e) {
   const btn = e.target.closest('[data-collapse-btn]');
   const header = e.target.closest('[data-collapse-target]');
   const targetId = (btn && btn.dataset.collapseBtn) || (header && header.dataset.collapseTarget);
-  // Don't trigger if clicking inside the body or clicking the btn inside the header
   if (!targetId) return;
-  // If click was on header but NOT on the button, still toggle (whole header is clickable)
-  // Avoid triggering on other interactive elements inside the header
   if (!btn && header) {
     const clickedInteractive = e.target.closest('button, a, input, select');
     if (clickedInteractive) return;
