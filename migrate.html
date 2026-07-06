@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopList — Firestore Migration</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f0; color: #1a1a1a; padding: 2rem; min-height: 100vh; }
+    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
+    .card { background: #fff; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1.5rem; max-width: 820px; }
+    .card h2 { font-size: 1rem; margin-bottom: 0.75rem; color: #333; }
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+    .steps li { font-size: 0.9rem; color: #555; padding: 0.35rem 0.5rem; border-radius: 4px; background: #f9f9f7; }
+    .steps li span { font-weight: 600; color: #01696f; margin-right: 0.4rem; }
+    #auth-status { padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem; background: #fff3cd; color: #856404; margin-bottom: 1.5rem; max-width: 820px; }
+    #auth-status.signed-in { background: #d4edda; color: #155724; }
+    button { cursor: pointer; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; padding: 0.65rem 1.4rem; transition: background 180ms; }
+    #btn-signin  { background: #4285F4; color: #fff; margin-right: 0.75rem; }
+    #btn-signin:hover { background: #3367d6; }
+    #btn-run     { background: #01696f; color: #fff; }
+    #btn-run:hover { background: #0c4e54; }
+    #btn-run:disabled { background: #aaa; cursor: not-allowed; }
+    #btn-cleanup { background: #a12c7b; color: #fff; margin-left: 0.75rem; }
+    #btn-cleanup:hover { background: #7d1e5e; }
+    #btn-cleanup:disabled { background: #aaa; cursor: not-allowed; }
+    #log { max-width: 820px; background: #1a1a1a; color: #d4d4d4; border-radius: 10px; padding: 1.25rem 1.5rem; font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.7; min-height: 200px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; }
+    .log-ok   { color: #6daa45; }
+    .log-info { color: #4f98a3; }
+    .log-warn { color: #e8af34; }
+    .log-err  { color: #dd6974; }
+    .log-head { color: #fff; font-weight: bold; }
+    #summary { max-width: 820px; margin-top: 1rem; padding: 1rem 1.25rem; background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); font-size: 0.9rem; display: none; }
+    #summary h3 { margin-bottom: 0.5rem; font-size: 1rem; }
+    #summary table { width: 100%; border-collapse: collapse; }
+    #summary td, #summary th { padding: 0.3rem 0.6rem; text-align: left; border-bottom: 1px solid #e5e5e5; font-size: 0.88rem; }
+    #summary th { color: #555; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>🛒 ShopList — Firestore Migration</h1>
+  <p class="subtitle">Migrates old user-scoped data to the top-level shared model and backfills missing fields.</p>
+
+  <div id="auth-status">⏳ Checking authentication…</div>
+
+  <div class="card">
+    <h2>What this migration does</h2>
+    <ul class="steps">
+      <li><span>①</span> Copies <code>users/{uid}/lists/{id}</code> → <code>lists/{id}</code> with <code>ownerId</code> + <code>visibility</code></li>
+      <li><span>②</span> Copies <code>users/{uid}/lists/{id}/items/{itemId}</code> → <code>lists/{id}/items/{itemId}</code></li>
+      <li><span>③</span> Copies <code>users/{uid}/templates/{id}</code> → <code>templates/{id}</code> with <code>ownerId</code> + <code>visibility</code></li>
+      <li><span>④</span> Backfills any top-level <code>lists/</code> docs missing <code>ownerId</code>, <code>ownerName</code>, or <code>visibility</code></li>
+      <li><span>⑤</span> Backfills any top-level <code>templates/</code> docs missing those fields</li>
+      <li><span>⑥</span> <strong>Cleanup step (separate button):</strong> Deletes <code>publicLists/</code>, <code>publicTemplates/</code>, and old <code>users/{uid}/lists</code> + <code>users/{uid}/templates</code> subcollections</li>
+    </ul>
+  </div>
+
+  <div style="margin-bottom:1.5rem;">
+    <button id="btn-signin">Sign in with Google</button>
+    <button id="btn-run" disabled>▶ Run Migration</button>
+    <button id="btn-cleanup" disabled>🗑 Run Cleanup (delete old data)</button>
+  </div>
+
+  <div id="log"><span class="log-info">Waiting to start…</span></div>
+  <div id="summary"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged }
+      from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
+    import {
+      getFirestore, collection, doc, getDoc, getDocs,
+      setDoc, updateDoc, writeBatch, query, orderBy
+    } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey:            'AIzaSyBpUygy_Y-4tDLeYJwPFI338kA4yG3n8uE',
+      authDomain:        'shoppinglist-bf78d.firebaseapp.com',
+      projectId:         'shoppinglist-bf78d',
+      storageBucket:     'shoppinglist-bf78d.firebasestorage.app',
+      messagingSenderId: '9753469863',
+      appId:             '1:9753469863:web:8e9871309634749b6b0c82',
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const gProvider = new GoogleAuthProvider();
+
+    const logEl      = document.getElementById('log');
+    const authStatus = document.getElementById('auth-status');
+    const btnSignin  = document.getElementById('btn-signin');
+    const btnRun     = document.getElementById('btn-run');
+    const btnCleanup = document.getElementById('btn-cleanup');
+    const summaryEl  = document.getElementById('summary');
+
+    const stats = {
+      listsAdded:0, listsBacked:0, listsSkipped:0,
+      itemsAdded:0,
+      tplsAdded:0, tplsBacked:0, tplsSkipped:0,
+      publicListsDel:0, publicTplsDel:0,
+      oldListsDel:0, oldTplsDel:0,
+    };
+
+    function log(msg, type='info') {
+      const s = document.createElement('span');
+      s.className = 'log-' + type;
+      s.textContent = msg + '\n';
+      logEl.appendChild(s);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    const logHead = m => log(m, 'head');
+    const logOk   = m => log('  ✓ ' + m, 'ok');
+    const logSkip = m => log('  – ' + m, 'warn');
+    const logErr  = m => log('  ✗ ' + m, 'err');
+
+    let currentUser = null;
+    onAuthStateChanged(auth, user => {
+      currentUser = user;
+      if (user) {
+        authStatus.textContent = `✅ Signed in as ${user.displayName} (${user.email})`;
+        authStatus.className = 'signed-in';
+        btnRun.disabled = false;
+        btnCleanup.disabled = false;
+        btnSignin.textContent = 'Sign out';
+      } else {
+        authStatus.textContent = '⚠️ Not signed in — please sign in to run the migration.';
+        authStatus.className = '';
+        btnRun.disabled = true;
+        btnCleanup.disabled = true;
+        btnSignin.textContent = 'Sign in with Google';
+      }
+    });
+
+    btnSignin.addEventListener('click', async () => {
+      if (currentUser) { await auth.signOut(); }
+      else { await signInWithPopup(auth, gProvider); }
+    });
+
+    function visDefault(data) {
+      if (data.visibility === 'public' || data.visibility === 'private') return data.visibility;
+      return data.isPublic === true ? 'public' : 'private';
+    }
+
+    async function batchDelete(docs) {
+      for (let i = 0; i < docs.length; i += 400) {
+        const b = writeBatch(db);
+        docs.slice(i, i + 400).forEach(d => b.delete(d.ref));
+        await b.commit();
+      }
+    }
+
+    async function migrateUserLists(uid, name) {
+      logHead(`\n[STEP 1] users/${uid}/lists → lists/`);
+      let snap;
+      try { snap = await getDocs(query(collection(db, 'users', uid, 'lists'), orderBy('createdAt'))); }
+      catch { snap = await getDocs(collection(db, 'users', uid, 'lists')); }
+      if (snap.empty) { log('  (no old lists found)', 'info'); return; }
+      for (const d of snap.docs) {
+        const data = d.data();
+        const newRef = doc(db, 'lists', d.id);
+        if ((await getDoc(newRef)).exists()) {
+          logSkip(`lists/${d.id} already exists — skipping`);
+          stats.listsSkipped++;
+        } else {
+          await setDoc(newRef, { ...data, ownerId: data.ownerId||uid, ownerName: data.ownerName||name||'', visibility: visDefault(data) });
+          logOk(`Copied list: ${data.name||d.id}`);
+          stats.listsAdded++;
+        }
+        const items = await getDocs(collection(db, 'users', uid, 'lists', d.id, 'items'));
+        for (const it of items.docs) {
+          const iRef = doc(db, 'lists', d.id, 'items', it.id);
+          if (!(await getDoc(iRef)).exists()) {
+            await setDoc(iRef, it.data());
+            logOk(`  item: ${it.data().name||it.id}`);
+            stats.itemsAdded++;
+          }
+        }
+      }
+    }
+
+    async function migrateUserTemplates(uid, name) {
+      logHead(`\n[STEP 2] users/${uid}/templates → templates/`);
+      const snap = await getDocs(collection(db, 'users', uid, 'templates'));
+      if (snap.empty) { log('  (no old templates found)', 'info'); return; }
+      for (const d of snap.docs) {
+        const data = d.data();
+        const newRef = doc(db, 'templates', d.id);
+        if ((await getDoc(newRef)).exists()) {
+          logSkip(`templates/${d.id} already exists — skipping`);
+          stats.tplsSkipped++;
+        } else {
+          await setDoc(newRef, { ...data, ownerId: data.ownerId||uid, ownerName: data.ownerName||name||'', visibility: visDefault(data) });
+          logOk(`Copied template: ${data.name||d.id}`);
+          stats.tplsAdded++;
+        }
+      }
+    }
+
+    async function backfillLists(uid, name) {
+      logHead(`\n[STEP 3] Backfilling top-level lists/`);
+      const snap = await getDocs(collection(db, 'lists'));
+      for (const d of snap.docs) {
+        const data = d.data(); const upd = {};
+        if (!data.ownerId)    upd.ownerId    = uid;
+        if (!data.ownerName)  upd.ownerName  = name||'';
+        if (!data.visibility) upd.visibility = visDefault(data);
+        if (Object.keys(upd).length) {
+          await updateDoc(doc(db, 'lists', d.id), upd);
+          logOk(`Backfilled lists/${d.id}: ${JSON.stringify(upd)}`);
+          stats.listsBacked++;
+        }
+      }
+      if (!stats.listsBacked) logOk('All lists already have required fields.');
+    }
+
+    async function backfillTemplates(uid, name) {
+      logHead(`\n[STEP 4] Backfilling top-level templates/`);
+      const snap = await getDocs(collection(db, 'templates'));
+      for (const d of snap.docs) {
+        const data = d.data(); const upd = {};
+        if (!data.ownerId)    upd.ownerId    = uid;
+        if (!data.ownerName)  upd.ownerName  = name||'';
+        if (!data.visibility) upd.visibility = visDefault(data);
+        if (Object.keys(upd).length) {
+          await updateDoc(doc(db, 'templates', d.id), upd);
+          logOk(`Backfilled templates/${d.id}: ${JSON.stringify(upd)}`);
+          stats.tplsBacked++;
+        }
+      }
+      if (!stats.tplsBacked) logOk('All templates already have required fields.');
+    }
+
+    async function runCleanup(uid) {
+      logHead(`\n[CLEANUP] Deleting redundant collections`);
+      for (const col of ['publicLists', 'publicTemplates']) {
+        try {
+          const s = await getDocs(collection(db, col));
+          if (!s.empty) {
+            await batchDelete(s.docs);
+            if (col === 'publicLists') stats.publicListsDel = s.size;
+            else stats.publicTplsDel = s.size;
+            logOk(`Deleted ${s.size} docs from ${col}/`);
+          } else { logSkip(`${col}/ is empty or does not exist`); }
+        } catch(e) { logErr(`${col}/ — ${e.message}`); }
+      }
+      try {
+        const oldL = await getDocs(collection(db, 'users', uid, 'lists'));
+        if (!oldL.empty) {
+          for (const d of oldL.docs) {
+            const its = await getDocs(collection(db, 'users', uid, 'lists', d.id, 'items'));
+            if (!its.empty) await batchDelete(its.docs);
+          }
+          await batchDelete(oldL.docs);
+          stats.oldListsDel = oldL.size;
+          logOk(`Deleted ${oldL.size} docs from users/${uid}/lists (+ their items)`);
+        } else { logSkip(`users/${uid}/lists is empty`); }
+      } catch(e) { logErr(`users/${uid}/lists — ${e.message}`); }
+      try {
+        const oldT = await getDocs(collection(db, 'users', uid, 'templates'));
+        if (!oldT.empty) {
+          await batchDelete(oldT.docs);
+          stats.oldTplsDel = oldT.size;
+          logOk(`Deleted ${oldT.size} docs from users/${uid}/templates`);
+        } else { logSkip(`users/${uid}/templates is empty`); }
+      } catch(e) { logErr(`users/${uid}/templates — ${e.message}`); }
+    }
+
+    function showSummary() {
+      summaryEl.style.display = 'block';
+      summaryEl.innerHTML = `<h3>Migration Summary</h3><table>
+        <tr><th>Action</th><th>Count</th></tr>
+        <tr><td>Lists copied → lists/</td><td>${stats.listsAdded}</td></tr>
+        <tr><td>Lists skipped (already existed)</td><td>${stats.listsSkipped}</td></tr>
+        <tr><td>Items copied</td><td>${stats.itemsAdded}</td></tr>
+        <tr><td>Templates copied → templates/</td><td>${stats.tplsAdded}</td></tr>
+        <tr><td>Templates skipped</td><td>${stats.tplsSkipped}</td></tr>
+        <tr><td>Lists backfilled (missing fields)</td><td>${stats.listsBacked}</td></tr>
+        <tr><td>Templates backfilled</td><td>${stats.tplsBacked}</td></tr>
+        <tr><td>publicLists/ docs deleted</td><td>${stats.publicListsDel}</td></tr>
+        <tr><td>publicTemplates/ docs deleted</td><td>${stats.publicTplsDel}</td></tr>
+        <tr><td>users/.../lists docs deleted</td><td>${stats.oldListsDel}</td></tr>
+        <tr><td>users/.../templates docs deleted</td><td>${stats.oldTplsDel}</td></tr>
+      </table>`;
+    }
+
+    btnRun.addEventListener('click', async () => {
+      if (!currentUser) return;
+      btnRun.disabled = true;
+      logEl.innerHTML = '';
+      const uid = currentUser.uid, name = currentUser.displayName||currentUser.email||'';
+      logHead('=== ShopList Firestore Migration ===');
+      log(`User: ${name} (${uid})`, 'info');
+      log(`Started: ${new Date().toLocaleString()}`, 'info');
+      try {
+        await migrateUserLists(uid, name);
+        await migrateUserTemplates(uid, name);
+        await backfillLists(uid, name);
+        await backfillTemplates(uid, name);
+        logHead('\n=== Migration complete ✅ ===');
+        log('Run the Cleanup step when ready to delete old data.', 'info');
+      } catch(e) { logErr('\nFATAL: ' + e.message); console.error(e); }
+      showSummary();
+      btnRun.disabled = false;
+    });
+
+    btnCleanup.addEventListener('click', async () => {
+      if (!currentUser) return;
+      if (!confirm('⚠️ This permanently deletes publicLists/, publicTemplates/, and old user subcollections.\n\nRun the migration first to ensure data is safely copied.\n\nContinue?')) return;
+      btnCleanup.disabled = true;
+      try {
+        await runCleanup(currentUser.uid);
+        logHead('\n=== Cleanup complete ✅ ===');
+      } catch(e) { logErr('\nFATAL: ' + e.message); console.error(e); }
+      showSummary();
+      btnCleanup.disabled = false;
+    });
+  </script>
+</body>
+</html>
