@@ -102,10 +102,10 @@
   font-weight:500;
 }
 
-/* Template card — dashed "blueprint" treatment + gold accent to distinguish from lists */
+/* Template card — dashed "blueprint" treatment + blue accent to distinguish from lists */
 .template-card{
   background:rgba(255,255,255,.78);
-  border:1px dashed rgba(209,153,0,.55);
+  border:1px dashed rgba(37,99,235,.45);
   border-radius:var(--radius-2xl);
   padding:var(--space-5);
   cursor:pointer;
@@ -118,7 +118,7 @@
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
-/* Gold signature accent bar — marks this card as a TEMPLATE */
+/* Blue signature accent bar — marks this card as a TEMPLATE */
 .template-card::before{
   content:"";
   position:absolute;
@@ -130,7 +130,7 @@
 }
 [data-theme="dark"] .template-card{
   background:rgba(23,28,40,.78);
-  border-color:rgba(232,175,52,.4);
+  border-color:rgba(129,140,248,.35);
 }
 .template-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
 
