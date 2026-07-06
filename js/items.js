@@ -210,7 +210,9 @@ export async function deleteItemById(itemId, { itemsCol }) {
 }
 
 // -- Save Item (add OR edit) --------------------------------------------------
-export async function saveItem({ itemsCol, getSelectedStores: getStores }) {
+// templatesCol and tplUpdateDoc are optional — passed from app.js to support
+// auto-saving the active template when a new item is added from the list view.
+export async function saveItem({ itemsCol, getSelectedStores: getStores, templatesCol, tplUpdateDoc, tplDoc }) {
   const name = document.getElementById('item-name-full').value.trim();
   if (!name) { window.showToast('Item name is required', 'error'); return; }
   if (!state.currentListId) { window.showToast('No list selected', 'error'); return; }
@@ -228,6 +230,26 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores }) {
       window.showToast('Item updated!', 'success');
     } else {
       await addDoc(itemsCol(state.currentListId), { ...data, checked: false, createdAt: serverTimestamp() });
+      // Auto-save to active template if one is open in the editor
+      if (state.editingTemplateId && templatesCol && tplUpdateDoc && tplDoc) {
+        const tplItem = {
+          name:     data.name,
+          qty:      data.qty,
+          unit:     data.unit,
+          category: data.category,
+          stores:   data.stores,
+          tags:     [],
+          notes:    data.notes
+        };
+        state.tplEditorItems.push(tplItem);
+        try {
+          await tplUpdateDoc(tplDoc(templatesCol(), state.editingTemplateId), { items: state.tplEditorItems });
+          window.showToast('Item added & template saved!', 'success');
+        } catch (tplErr) {
+          // Item was saved to the list; template save failing is non-fatal
+          window.showToast('Item added (template save failed: ' + tplErr.message + ')', 'error');
+        }
+      }
     }
     window.closeModal('modal-add-item');
     state.editingItemId = null;

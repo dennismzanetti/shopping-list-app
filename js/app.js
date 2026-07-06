@@ -245,7 +245,13 @@ function initItemModal() {
 
   if (addBtn)       addBtn.addEventListener('click',       () => openAddItemModal(buildCategoryOptions));
   if (addBottomBtn) addBottomBtn.addEventListener('click', () => openAddItemModal(buildCategoryOptions));
-  if (saveBtn)      saveBtn.addEventListener('click',      () => saveItem({ itemsCol, getSelectedStores }));
+  if (saveBtn)      saveBtn.addEventListener('click',      () => saveItem({
+    itemsCol,
+    getSelectedStores,
+    templatesCol: tplsCol,
+    tplUpdateDoc: updateDoc,
+    tplDoc: doc
+  }));
   if (delBtn)       delBtn.addEventListener('click',       () => deleteItem({ itemsCol }));
 
   const cancelBtn = document.getElementById('item-modal-cancel');
