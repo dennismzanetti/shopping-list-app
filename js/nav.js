@@ -1,7 +1,7 @@
 // nav.js - view navigation
 import { createIcons } from './utils.js';
 
-const VIEWS = ['lists', 'list-detail', 'templates', 'template-editor', 'categories', 'stores', 'store-detail', 'settings'];
+const VIEWS = ['lists', 'list-detail', 'templates', 'template-editor', 'categories', 'category-detail', 'stores', 'store-detail', 'settings'];
 
 export function navigateTo(viewName, opts = {}) {
   VIEWS.forEach(v => {
