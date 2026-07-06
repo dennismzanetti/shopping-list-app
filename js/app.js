@@ -3,7 +3,7 @@ import { auth, provider, db } from './firebase.js';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   onSnapshot, getDocs, writeBatch, serverTimestamp,
-  query, orderBy
+  query, orderBy, where
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
@@ -39,6 +39,8 @@ const itemsCol   = (listId) => collection(db, 'users', uid(), 'lists', listId, '
 const catsCol    = () => collection(db, 'users', uid(), 'categories');
 const storesCol  = () => collection(db, 'users', uid(), 'stores');
 const tplsCol    = () => collection(db, 'users', uid(), 'templates');
+const publicTplsCol  = () => collection(db, 'publicTemplates');
+const publicListsCol = () => collection(db, 'publicLists');
 
 // Expose state and shared utilities for use in other modules
 window._state = state;
@@ -425,18 +427,38 @@ function startListeners() {
     err => { if (err.code !== 'permission-denied') console.error('stores:', err); }
   );
 
+  // Own + public templates
+  let _ownTemplates = [];
+  let _publicTemplates = [];
+
+  function _mergeAndRenderTemplates() {
+    const ownIds = new Set(_ownTemplates.map(t => t.id));
+    const others = _publicTemplates.filter(t => t.ownerId !== uid() && !ownIds.has(t.id));
+    state.allTemplates = [..._ownTemplates, ...others];
+    renderTemplates((id) => openTemplateEditor(id, { buildCategoryOptions }));
+  }
+
   state.unsubTemplates = onSnapshot(
     query(tplsCol(), orderBy('createdAt')),
     snap => {
-      state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderTemplates((id) => openTemplateEditor(id, { buildCategoryOptions }));
+      _ownTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      _mergeAndRenderTemplates();
     },
     err => { if (err.code !== 'permission-denied') console.error('templates:', err); }
+  );
+
+  state.unsubPublicTemplates = onSnapshot(
+    query(publicTplsCol(), orderBy('createdAt')),
+    snap => {
+      _publicTemplates = snap.docs.map(d => ({ id: d.id, ...d.data(), _isPublicMirror: true }));
+      _mergeAndRenderTemplates();
+    },
+    err => { if (err.code !== 'permission-denied') console.error('publicTemplates:', err); }
   );
 }
 
 function stopListeners() {
-  ['unsubLists','unsubItems','unsubCategories','unsubStores','unsubTemplates'].forEach(k => {
+  ['unsubLists','unsubItems','unsubCategories','unsubStores','unsubTemplates','unsubPublicTemplates'].forEach(k => {
     if (state[k]) { state[k](); state[k] = null; }
   });
 }
@@ -481,9 +503,10 @@ function init() {
   });
 
   initTemplates({
-    templatesCol: tplsCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
+    templatesCol: tplsCol, publicTemplatesCol: publicTplsCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
     buildCategoryOptions, confirmDelete,
-    listsCol, itemsCol, writeBatch, db
+    listsCol, itemsCol, writeBatch, db,
+    getCurrentUid: uid
   });
 
   document.getElementById('signout-btn')?.addEventListener('click', async () => {
