@@ -46,20 +46,26 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
 
     // Delete button only for owner
     const deleteBtn = isOwned
-      ? `<button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>`
+      ? `<button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);flex-shrink:0;"><i data-lucide="trash-2"></i></button>`
       : '';
+
+    const emoji = list.emoji || '🛒';
+    const desc  = list.description ? `<div class="list-card-desc">${escHtml(list.description)}</div>` : '';
 
     return `
     <div class="list-card" data-list-id="${list.id}">
       <div class="list-card-header">
-        <div class="list-card-icon"><i data-lucide="shopping-cart"></i></div>
-        <div class="list-card-actions" style="margin-left:auto;">${deleteBtn}</div>
+        <div class="list-card-emoji">${escHtml(emoji)}</div>
+        <div class="list-card-info">
+          <div class="list-card-title">${escHtml(list.name)}</div>
+          ${desc}
+        </div>
+        ${deleteBtn}
       </div>
-      <h3 class="list-card-name">${escHtml(list.name)}</h3>
-      <div class="list-card-meta">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div style="margin-top:var(--space-2);display:flex;gap:var(--space-1);align-items:center;flex-wrap:wrap;">
-        ${ownerBadge}${visControl}
+      <div class="progress-bar" style="margin-top:var(--space-3);"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="list-card-footer" style="justify-content:space-between;">
+        <span class="list-item-count">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done${ownerBadge ? ' ' : ''}${ownerBadge}</span>
+        ${visControl}
       </div>
     </div>`;
   }).join('');
