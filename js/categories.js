@@ -23,30 +23,17 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
           <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;margin-left:auto;"></i>
         </button>
         <div class="cat-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
-          <button type="button" class="cat-emoji-picker-btn"
-            id="cat-emoji-btn-${cat.id}"
-            title="Change emoji"
-            style="font-size:1.2rem;background:none;border:1px solid var(--color-border);border-radius:var(--radius-sm);cursor:pointer;padding:2px 6px;line-height:1;flex-shrink:0;">
-            ${cat.emoji || '\uD83C\uDFF7\uFE0F'}
-          </button>
+          <button type="button" class="emoji-picker-btn" id="cat-emoji-btn-${cat.id}" title="Change emoji" aria-label="Pick an emoji">${cat.emoji || '\uD83C\uDFF7\uFE0F'}</button>
           <input type="hidden" id="cat-edit-emoji-${cat.id}" value="${escHtml(cat.emoji || '')}">
           <input class="form-input cat-name-input" data-cat-name-input="${cat.id}"
             value="${escHtml(cat.name)}"
             style="flex:1;min-width:0;padding:var(--space-1) var(--space-2);font-size:var(--text-sm);height:32px;">
         </div>
         <div class="cat-actions" style="display:flex;gap:var(--space-1);flex-shrink:0;">
-          <button class="icon-btn cat-edit-btn" data-edit-cat="${cat.id}" aria-label="Edit" title="Edit">
-            <i data-lucide="pencil"></i>
-          </button>
-          <button class="icon-btn cat-save-btn" data-save-cat="${cat.id}" aria-label="Save" title="Save" style="display:none;color:var(--color-success);">
-            <i data-lucide="check"></i>
-          </button>
-          <button class="icon-btn cat-cancel-btn" data-cancel-cat="${cat.id}" aria-label="Cancel" title="Cancel" style="display:none;">
-            <i data-lucide="x"></i>
-          </button>
-          <button class="icon-btn cat-delete-btn" data-delete-cat="${cat.id}" aria-label="Delete" title="Delete" style="color:var(--color-error);">
-            <i data-lucide="trash-2"></i>
-          </button>
+          <button class="icon-btn cat-edit-btn" data-edit-cat="${cat.id}" aria-label="Edit" title="Edit"><i data-lucide="pencil"></i></button>
+          <button class="icon-btn cat-save-btn" data-save-cat="${cat.id}" aria-label="Save" title="Save" style="display:none;color:var(--color-success);"><i data-lucide="check"></i></button>
+          <button class="icon-btn cat-cancel-btn" data-cancel-cat="${cat.id}" aria-label="Cancel" title="Cancel" style="display:none;"><i data-lucide="x"></i></button>
+          <button class="icon-btn cat-delete-btn" data-delete-cat="${cat.id}" aria-label="Delete" title="Delete" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
     </div>`).join('');
@@ -64,7 +51,6 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
     const emojiInput = card.querySelector(`#cat-edit-emoji-${cat.id}`);
     const emojiBtn   = card.querySelector(`#cat-emoji-btn-${cat.id}`);
 
-    // Clicking the category name/emoji area opens the detail view
     if (displayBtn) {
       displayBtn.addEventListener('click', () => {
         if (window.openCategoryDetail) window.openCategoryDetail(cat.id);
@@ -107,13 +93,11 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
     cancelBtn.addEventListener('click', exitEdit);
     saveBtn.addEventListener('click', doSave);
     deleteBtn.addEventListener('click', () => onDelete('category', cat.id));
-
     nameInput.addEventListener('keydown', e => {
       if (e.key === 'Enter')  { e.preventDefault(); doSave(); }
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
     });
 
-    // Wire emoji button to the shared full-screen picker
     if (emojiBtn && emojiInput) {
       emojiBtn.addEventListener('click', e => {
         e.stopPropagation();
@@ -121,12 +105,6 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
           window.openEmojiPicker(`cat-edit-emoji-${cat.id}`, `cat-emoji-btn-${cat.id}`);
         }
       });
-      // Keep button label in sync when picker writes to the hidden input
-      const observer = new MutationObserver(() => {
-        emojiBtn.textContent = emojiInput.value || '\uD83C\uDFF7\uFE0F';
-      });
-      observer.observe(emojiInput, { attributes: true, attributeFilter: ['value'] });
-      // Also sync via input event (openEmojiPicker sets .value directly)
       emojiInput.addEventListener('change', () => {
         emojiBtn.textContent = emojiInput.value || '\uD83C\uDFF7\uFE0F';
       });
@@ -155,30 +133,17 @@ export function renderStores(allStores, onDelete, onUpdate) {
           <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;margin-left:auto;"></i>
         </button>
         <div class="store-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
-          <button type="button" class="store-emoji-picker-btn"
-            id="store-emoji-btn-${store.id}"
-            title="Change emoji"
-            style="font-size:1.2rem;background:none;border:1px solid var(--color-border);border-radius:var(--radius-sm);cursor:pointer;padding:2px 6px;line-height:1;flex-shrink:0;">
-            ${store.emoji || '\uD83C\uDFEA'}
-          </button>
+          <button type="button" class="emoji-picker-btn" id="store-emoji-btn-${store.id}" title="Change emoji" aria-label="Pick an emoji">${store.emoji || '\uD83C\uDFEA'}</button>
           <input type="hidden" id="store-edit-emoji-${store.id}" value="${escHtml(store.emoji || '')}">
           <input class="form-input store-name-input" data-store-name-input="${store.id}"
             value="${escHtml(store.name)}"
             style="flex:1;min-width:0;padding:var(--space-1) var(--space-2);font-size:var(--text-sm);height:32px;">
         </div>
         <div class="store-actions" style="display:flex;gap:var(--space-1);flex-shrink:0;">
-          <button class="icon-btn store-edit-btn" data-edit-store="${store.id}" aria-label="Edit" title="Edit">
-            <i data-lucide="pencil"></i>
-          </button>
-          <button class="icon-btn store-save-btn" data-save-store="${store.id}" aria-label="Save" title="Save" style="display:none;color:var(--color-success);">
-            <i data-lucide="check"></i>
-          </button>
-          <button class="icon-btn store-cancel-btn" data-cancel-store="${store.id}" aria-label="Cancel" title="Cancel" style="display:none;">
-            <i data-lucide="x"></i>
-          </button>
-          <button class="icon-btn store-delete-btn" data-delete-store="${store.id}" aria-label="Delete" title="Delete" style="color:var(--color-error);">
-            <i data-lucide="trash-2"></i>
-          </button>
+          <button class="icon-btn store-edit-btn" data-edit-store="${store.id}" aria-label="Edit" title="Edit"><i data-lucide="pencil"></i></button>
+          <button class="icon-btn store-save-btn" data-save-store="${store.id}" aria-label="Save" title="Save" style="display:none;color:var(--color-success);"><i data-lucide="check"></i></button>
+          <button class="icon-btn store-cancel-btn" data-cancel-store="${store.id}" aria-label="Cancel" title="Cancel" style="display:none;"><i data-lucide="x"></i></button>
+          <button class="icon-btn store-delete-btn" data-delete-store="${store.id}" aria-label="Delete" title="Delete" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
     </div>`).join('');
@@ -196,7 +161,6 @@ export function renderStores(allStores, onDelete, onUpdate) {
     const emojiInput = card.querySelector(`#store-edit-emoji-${store.id}`);
     const emojiBtn   = card.querySelector(`#store-emoji-btn-${store.id}`);
 
-    // Clicking the store name/emoji area opens the detail view
     if (displayBtn) {
       displayBtn.addEventListener('click', () => {
         if (window.openStoreDetail) window.openStoreDetail(store.id);
@@ -239,13 +203,11 @@ export function renderStores(allStores, onDelete, onUpdate) {
     cancelBtn.addEventListener('click', exitEdit);
     saveBtn.addEventListener('click', doSave);
     deleteBtn.addEventListener('click', () => onDelete('store', store.id));
-
     nameInput.addEventListener('keydown', e => {
       if (e.key === 'Enter')  { e.preventDefault(); doSave(); }
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
     });
 
-    // Wire emoji button to the shared full-screen picker
     if (emojiBtn && emojiInput) {
       emojiBtn.addEventListener('click', e => {
         e.stopPropagation();
