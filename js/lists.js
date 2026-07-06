@@ -24,7 +24,7 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     const isOwned = list.ownerId === uid;
     const isPublic = list.visibility === 'public';
 
-    // Item preview chips with category emoji (same pattern as template cards)
+    // Item preview chips (same pattern as template cards)
     const previewItems = list.previewItems || [];
     const preview = previewItems.slice(0, 5);
     const more    = total > 5 ? total - 5 : 0;
@@ -38,40 +38,42 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
       ? `<div class="template-card-items">${chips}${moreChip}</div>`
       : '';
 
-    // Static visibility pill for all users (toggle lives in the detail view)
-    const visControl = `<span class="badge-shared" style="${!isPublic ? 'background:var(--color-surface-offset);color:var(--color-text-muted);' : ''}">
-        <i data-lucide="${isPublic ? 'users' : 'lock'}" style="width:11px;height:11px;"></i>
-        ${isPublic ? 'Public' : 'Private'}
-      </span>`;
+    // Visibility badge (same pattern as template cards)
+    const visBadge = isPublic
+      ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Public</span>`
+      : `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);"><i data-lucide="lock" style="width:11px;height:11px;"></i> Private</span>`;
 
     // Owner label for shared/public lists from other users
     const ownerBadge = (!isOwned && list.ownerName)
-      ? `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);font-size:var(--text-xs);">— ${escHtml(list.ownerName)}</span>`
+      ? `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);font-size:var(--text-xs);">\u2014 ${escHtml(list.ownerName)}</span>`
       : '';
 
     // Delete button only for owner
     const deleteBtn = isOwned
-      ? `<button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);flex-shrink:0;"><i data-lucide="trash-2"></i></button>`
+      ? `<button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);margin-left:auto;flex-shrink:0;"><i data-lucide="trash-2"></i></button>`
       : '';
 
-    const emoji = list.emoji || '🛒';
-    const desc  = list.description ? `<div class="list-card-desc">${escHtml(list.description)}</div>` : '';
+    const emoji = list.emoji || '\uD83D\uDED2';
+    const desc  = list.description ? `<div class="template-card-desc">${escHtml(list.description)}</div>` : '';
+
+    // Footer left: item count + checked count + optional owner badge
+    const footerLeft = `<span class="template-item-count">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done${ownerBadge ? ' ' : ''}${ownerBadge}</span>`;
 
     return `
-    <div class="list-card" data-list-id="${list.id}">
-      <div class="list-card-header">
-        <div class="list-card-emoji">${escHtml(emoji)}</div>
-        <div class="list-card-info">
-          <div class="list-card-title">${escHtml(list.name)}</div>
+    <div class="template-card list-card" data-list-id="${list.id}">
+      <div class="template-card-header">
+        <div class="template-card-emoji">${escHtml(emoji)}</div>
+        <div class="template-card-info">
+          <div class="template-card-title">${escHtml(list.name)}</div>
           ${desc}
         </div>
         ${deleteBtn}
       </div>
       ${chipsBlock}
       <div class="progress-bar" style="margin-top:var(--space-3);"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="list-card-footer" style="justify-content:space-between;">
-        <span class="list-item-count">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done${ownerBadge ? ' ' : ''}${ownerBadge}</span>
-        ${visControl}
+      <div class="template-card-footer" style="justify-content:space-between;">
+        ${footerLeft}
+        ${visBadge}
       </div>
     </div>`;
   }).join('');
