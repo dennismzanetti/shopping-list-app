@@ -50,8 +50,8 @@
       <li><span>①</span> Copies <code>users/{uid}/lists/{id}</code> → <code>lists/{id}</code> with <code>ownerId</code> + <code>visibility</code></li>
       <li><span>②</span> Copies <code>users/{uid}/lists/{id}/items/{itemId}</code> → <code>lists/{id}/items/{itemId}</code></li>
       <li><span>③</span> Copies <code>users/{uid}/templates/{id}</code> → <code>templates/{id}</code> with <code>ownerId</code> + <code>visibility</code></li>
-      <li><span>④</span> Backfills any top-level <code>lists/</code> docs missing <code>ownerId</code>, <code>ownerName</code>, or <code>visibility</code></li>
-      <li><span>⑤</span> Backfills any top-level <code>templates/</code> docs missing those fields</li>
+      <li><span>④</span> Backfills any top-level <code>lists/</code> docs (owned by you) missing <code>ownerId</code>, <code>ownerName</code>, or <code>visibility</code></li>
+      <li><span>⑤</span> Backfills any top-level <code>templates/</code> docs (owned by you) missing those fields</li>
       <li><span>⑥</span> <strong>Cleanup step (separate button):</strong> Deletes <code>publicLists/</code>, <code>publicTemplates/</code>, and old <code>users/{uid}/lists</code> + <code>users/{uid}/templates</code> subcollections</li>
     </ul>
   </div>
@@ -71,7 +71,7 @@
       from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
     import {
       getFirestore, collection, doc, getDoc, getDocs,
-      setDoc, updateDoc, writeBatch, query, orderBy
+      setDoc, updateDoc, writeBatch, query, orderBy, where
     } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -198,8 +198,8 @@
     }
 
     async function backfillLists(uid, name) {
-      logHead(`\n[STEP 3] Backfilling top-level lists/`);
-      const snap = await getDocs(collection(db, 'lists'));
+      logHead(`\n[STEP 3] Backfilling top-level lists/ (owned by you)`);
+      const snap = await getDocs(query(collection(db, 'lists'), where('ownerId', '==', uid)));
       for (const d of snap.docs) {
         const data = d.data(); const upd = {};
         if (!data.ownerId)    upd.ownerId    = uid;
@@ -211,12 +211,12 @@
           stats.listsBacked++;
         }
       }
-      if (!stats.listsBacked) logOk('All lists already have required fields.');
+      if (!stats.listsBacked) logOk('All your lists already have required fields.');
     }
 
     async function backfillTemplates(uid, name) {
-      logHead(`\n[STEP 4] Backfilling top-level templates/`);
-      const snap = await getDocs(collection(db, 'templates'));
+      logHead(`\n[STEP 4] Backfilling top-level templates/ (owned by you)`);
+      const snap = await getDocs(query(collection(db, 'templates'), where('ownerId', '==', uid)));
       for (const d of snap.docs) {
         const data = d.data(); const upd = {};
         if (!data.ownerId)    upd.ownerId    = uid;
@@ -228,7 +228,7 @@
           stats.tplsBacked++;
         }
       }
-      if (!stats.tplsBacked) logOk('All templates already have required fields.');
+      if (!stats.tplsBacked) logOk('All your templates already have required fields.');
     }
 
     async function runCleanup(uid) {
