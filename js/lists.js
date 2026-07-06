@@ -24,6 +24,18 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     const isOwned = list.ownerId === uid;
     const isPublic = list.visibility === 'public';
 
+    // Item preview chips (same pattern as template cards)
+    const previewItems = list.previewItems || [];
+    const preview = previewItems.slice(0, 5);
+    const more    = total - preview.length > 0 && total > 5 ? total - 5 : 0;
+    const chips   = preview.map(name =>
+      `<span class="template-item-chip">${escHtml(name)}</span>`
+    ).join('');
+    const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
+    const chipsBlock = preview.length > 0
+      ? `<div class="template-card-items">${chips}${moreChip}</div>`
+      : '';
+
     // Static visibility pill for all users (toggle lives in the detail view)
     const visControl = `<span class="badge-shared" style="${!isPublic ? 'background:var(--color-surface-offset);color:var(--color-text-muted);' : ''}">
         <i data-lucide="${isPublic ? 'users' : 'lock'}" style="width:11px;height:11px;"></i>
@@ -53,6 +65,7 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
         </div>
         ${deleteBtn}
       </div>
+      ${chipsBlock}
       <div class="progress-bar" style="margin-top:var(--space-3);"><div class="progress-fill" style="width:${pct}%"></div></div>
       <div class="list-card-footer" style="justify-content:space-between;">
         <span class="list-item-count">${total} item${total !== 1 ? 's' : ''} &middot; ${checked} done${ownerBadge ? ' ' : ''}${ownerBadge}</span>
@@ -236,5 +249,6 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
 export function updateListCounts(listId, { listsCol, updateDoc, doc }) {
   const total   = state.allItems.length;
   const checked = state.allItems.filter(i => i.checked).length;
-  updateDoc(doc(listsCol(), listId), { itemCount: total, checkedCount: checked }).catch(() => {});
+  const previewItems = state.allItems.slice(0, 5).map(i => i.name || '');
+  updateDoc(doc(listsCol(), listId), { itemCount: total, checkedCount: checked, previewItems }).catch(() => {});
 }
