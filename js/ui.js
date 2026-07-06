@@ -1,7 +1,8 @@
 // js/ui.js
-// Modal helpers, toast notifications, and build meta loader.
+// Modal helpers, toast notifications, build meta loader, and shared DOM/UI utilities.
 
 import { createIcons } from './utils.js';
+import { state }       from './state.js';
 
 // ── Modals ────────────────────────────────────────────────────────────────────
 export function openModal(id) {
@@ -57,6 +58,43 @@ export async function loadBuildMeta() {
   } catch {
     el.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener noreferrer">source</a>`;
   }
+}
+
+// ── Category <select> helper (shared by items + templates) ───────────────────
+export function buildCategoryOptions(selected = '') {
+  const blank = `<option value="">No category</option>`;
+  return blank + state.allCategories.map(c =>
+    `<option value="${c.name}" ${c.name === selected ? 'selected' : ''}>${(c.emoji ? c.emoji + ' ' : '') + c.name}</option>`
+  ).join('');
+}
+
+// ── Hash-based list routing (#list-<id>) ──────────────────────────────────────
+export function setHashListId(id) {
+  history.replaceState(null, '', id ? `#list-${id}` : window.location.pathname);
+}
+
+export function getHashListId() {
+  const m = window.location.hash.match(/^#list-(.+)$/);
+  return m ? m[1] : null;
+}
+
+// ── Auth / user DOM helper ────────────────────────────────────────────────────
+export function setUserUI(user) {
+  const initial = (user.displayName || user.email || 'U')[0].toUpperCase();
+  ['header-avatar', 'settings-avatar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (user.photoURL) {
+        el.innerHTML = `<img src="${user.photoURL}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      } else {
+        el.textContent = initial;
+      }
+    }
+  });
+  const nameEl  = document.getElementById('settings-name');
+  const emailEl = document.getElementById('settings-email');
+  if (nameEl)  nameEl.textContent  = user.displayName || '\u2014';
+  if (emailEl) emailEl.textContent = user.email || '\u2014';
 }
 
 // ── Emoji Picker ──────────────────────────────────────────────────────────────
@@ -118,8 +156,6 @@ function _initEmojiPickerDOM() {
         if (_emojiTargetBtn) {
           const b = document.getElementById(_emojiTargetBtn);
           if (b) {
-            // If it's the plain text button (e.g. template emoji btn), set textContent
-            // otherwise update the btn text leaving the icon child intact
             const icon = b.querySelector('i, svg');
             if (icon) {
               b.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
@@ -142,14 +178,12 @@ function _initEmojiPickerDOM() {
 
   if (closeBtn) closeBtn.addEventListener('click', _closeEmojiPicker);
 
-  // Close on overlay backdrop click
   if (overlay) {
     overlay.addEventListener('click', e => {
       if (e.target === overlay) _closeEmojiPicker();
     });
   }
 
-  // Close on Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') _closeEmojiPicker();
   });
@@ -160,7 +194,6 @@ function _closeEmojiPicker() {
   const searchEl = document.getElementById('emoji-search');
   if (overlay)  overlay.classList.remove('open');
   if (searchEl) searchEl.value = '';
-  // Re-render grid to reset search
   const grid = document.getElementById('emoji-grid');
   if (grid) {
     grid.innerHTML = EMOJI_LIST.map(e =>

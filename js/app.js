@@ -8,7 +8,9 @@ import {
 import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
-import { openModal, closeModal, showToast, openEmojiPicker } from './ui.js';
+import { openModal, closeModal, showToast, openEmojiPicker,
+         buildCategoryOptions, setHashListId, getHashListId,
+         setUserUI }                                    from './ui.js';
 import { syncThemeUI, toggleTheme }                     from './theme.js';
 import { navigateTo }                                   from './nav.js';
 import { loadAboutCommits }                             from './about.js';
@@ -41,28 +43,6 @@ const tplsCol    = () => collection(db, 'users', uid(), 'templates');
 // Expose state and shared utilities for use in other modules
 window._state = state;
 window.openEmojiPicker = openEmojiPicker;
-
-// ---------------------------------------------------------------------------
-// Category <select> helper (shared by items + templates)
-// ---------------------------------------------------------------------------
-function buildCategoryOptions(selected = '') {
-  const blank = `<option value="">No category</option>`;
-  return blank + state.allCategories.map(c =>
-    `<option value="${c.name}" ${c.name === selected ? 'selected' : ''}>${(c.emoji ? c.emoji + ' ' : '') + c.name}</option>`
-  ).join('');
-}
-
-// ---------------------------------------------------------------------------
-// Hash-based list routing  (#list-<id>)
-// ---------------------------------------------------------------------------
-function setHashListId(id) {
-  history.replaceState(null, '', id ? `#list-${id}` : window.location.pathname);
-}
-
-function getHashListId() {
-  const m = window.location.hash.match(/^#list-(.+)$/);
-  return m ? m[1] : null;
-}
 
 // ---------------------------------------------------------------------------
 // Shared openList options builder
@@ -191,7 +171,6 @@ function initNewListModal() {
     if (emojiInput) emojiInput.value = '';
     if (emojiBtn)   emojiBtn.textContent = '\uD83D\uDED2';
     setVisToggleValue('new-list-visibility', 'private');
-    // Uncheck all store pills
     document.querySelectorAll('#new-list-store input[type=checkbox]').forEach(cb => cb.checked = false);
     const labels = document.querySelectorAll('#new-list-store .store-checkbox-label');
     labels.forEach(l => l.classList.remove('selected'));
@@ -209,7 +188,6 @@ function initNewListModal() {
   if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal('modal-new-list'));
   if (closeBtn)  closeBtn.addEventListener('click',  () => closeModal('modal-new-list'));
 
-  // Emoji picker button — shows the full-screen emoji picker overlay
   if (emojiBtn) {
     emojiBtn.addEventListener('click', () =>
       openEmojiPicker('list-emoji-input', 'emoji-picker-btn')
@@ -223,7 +201,6 @@ function initNewListModal() {
       const visibility = getVisToggleValue('new-list-visibility');
       const emoji = emojiInput?.value.trim() || '';
       const description = descInput?.value.trim() || '';
-      // Collect checked store pills
       const stores = Array.from(
         document.querySelectorAll('#new-list-store input[type=checkbox]:checked')
       ).map(cb => cb.value);
@@ -456,27 +433,6 @@ function stopListeners() {
   ['unsubLists','unsubItems','unsubCategories','unsubStores','unsubTemplates'].forEach(k => {
     if (state[k]) { state[k](); state[k] = null; }
   });
-}
-
-// ---------------------------------------------------------------------------
-// Auth UI helpers
-// ---------------------------------------------------------------------------
-function setUserUI(user) {
-  const initial = (user.displayName || user.email || 'U')[0].toUpperCase();
-  ['header-avatar','settings-avatar'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      if (user.photoURL) {
-        el.innerHTML = `<img src="${user.photoURL}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-      } else {
-        el.textContent = initial;
-      }
-    }
-  });
-  const nameEl  = document.getElementById('settings-name');
-  const emailEl = document.getElementById('settings-email');
-  if (nameEl)  nameEl.textContent  = user.displayName || '\u2014';
-  if (emailEl) emailEl.textContent = user.email || '\u2014';
 }
 
 // ---------------------------------------------------------------------------
