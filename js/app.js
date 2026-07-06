@@ -1,7 +1,7 @@
 // js/app.js — main entry point
 import { auth, provider, db } from './firebase.js';
 import {
-  collection, doc, addDoc, updateDoc, deleteDoc,
+  collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
   onSnapshot, getDocs, writeBatch, serverTimestamp,
   query, orderBy, where
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
@@ -383,12 +383,22 @@ function initListDetailNav() {
         });
         try {
           await updateDoc(doc(listsCol(), state.currentListId), { visibility: newVis });
-          // Sync public mirror
-          const list = state.allLists.find(l => l.id === state.currentListId);
-          if (newVis === 'public' && list) {
-            const mirrorData = { ...list, visibility: 'public', ownerId: uid(), ownerName: state.currentUser?.displayName || state.currentUser?.email || '' };
-            updateDoc(doc(publicListsCol(), state.currentListId), mirrorData)
-              .catch(() => addDoc(publicListsCol(), { ...mirrorData, _mirrorId: state.currentListId }));
+          // Sync public mirror — use setDoc with explicit ID so it always upserts correctly
+          if (newVis === 'public') {
+            const list = state.allLists.find(l => l.id === state.currentListId);
+            const mirrorData = {
+              ...(list || {}),
+              id: state.currentListId,
+              visibility: 'public',
+              ownerId: uid(),
+              ownerName: state.currentUser?.displayName || state.currentUser?.email || '',
+              _mirrorId: state.currentListId
+            };
+            // Remove client-only fields not needed in the mirror
+            delete mirrorData._isPublicMirror;
+            setDoc(doc(publicListsCol(), state.currentListId), mirrorData).catch(e2 =>
+              console.error('publicLists mirror write failed:', e2)
+            );
           } else if (newVis === 'private') {
             deleteDoc(doc(publicListsCol(), state.currentListId)).catch(() => {});
           }
