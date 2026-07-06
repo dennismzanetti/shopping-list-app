@@ -46,7 +46,14 @@ Use the following checklist to verify core app functionality after any code chan
 - [ ] Empty state message displays when a list has no items
 - [ ] Print button renders a print-friendly view of the list
 
-### 5. Templates
+### 5. Item Filters
+- [ ] Filter controls appear in the List Detail view
+- [ ] Items can be filtered by store
+- [ ] Items can be filtered by category
+- [ ] Filters can be cleared to show all items
+- [ ] Filtered view updates in real time as selections change
+
+### 6. Templates
 - [ ] "New Template" button opens the Template Editor view
 - [ ] Template can be saved with: name, description, emoji, stores, and visibility
 - [ ] Template items can be added with: name, quantity, unit, category, stores, tags, and notes
@@ -57,7 +64,7 @@ Use the following checklist to verify core app functionality after any code chan
 - [ ] Template items are successfully copied to the selected list
 - [ ] Delete Template button removes the template after confirmation
 
-### 6. Categories
+### 7. Categories
 - [ ] "Add Category" button opens the New Category modal
 - [ ] Category can be created with a name and emoji
 - [ ] Emoji picker opens when "Pick" button is clicked
@@ -65,22 +72,38 @@ Use the following checklist to verify core app functionality after any code chan
 - [ ] Categories are available for selection in the Add/Edit Item modal
 - [ ] Editing a category updates its name and/or emoji
 - [ ] Deleting a category removes it from the grid and from item dropdowns
+- [ ] Clicking a category card (name/emoji area) opens the Category Detail view
 
-### 7. Stores
+### 8. Category Detail
+- [ ] Category Detail view shows the category name and emoji in the header
+- [ ] "Template Items" section lists all template items tagged to that category
+- [ ] "Shopping List Items" section lists all list items tagged to that category, with the list name shown
+- [ ] Empty state shown when no items are tagged to the category
+- [ ] Back button returns to the Categories view
+
+### 9. Stores
 - [ ] "Add Store" button opens the New Store modal
 - [ ] Store can be created with a name and emoji
 - [ ] Saved store appears in the Stores grid
 - [ ] Stores appear as selectable pills in: New List modal, List Detail view, Add/Edit Item modal, Template Editor
 - [ ] Editing a store updates its name and/or emoji
 - [ ] Deleting a store removes it from the grid and from all store-picker locations
+- [ ] Clicking a store card (name/emoji area) opens the Store Detail view
 
-### 8. Emoji Picker
+### 10. Store Detail
+- [ ] Store Detail view shows the store name and emoji in the header
+- [ ] "Template Items" section lists all template items tagged to that store
+- [ ] "Shopping List Items" section lists all list items tagged to that store, with the list name shown
+- [ ] Empty state shown when no items are tagged to the store
+- [ ] Back button returns to the Stores view
+
+### 11. Emoji Picker
 - [ ] Emoji picker opens when the emoji button is clicked (lists, templates, categories, stores)
 - [ ] Emoji search field filters the displayed emojis
 - [ ] Selecting an emoji updates the associated emoji button
 - [ ] Emoji picker closes when the X button or overlay is clicked
 
-### 9. Settings
+### 12. Settings
 - [ ] Profile card displays signed-in user's name and email
 - [ ] Dark Mode toggle switches the app between light and dark themes
 - [ ] Theme preference is preserved on page reload
@@ -89,14 +112,14 @@ Use the following checklist to verify core app functionality after any code chan
 - [ ] **Import Data** prompts a file picker, accepts a `.json` file, and restores data
 - [ ] About card displays the 10 most recent GitHub commits (date, SHA, message)
 
-### 10. Modals & Dialogs
+### 13. Modals & Dialogs
 - [ ] All modals open and close correctly (X button and Cancel button)
 - [ ] Confirm dialog appears before any destructive delete action
 - [ ] Confirming delete proceeds with the action; cancelling aborts it
 - [ ] Toast notifications appear for key actions (save, delete, error)
 - [ ] Toast notifications auto-dismiss after a few seconds
 
-### 11. Data Persistence (Firebase)
+### 14. Data Persistence (Firebase)
 - [ ] All created/updated data survives a full page refresh
 - [ ] Signing out and back in restores all user data
 - [ ] No duplicate records are created on repeated saves
@@ -110,3 +133,31 @@ Use the following checklist to verify core app functionality after any code chan
 - **Auth:** Firebase Authentication (Google Sign-In)
 - **Icons:** Lucide Icons
 - **Fonts:** Satoshi (Fontshare)
+
+---
+
+## Module Overview
+
+| File | Purpose |
+|---|---|
+| `js/app.js` | Main entry point — init, auth, Firebase wiring |
+| `js/state.js` | Shared in-memory state (lists, templates, categories, stores) |
+| `js/nav.js` | Tab navigation and view switching |
+| `js/lists.js` | My Lists view — render, open, create |
+| `js/lists-crud.js` | List create/update/delete Firestore operations |
+| `js/items.js` | Items within a list — render, add, edit, delete, check |
+| `js/item-filters.js` | Filter items by store and/or category |
+| `js/templates.js` | Templates view and editor |
+| `js/categories.js` | Categories view — render, add, edit, delete |
+| `js/category-detail.js` | Category Detail view — template & list items for a category |
+| `js/categories-stores.js` | Shared helpers for category/store pickers |
+| `js/store-detail.js` | Store Detail view — template & list items for a store |
+| `js/export-import.js` | Export/import all user data as JSON |
+| `js/print.js` | Print-friendly list view |
+| `js/about.js` | GitHub commits display in Settings |
+| `js/theme.js` | Dark/light mode toggle and persistence |
+| `js/confirm.js` | Reusable confirmation dialog |
+| `js/ui.js` | Shared UI helpers (toasts, modals, emoji picker) |
+| `js/utils.js` | General utility functions |
+| `js/firebase.js` | Firebase app init and exports |
+| `js/seed.js` | Dev utility — seed sample data |
