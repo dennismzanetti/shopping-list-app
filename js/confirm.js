@@ -25,7 +25,7 @@ export function confirmDelete(type, id) {
   window.openModal('modal-confirm');
 }
 
-export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, writeBatch, doc, serverTimestamp, deleteDoc, setHashListId }) {
+export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, publicListsCol, publicTemplatesCol, getDocs, writeBatch, doc, serverTimestamp, deleteDoc, setHashListId }) {
   document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
     if (!state.pendingDelete) return;
     const { type, id } = state.pendingDelete;
@@ -42,6 +42,8 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
         itemSnap.docs.forEach(d => batch.delete(d.ref));
         batch.delete(doc(listsCol(), id));
         await batch.commit();
+        // Also delete public mirror if it exists
+        if (publicListsCol) deleteDoc(doc(publicListsCol(), id)).catch(() => {});
         if (state.currentListId === id) {
           if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
           state.currentListId = null;
@@ -67,6 +69,8 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
 
       } else if (type === 'template') {
         await deleteDoc(doc(templatesCol(), id));
+        // Also delete public mirror if it exists
+        if (publicTemplatesCol) deleteDoc(doc(publicTemplatesCol(), id)).catch(() => {});
         window.showToast('Template deleted', 'success');
       }
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
