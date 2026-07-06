@@ -24,14 +24,16 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     const isOwned = list.ownerId === uid;
     const isPublic = list.visibility === 'public';
 
-    // Item preview chips (same pattern as template cards)
+    // Item preview chips with category emoji (same pattern as template cards)
     const previewItems = list.previewItems || [];
     const preview = previewItems.slice(0, 5);
-    const more    = total - preview.length > 0 && total > 5 ? total - 5 : 0;
-    const chips   = preview.map(name =>
-      `<span class="template-item-chip">${escHtml(name)}</span>`
-    ).join('');
-    const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
+    const more    = total > 5 ? total - 5 : 0;
+    const chips   = preview.map(item => {
+      const name          = typeof item === 'string' ? item : (item.name || '');
+      const categoryEmoji = typeof item === 'object' && item.categoryEmoji ? item.categoryEmoji + '\u00a0' : '';
+      return `<span class="template-item-chip">${categoryEmoji}${escHtml(name)}</span>`;
+    }).join('');
+    const moreChip   = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
     const chipsBlock = preview.length > 0
       ? `<div class="template-card-items">${chips}${moreChip}</div>`
       : '';
@@ -249,6 +251,9 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
 export function updateListCounts(listId, { listsCol, updateDoc, doc }) {
   const total   = state.allItems.length;
   const checked = state.allItems.filter(i => i.checked).length;
-  const previewItems = state.allItems.slice(0, 5).map(i => i.name || '');
+  const previewItems = state.allItems.slice(0, 5).map(i => {
+    const cat = state.allCategories.find(c => c.name === (i.category || ''));
+    return { name: i.name || '', categoryEmoji: cat?.emoji || '' };
+  });
   updateDoc(doc(listsCol(), listId), { itemCount: total, checkedCount: checked, previewItems }).catch(() => {});
 }
