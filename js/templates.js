@@ -435,11 +435,15 @@ function _renderTplItemList(buildCategoryOptions) {
       const meta = (qtyBadge || catBadge || storeChips)
         ? `<div class="item-meta">${qtyBadge}${catBadge}${storeChips}</div>`
         : '';
+      const notesRow = it.notes
+        ? `<div class="item-notes">${escHtml(it.notes)}</div>`
+        : '';
       return `<div class="item-row" data-tpl-item-idx="${origIdx}" style="cursor:pointer;">
         <input type="checkbox" class="tpl-item-select" data-idx="${origIdx}" aria-label="Select ${escHtml(it.name)}" style="flex-shrink:0;width:16px;height:16px;cursor:pointer;">
         <div class="item-info">
           <span class="item-name">${escHtml(it.name)}</span>
           ${meta}
+          ${notesRow}
         </div>
         <div class="tpl-item-actions" style="display:flex;gap:var(--space-1);flex-shrink:0;opacity:0;transition:opacity var(--transition-interactive);">
           <button class="icon-btn" data-tpl-item-edit="${origIdx}" aria-label="Edit item"><i data-lucide="pencil"></i></button>
