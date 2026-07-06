@@ -464,22 +464,24 @@ function startListeners() {
   );
 
   state.unsubCategories = onSnapshot(
-    query(catsCol(), orderBy('createdAt')),
+    catsCol(),
     snap => {
-      state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       renderCategories(state.allCategories, confirmDelete, updateCategory);
     },
-    err => { if (err.code !== 'permission-denied') console.error('categories:', err); }
+    err => { console.error('categories:', err.code, err.message); }
   );
 
   state.unsubStores = onSnapshot(
-    query(storesCol(), orderBy('createdAt')),
+    storesCol(),
     snap => {
-      state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       renderStores(state.allStores, confirmDelete, updateStore);
       populateStorePills('new-list-store', state.allStores);
     },
-    err => { if (err.code !== 'permission-denied') console.error('stores:', err); }
+    err => { console.error('stores:', err.code, err.message); }
   );
 
   // Own + public templates
