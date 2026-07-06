@@ -554,7 +554,7 @@ function init() {
   });
 
   initTemplates({
-    templatesCol: tplsCol, publicTemplatesCol: publicTplsCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
+    templatesCol: tplsCol, publicTemplatesCol: publicTplsCol, addDoc, setDoc, updateDoc, deleteDoc, doc, serverTimestamp,
     buildCategoryOptions, confirmDelete,
     listsCol, itemsCol, writeBatch, db,
     getCurrentUid: uid
