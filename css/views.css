@@ -205,6 +205,96 @@
 .tpl-editor-body{display:flex;flex-direction:column;gap:var(--space-4);}
 .tpl-editor-items{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3);}
 
+.editor-type-lockup{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3);
+  flex-wrap:wrap;
+}
+.editor-type-lockup .page-title{
+  margin:0;
+}
+.editor-type-lockup .card-type-badge{
+  padding:4px var(--space-2);
+}
+.editor-type-lockup .card-type-badge svg{
+  width:12px;
+  height:12px;
+}
+.editor-page--list .page-header,
+.editor-page--template .page-header{
+  position:relative;
+  padding:var(--space-5) var(--space-6);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-2xl);
+  overflow:hidden;
+  margin-bottom:var(--space-3);
+}
+.editor-page--list .page-header{
+  background:color-mix(in srgb, var(--color-primary-highlight) 70%, var(--color-surface));
+}
+.editor-page--template .page-header{
+  background:color-mix(in srgb, var(--accent-3) 10%, var(--color-surface));
+}
+.editor-page--list .page-header::before,
+.editor-page--template .page-header::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+}
+.editor-page--list .page-header::before{
+  background:var(--color-primary);
+}
+.editor-page--template .page-header::before{
+  background:var(--accent-3);
+}
+.editor-page--list .page-nav-bar,
+.editor-page--template .page-nav-bar{
+  border-radius:var(--radius-xl);
+  margin-bottom:var(--space-4);
+}
+.editor-page--list .page-nav-bar{
+  background:color-mix(in srgb, var(--color-primary-highlight) 45%, transparent);
+}
+.editor-page--template .page-nav-bar{
+  background:color-mix(in srgb, var(--accent-3) 8%, transparent);
+}
+.editor-page--list .card,
+.editor-page--template .card{
+  overflow:hidden;
+}
+.editor-page--list .card-header,
+.editor-page--template .card-header{
+  position:relative;
+}
+.editor-page--list .card-header::before,
+.editor-page--template .card-header::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:2px;
+}
+.editor-page--list .card-header::before{
+  background:var(--color-primary);
+}
+.editor-page--template .card-header::before{
+  background:var(--accent-3);
+}
+@media (max-width: 640px){
+  .editor-page--list .page-header,
+  .editor-page--template .page-header{
+    padding:var(--space-4);
+  }
+  .editor-type-lockup{
+    align-items:flex-start;
+  }
+}
+
 /* Legacy tpl-item-row */
 .tpl-item-row{
   display:flex;
