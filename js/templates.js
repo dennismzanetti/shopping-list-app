@@ -396,9 +396,14 @@ function _renderTplItemList(buildCategoryOptions) {
         <input type="checkbox" id="tpl-select-all" class="tpl-item-select">
         <span>Select all</span>
       </label>
-      <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn-inline" disabled>
-        <i data-lucide="arrow-right-left"></i> Move to Template
-      </button>
+      <div style="display:flex;gap:var(--space-2);">
+        <button class="btn btn-ghost btn-sm" id="tpl-move-items-btn-inline" disabled>
+          <i data-lucide="arrow-right-left"></i> Move to Template
+        </button>
+        <button class="btn btn-ghost btn-sm" id="tpl-add-to-list-btn-inline" disabled>
+          <i data-lucide="list-plus"></i> Add to List
+        </button>
+      </div>
     </div>
     ${indexedFiltered.map(({ it, origIdx }) => {
       const cat = state.allCategories.find(c => c.name === (it.category || ''));
@@ -453,8 +458,10 @@ function _renderTplItemList(buildCategoryOptions) {
       selectAllCb.indeterminate = true;
     }
     updateMoveItemsBtn();
-    const inlineBtn = document.getElementById('tpl-move-items-btn-inline');
-    if (inlineBtn) inlineBtn.disabled = checkedCount === 0;
+    const inlineMoveBtn = document.getElementById('tpl-move-items-btn-inline');
+    if (inlineMoveBtn) inlineMoveBtn.disabled = checkedCount === 0;
+    const inlineAtlBtn = document.getElementById('tpl-add-to-list-btn-inline');
+    if (inlineAtlBtn) inlineAtlBtn.disabled = checkedCount === 0;
   }
 
   selectAllCb.addEventListener('change', () => {
@@ -471,6 +478,7 @@ function _renderTplItemList(buildCategoryOptions) {
   );
 
   document.getElementById('tpl-move-items-btn-inline')?.addEventListener('click', openMoveToTemplateModal);
+  document.getElementById('tpl-add-to-list-btn-inline')?.addEventListener('click', openAddToListModal);
 
   container.querySelectorAll('[data-tpl-item-edit]').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openTplItemModal(parseInt(btn.dataset.tplItemEdit), { buildCategoryOptions }); })
