@@ -394,6 +394,12 @@ function startListeners() {
         const hashId = getHashListId();
         if (hashId && state.allLists.find(l => l.id === hashId)) {
           openList(hashId, openListOpts());
+        } else {
+          // No valid hash — navigate to the lists view now that data is ready
+          navigateTo('lists');
+          document.querySelectorAll('[data-view]').forEach(n =>
+            n.classList.toggle('active', n.dataset.view === 'lists')
+          );
         }
       }
     },
@@ -510,7 +516,6 @@ function init() {
       if (appEl)      appEl.style.display      = '';
       setUserUI(user);
       startListeners();
-      navigateTo('lists');
       createIcons();
     } else {
       stopListeners();
