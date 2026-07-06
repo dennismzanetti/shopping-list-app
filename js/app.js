@@ -207,16 +207,22 @@ function initNewListModal() {
         document.querySelectorAll('#new-list-store input[type=checkbox]:checked')
       ).map(cb => cb.value);
       try {
-        const ref = await addDoc(listsCol(), {
+        const listData = {
           name,
           emoji,
           description,
           stores,
           visibility,
+          ownerId: uid(),
+          ownerName: state.currentUser?.displayName || state.currentUser?.email || '',
           createdAt: serverTimestamp(),
           itemCount: 0,
           checkedCount: 0
-        });
+        };
+        const ref = await addDoc(listsCol(), listData);
+        if (visibility === 'public') {
+          addDoc(publicListsCol(), { ...listData, _mirrorId: ref.id }).catch(() => {});
+        }
         closeModal('modal-new-list');
         openList(ref.id, openListOpts());
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
@@ -370,6 +376,15 @@ function initListDetailNav() {
         });
         try {
           await updateDoc(doc(listsCol(), state.currentListId), { visibility: newVis });
+          // Sync public mirror
+          const list = state.allLists.find(l => l.id === state.currentListId);
+          if (newVis === 'public' && list) {
+            const mirrorData = { ...list, visibility: 'public', ownerId: uid(), ownerName: state.currentUser?.displayName || state.currentUser?.email || '' };
+            updateDoc(doc(publicListsCol(), state.currentListId), mirrorData)
+              .catch(() => addDoc(publicListsCol(), { ...mirrorData, _mirrorId: state.currentListId }));
+          } else if (newVis === 'private') {
+            deleteDoc(doc(publicListsCol(), state.currentListId)).catch(() => {});
+          }
           showToast(
             newVis === 'public' ? 'List set to Public' : 'List set to Private',
             'success'
@@ -386,26 +401,45 @@ function initListDetailNav() {
 // Firestore real-time subscriptions (start after sign-in)
 // ---------------------------------------------------------------------------
 function startListeners() {
+  // Own + public lists
+  let _ownLists = [];
+  let _publicLists = [];
+
+  function _mergeAndRenderLists() {
+    const ownIds = new Set(_ownLists.map(l => l.id));
+    const others = _publicLists.filter(l => l.ownerId !== uid() && !ownIds.has(l.id));
+    state.allLists = [..._ownLists, ...others];
+    doRenderLists();
+    if (state.listsFirstLoad) {
+      state.listsFirstLoad = false;
+      const hashId = getHashListId();
+      if (hashId && state.allLists.find(l => l.id === hashId)) {
+        openList(hashId, openListOpts());
+      } else {
+        navigateTo('lists');
+        document.querySelectorAll('[data-view]').forEach(n =>
+          n.classList.toggle('active', n.dataset.view === 'lists')
+        );
+      }
+    }
+  }
+
   state.unsubLists = onSnapshot(
     query(listsCol(), orderBy('createdAt')),
     snap => {
-      state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      doRenderLists();
-      if (state.listsFirstLoad) {
-        state.listsFirstLoad = false;
-        const hashId = getHashListId();
-        if (hashId && state.allLists.find(l => l.id === hashId)) {
-          openList(hashId, openListOpts());
-        } else {
-          // No valid hash — navigate to the lists view now that data is ready
-          navigateTo('lists');
-          document.querySelectorAll('[data-view]').forEach(n =>
-            n.classList.toggle('active', n.dataset.view === 'lists')
-          );
-        }
-      }
+      _ownLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      _mergeAndRenderLists();
     },
     err => { if (err.code !== 'permission-denied') console.error('lists:', err); }
+  );
+
+  state.unsubPublicLists = onSnapshot(
+    query(publicListsCol(), orderBy('createdAt')),
+    snap => {
+      _publicLists = snap.docs.map(d => ({ id: d.id, ...d.data(), _isPublicMirror: true }));
+      _mergeAndRenderLists();
+    },
+    err => { if (err.code !== 'permission-denied') console.error('publicLists:', err); }
   );
 
   state.unsubCategories = onSnapshot(
@@ -458,7 +492,7 @@ function startListeners() {
 }
 
 function stopListeners() {
-  ['unsubLists','unsubItems','unsubCategories','unsubStores','unsubTemplates','unsubPublicTemplates'].forEach(k => {
+  ['unsubLists','unsubPublicLists','unsubItems','unsubCategories','unsubStores','unsubTemplates','unsubPublicTemplates'].forEach(k => {
     if (state[k]) { state[k](); state[k] = null; }
   });
 }
