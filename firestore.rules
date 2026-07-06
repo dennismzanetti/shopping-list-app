@@ -7,11 +7,19 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // ── Global shared categories (all authenticated users) ───────────────────
+    match /categories/{catId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── Global shared stores (all authenticated users) ───────────────────────
+    match /stores/{storeId} {
+      allow read, write: if request.auth != null;
+    }
+
     // ── Public templates (mirror of user templates with visibility='public') ──
     match /publicTemplates/{tplId} {
-      // Any signed-in user can read
       allow read: if request.auth != null;
-      // Only the owner can create/update/delete their mirror
       allow create: if request.auth != null
                     && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if request.auth != null
