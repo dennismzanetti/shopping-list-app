@@ -239,7 +239,7 @@ export async function addSelectedItemsToList({ listsCol, itemsCol, addDoc, write
 }
 
 // -- Render grid --------------------------------------------------------------
-export function renderTemplates(onEdit) {
+export function renderTemplates(onEdit, onDelete) {
   const grid = document.getElementById('templates-grid');
   if (!grid) return;
   if (state.allTemplates.length === 0) {
@@ -276,7 +276,16 @@ export function renderTemplates(onEdit) {
     </div>`;
   }).join('');
   grid.querySelectorAll('.template-card').forEach(card =>
-    card.addEventListener('click', () => onEdit(card.dataset.tplId))
+    card.addEventListener('click', e => {
+      if (e.target.closest('[data-delete-tpl]')) return;
+      onEdit(card.dataset.tplId);
+    })
+  );
+  grid.querySelectorAll('[data-delete-tpl]').forEach(btn =>
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (onDelete) onDelete('template', btn.dataset.deleteTpl);
+    })
   );
   createIcons();
 }
