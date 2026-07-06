@@ -249,6 +249,8 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores, templat
           // Item was saved to the list; template save failing is non-fatal
           window.showToast('Item added (template save failed: ' + tplErr.message + ')', 'error');
         }
+      } else {
+        window.showToast('Item added!', 'success');
       }
     }
     window.closeModal('modal-add-item');
