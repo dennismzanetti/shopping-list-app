@@ -574,22 +574,40 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, update
   document.getElementById('tpl-save-btn').addEventListener('click', async () => {
     const name = document.getElementById('tpl-name').value.trim();
     if (!name) { window.showToast('Template name is required', 'error'); return; }
+    const visibility = getVisibilityValue();
     const data = {
       name,
       emoji:      document.getElementById('tpl-emoji').value.trim() || '\uD83D\uDED2',
       desc:       document.getElementById('tpl-desc').value.trim(),
       stores:     getTplSelectedStores(),
       items:      state.tplEditorItems,
-      visibility: getVisibilityValue(),
+      visibility,
+      ownerId:    getCurrentUid ? getCurrentUid() : (state.currentUser?.uid || ''),
+      ownerName:  state.currentUser?.displayName || state.currentUser?.email || '',
       updatedAt:  serverTimestamp()
     };
     try {
-      if (state.editingTemplateId) {
-        await updateDoc(doc(templatesCol(), state.editingTemplateId), data);
+      let tplId = state.editingTemplateId;
+      if (tplId) {
+        await updateDoc(doc(templatesCol(), tplId), data);
+        // Sync public mirror
+        if (visibility === 'public' && publicTemplatesCol) {
+          try {
+            await updateDoc(doc(publicTemplatesCol(), tplId), data);
+          } catch (_) {
+            await addDoc(publicTemplatesCol(), { ...data, _mirrorId: tplId });
+          }
+        } else if (visibility === 'private' && publicTemplatesCol) {
+          deleteDoc(doc(publicTemplatesCol(), tplId)).catch(() => {});
+        }
         window.showToast('Template saved!', 'success');
       } else {
         data.createdAt = serverTimestamp();
-        await addDoc(templatesCol(), data);
+        const ref = await addDoc(templatesCol(), data);
+        tplId = ref.id;
+        if (visibility === 'public' && publicTemplatesCol) {
+          await addDoc(publicTemplatesCol(), { ...data, _mirrorId: tplId });
+        }
         window.showToast(`"${name}" template created!`, 'success');
       }
       navigateTo('templates');
