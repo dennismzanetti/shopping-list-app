@@ -26,6 +26,7 @@ import { initVisToggle, setVisToggleValue, getVisToggleValue } from './lists-cru
 import { createIcons }                                  from './utils.js';
 import { printList }                                    from './print.js';
 import { initStoreDetail }                              from './store-detail.js';
+import { initCategoryDetail }                           from './category-detail.js';
 
 // ---------------------------------------------------------------------------
 // Firestore collection helpers
@@ -275,7 +276,7 @@ function initItemModal() {
 // Categories & Stores modals
 // ---------------------------------------------------------------------------
 function initCatStoreModals() {
-  // ── Categories ──────────────────────────────────────────────────────────
+  // ── Categories ─────────────────────────────────────────────────────────────────
   const newCatBtn  = document.getElementById('new-category-btn');
   const saveCatBtn = document.getElementById('save-category-btn');
   const cancelCatBtn = document.getElementById('category-modal-cancel');
@@ -313,7 +314,7 @@ function initCatStoreModals() {
   });
   if (catNameIn) catNameIn.addEventListener('keydown', e => { if (e.key === 'Enter') saveCatBtn?.click(); });
 
-  // ── Stores ───────────────────────────────────────────────────────────────
+  // ── Stores ────────────────────────────────────────────────────────────────────
   const newStoreBtn      = document.getElementById('new-store-btn');
   const saveStoreBtn     = document.getElementById('save-store-btn');
   const cancelStoreBtn   = document.getElementById('store-modal-cancel');
@@ -496,6 +497,9 @@ function init() {
 
   // Store Detail view
   initStoreDetail({ getDocs, listsCol, itemsCol });
+
+  // Category Detail view
+  initCategoryDetail({ getDocs, listsCol, itemsCol });
 
   initConfirm({
     db, listsCol, itemsCol,
