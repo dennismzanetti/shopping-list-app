@@ -24,20 +24,11 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     const isOwned = list.ownerId === uid;
     const isPublic = list.visibility === 'public';
 
-    // Visibility control: toggle for owner, static badge for others
-    const visControl = isOwned
-      ? `<div class="vis-toggle" data-list-id="${list.id}" role="group" aria-label="Visibility">
-           <button class="vis-toggle-btn${!isPublic ? ' active' : ''}" data-vis-value="private" aria-pressed="${String(!isPublic)}">
-             <i data-lucide="lock"></i> Private
-           </button>
-           <button class="vis-toggle-btn${isPublic ? ' active' : ''}" data-vis-value="public" aria-pressed="${String(isPublic)}">
-             <i data-lucide="users"></i> Public
-           </button>
-         </div>`
-      : `<span class="badge-shared" style="${!isPublic ? 'background:var(--color-surface-offset);color:var(--color-text-muted);' : ''}">
-           <i data-lucide="${isPublic ? 'users' : 'lock'}" style="width:11px;height:11px;"></i>
-           ${isPublic ? 'Public' : 'Private'}
-         </span>`;
+    // Static visibility pill for all users (toggle lives in the detail view)
+    const visControl = `<span class="badge-shared" style="${!isPublic ? 'background:var(--color-surface-offset);color:var(--color-text-muted);' : ''}">
+        <i data-lucide="${isPublic ? 'users' : 'lock'}" style="width:11px;height:11px;"></i>
+        ${isPublic ? 'Public' : 'Private'}
+      </span>`;
 
     // Owner label for shared/public lists from other users
     const ownerBadge = (!isOwned && list.ownerName)
@@ -70,11 +61,10 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     </div>`;
   }).join('');
 
-  // Open list on card click (but not when interacting with controls)
+  // Open list on card click
   grid.querySelectorAll('.list-card').forEach(card => {
     card.addEventListener('click', e => {
       if (e.target.closest('[data-delete-list]')) return;
-      if (e.target.closest('.vis-toggle')) return;
       onOpen(card.dataset.listId);
     });
   });
@@ -84,18 +74,6 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       onDelete('list', btn.dataset.deleteList);
-    });
-  });
-
-  // Inline visibility toggle on card (owner only)
-  grid.querySelectorAll('.vis-toggle').forEach(toggle => {
-    toggle.addEventListener('click', e => {
-      e.stopPropagation();
-      const btn = e.target.closest('.vis-toggle-btn');
-      if (!btn) return;
-      const listId = toggle.dataset.listId;
-      const newVis = btn.dataset.visValue;
-      if (onVisibilityChange) onVisibilityChange(listId, newVis);
     });
   });
 
