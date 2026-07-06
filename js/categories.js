@@ -23,7 +23,7 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
           <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;margin-left:auto;"></i>
         </button>
         <div class="cat-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
-          <button type="button" class="emoji-picker-btn" id="cat-emoji-btn-${cat.id}" title="Change emoji" aria-label="Pick an emoji">${cat.emoji || '\uD83C\uDFF7\uFE0F'}</button>
+          <button type="button" class="emoji-picker-btn" id="cat-emoji-btn-${cat.id}" title="Change emoji" aria-label="Pick an emoji" style="width:44px;height:44px;flex-shrink:0;">${cat.emoji || '\uD83C\uDFF7\uFE0F'}</button>
           <input type="hidden" id="cat-edit-emoji-${cat.id}" value="${escHtml(cat.emoji || '')}">
           <input class="form-input cat-name-input" data-cat-name-input="${cat.id}"
             value="${escHtml(cat.name)}"
@@ -133,7 +133,7 @@ export function renderStores(allStores, onDelete, onUpdate) {
           <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-faint);flex-shrink:0;margin-left:auto;"></i>
         </button>
         <div class="store-edit-row" style="display:none;align-items:center;gap:var(--space-2);flex:1;min-width:0;">
-          <button type="button" class="emoji-picker-btn" id="store-emoji-btn-${store.id}" title="Change emoji" aria-label="Pick an emoji">${store.emoji || '\uD83C\uDFEA'}</button>
+          <button type="button" class="emoji-picker-btn" id="store-emoji-btn-${store.id}" title="Change emoji" aria-label="Pick an emoji" style="width:44px;height:44px;flex-shrink:0;">${store.emoji || '\uD83C\uDFEA'}</button>
           <input type="hidden" id="store-edit-emoji-${store.id}" value="${escHtml(store.emoji || '')}">
           <input class="form-input store-name-input" data-store-name-input="${store.id}"
             value="${escHtml(store.name)}"
