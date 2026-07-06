@@ -76,8 +76,7 @@
 .list-card-badge{display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--color-text-muted);background:var(--color-surface-offset);border-radius:var(--radius-full);padding:2px var(--space-2);}
 .list-card-badge svg{width:11px;height:11px;}
 .list-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
-.list-card-actions{display:flex;gap:var(--space-1);opacity:0;transition:opacity var(--transition-interactive);}
-.list-card:hover .list-card-actions{opacity:1;}
+.list-card-actions{display:flex;gap:var(--space-1);opacity:1;}
 .list-card-actions .icon-btn{width:28px;height:28px;font-size:12px;}
 
 /* Template card — dashed "blueprint" treatment + gold accent to distinguish from lists */
