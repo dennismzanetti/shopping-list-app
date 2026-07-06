@@ -37,8 +37,8 @@ import { initCategoryDetail }                           from './category-detail.
 const uid        = () => state.currentUser?.uid;
 const listsCol   = () => collection(db, 'users', uid(), 'lists');
 const itemsCol   = (listId) => collection(db, 'users', uid(), 'lists', listId, 'items');
-const catsCol    = () => collection(db, 'users', uid(), 'categories');
-const storesCol  = () => collection(db, 'users', uid(), 'stores');
+const catsCol    = () => collection(db, 'categories');
+const storesCol  = () => collection(db, 'stores');
 const tplsCol    = () => collection(db, 'users', uid(), 'templates');
 const publicTplsCol  = () => collection(db, 'publicTemplates');
 const publicListsCol = () => collection(db, 'publicLists');
@@ -108,11 +108,11 @@ function doRenderLists() {
 // Category / Store update helpers
 // ---------------------------------------------------------------------------
 async function updateCategory(catId, fields) {
-  await updateDoc(doc(db, 'users', uid(), 'categories', catId), fields);
+  await updateDoc(doc(db, 'categories', catId), fields);
 }
 
 async function updateStore(storeId, fields) {
-  await updateDoc(doc(db, 'users', uid(), 'stores', storeId), fields);
+  await updateDoc(doc(db, 'stores', storeId), fields);
 }
 
 // ---------------------------------------------------------------------------
