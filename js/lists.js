@@ -26,7 +26,6 @@ export function renderLists(onOpen, onDelete) {
     <div class="list-card" data-list-id="${list.id}">
       <div class="list-card-header">
         <div class="list-card-icon"><i data-lucide="shopping-cart"></i></div>
-        <span class="card-type-badge card-type-badge--list">🛒 List</span>
         <div class="list-card-actions" style="margin-left:auto;">
           <button class="icon-btn" data-delete-list="${list.id}" aria-label="Delete list" style="color:var(--color-error);"><i data-lucide="trash-2"></i></button>
         </div>
