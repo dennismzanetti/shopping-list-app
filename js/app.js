@@ -538,6 +538,11 @@ function init() {
       if (authScreen) authScreen.style.display = 'none';
       if (appEl)      appEl.style.display      = '';
       setUserUI(user);
+      // Default to My Lists on hard refresh, before Firestore data arrives
+      navigateTo('lists');
+      document.querySelectorAll('[data-view]').forEach(n =>
+        n.classList.toggle('active', n.dataset.view === 'lists')
+      );
       startListeners();
       createIcons();
     } else {
