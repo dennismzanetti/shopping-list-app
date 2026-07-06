@@ -1,6 +1,24 @@
 # ShopList
-d. zanetti
+d. zanetti  
 A web app for managing shopping lists, built with HTML, JavaScript, and Firebase.
+
+---
+
+## Features
+
+- **Google Sign-In** — secure, per-user data via Firebase Authentication
+- **My Lists** — create and manage multiple shopping lists with emoji, description, store assignment, and public/private visibility
+- **Items** — add items with name, quantity, unit, store, category, and notes; check off as you shop
+- **Item Filters** — filter list items by store and/or category in real time
+- **Templates** — reusable item sets that can be pushed to any existing or new list
+- **Categories** — organize items; drill into a category to see all tagged items across lists and templates
+- **Stores** — tag lists and items to stores; drill into a store to see all tagged items
+- **Emoji Picker** — searchable emoji selector for lists, templates, categories, and stores
+- **Dark / Light Mode** — manual toggle plus system-preference detection, persisted across reloads
+- **Export / Import** — download all user data as JSON; restore from a backup file
+- **Print View** — print-friendly layout for any list
+- **URL Deep-Linking** — share a direct link to any list via `?list=<id>` hash
+- **About Panel** — displays the 10 most recent GitHub commits in Settings
 
 ---
 
@@ -21,6 +39,7 @@ Use the following checklist to verify core app functionality after any code chan
 - [ ] The active tab is visually highlighted
 - [ ] The lists badge count in the nav updates when lists are added or removed
 - [ ] Clicking the user avatar in the header navigates to Settings
+- [ ] Opening the app with a `?list=<id>` URL hash navigates directly to that list
 
 ### 3. My Lists
 - [ ] "New List" button opens the New List modal
@@ -140,7 +159,7 @@ Use the following checklist to verify core app functionality after any code chan
 
 | File | Purpose |
 |---|---|
-| `js/app.js` | Main entry point — init, auth, Firebase wiring |
+| `js/app.js` | Main entry point — init, auth, Firebase wiring, URL deep-link handling |
 | `js/state.js` | Shared in-memory state (lists, templates, categories, stores) |
 | `js/nav.js` | Tab navigation and view switching |
 | `js/lists.js` | My Lists view — render, open, create |
@@ -148,7 +167,7 @@ Use the following checklist to verify core app functionality after any code chan
 | `js/items.js` | Items within a list — render, add, edit, delete, check |
 | `js/item-filters.js` | Filter items by store and/or category |
 | `js/templates.js` | Templates view and editor |
-| `js/categories.js` | Categories view — render, add, edit, delete |
+| `js/categories.js` | Categories view — render, add, edit, delete; stores CRUD also wired here |
 | `js/category-detail.js` | Category Detail view — template & list items for a category |
 | `js/categories-stores.js` | Shared helpers for category/store pickers |
 | `js/store-detail.js` | Store Detail view — template & list items for a store |
