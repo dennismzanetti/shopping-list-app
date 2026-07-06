@@ -492,7 +492,7 @@ function startListeners() {
     const ownIds = new Set(_ownTemplates.map(t => t.id));
     const others = _publicTemplates.filter(t => t.ownerId !== uid() && !ownIds.has(t.id));
     state.allTemplates = [..._ownTemplates, ...others];
-    renderTemplates((id) => openTemplateEditor(id, { buildCategoryOptions }));
+    renderTemplates((id) => openTemplateEditor(id, { buildCategoryOptions }), (type, id) => confirmDelete(type, id));
   }
 
   state.unsubTemplates = onSnapshot(
