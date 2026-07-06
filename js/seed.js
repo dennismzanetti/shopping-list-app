@@ -181,3 +181,62 @@ export async function seedTemplatesIfNeeded(user) {
     await batch.commit();
   }
 }
+
+// ---------------------------------------------------------------------------
+// backfillPublicDocs — one-time migration for existing public templates/lists
+// Call window.backfillPublicDocs() from the browser console once to mirror
+// any pre-existing public templates and lists into the top-level collections.
+// ---------------------------------------------------------------------------
+export async function backfillPublicDocs({ db, uid, displayName, email,
+  collection, getDocs, query, where, addDoc, updateDoc, doc, serverTimestamp }) {
+  const ownerName = displayName || email || '';
+  let tplCount = 0, listCount = 0;
+
+  try {
+    // ── Templates ────────────────────────────────────────────────────────────
+    const tplSnap = await getDocs(
+      query(collection(db, 'users', uid, 'templates'), where('visibility', '==', 'public'))
+    );
+    for (const d of tplSnap.docs) {
+      const data = { ...d.data(), ownerId: uid, ownerName, _mirrorId: d.id };
+      // Try to update existing mirror first, then create
+      try {
+        await updateDoc(doc(collection(db, 'publicTemplates'), d.id), data);
+      } catch (_) {
+        await addDoc(collection(db, 'publicTemplates'), data);
+      }
+      // Also stamp ownerId back onto the source doc if missing
+      if (!d.data().ownerId) {
+        await updateDoc(doc(collection(db, 'users', uid, 'templates'), d.id),
+          { ownerId: uid, ownerName });
+      }
+      tplCount++;
+    }
+
+    // ── Lists ─────────────────────────────────────────────────────────────────
+    const listSnap = await getDocs(
+      query(collection(db, 'users', uid, 'lists'), where('visibility', '==', 'public'))
+    );
+    for (const d of listSnap.docs) {
+      const data = { ...d.data(), ownerId: uid, ownerName, _mirrorId: d.id };
+      try {
+        await updateDoc(doc(collection(db, 'publicLists'), d.id), data);
+      } catch (_) {
+        await addDoc(collection(db, 'publicLists'), data);
+      }
+      if (!d.data().ownerId) {
+        await updateDoc(doc(collection(db, 'users', uid, 'lists'), d.id),
+          { ownerId: uid, ownerName });
+      }
+      listCount++;
+    }
+
+    console.log(`[backfill] Done: ${tplCount} template(s), ${listCount} list(s) mirrored.`);
+    window.showToast && window.showToast(
+      `Backfill complete: ${tplCount} template(s) and ${listCount} list(s) made public`, 'success'
+    );
+  } catch (e) {
+    console.error('[backfill] Error:', e);
+    window.showToast && window.showToast('Backfill error: ' + e.message, 'error');
+  }
+}
