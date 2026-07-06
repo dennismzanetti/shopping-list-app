@@ -546,7 +546,7 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
 }
 
 // -- initTemplates - wires all template UI listeners -------------------------
-export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
+export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                                  listsCol, itemsCol, writeBatch, db, getCurrentUid }) {
 
   initEmojiPicker();
@@ -590,13 +590,10 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, update
       let tplId = state.editingTemplateId;
       if (tplId) {
         await updateDoc(doc(templatesCol(), tplId), data);
-        // Sync public mirror
+        // Sync public mirror — setDoc upserts with the correct explicit ID
         if (visibility === 'public' && publicTemplatesCol) {
-          try {
-            await updateDoc(doc(publicTemplatesCol(), tplId), data);
-          } catch (_) {
-            await addDoc(publicTemplatesCol(), { ...data, _mirrorId: tplId });
-          }
+          setDoc(doc(publicTemplatesCol(), tplId), { ...data, _mirrorId: tplId })
+            .catch(e2 => console.error('publicTemplates mirror write failed:', e2));
         } else if (visibility === 'private' && publicTemplatesCol) {
           deleteDoc(doc(publicTemplatesCol(), tplId)).catch(() => {});
         }
@@ -606,7 +603,8 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, update
         const ref = await addDoc(templatesCol(), data);
         tplId = ref.id;
         if (visibility === 'public' && publicTemplatesCol) {
-          await addDoc(publicTemplatesCol(), { ...data, _mirrorId: tplId });
+          setDoc(doc(publicTemplatesCol(), tplId), { ...data, _mirrorId: tplId })
+            .catch(e2 => console.error('publicTemplates mirror write failed:', e2));
         }
         window.showToast(`"${name}" template created!`, 'success');
       }
