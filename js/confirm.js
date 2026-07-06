@@ -25,7 +25,7 @@ export function confirmDelete(type, id) {
   window.openModal('modal-confirm');
 }
 
-export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, publicListsCol, publicTemplatesCol, getDocs, writeBatch, doc, serverTimestamp, deleteDoc, setHashListId }) {
+export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, writeBatch, doc, serverTimestamp, deleteDoc, setHashListId }) {
   document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
     if (!state.pendingDelete) return;
     const { type, id } = state.pendingDelete;
@@ -37,20 +37,12 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
         if (data) await performImport(data, { db, listsCol, itemsCol, categoriesCol, storesCol, templatesCol, getDocs, writeBatch, doc, serverTimestamp });
 
       } else if (type === 'list') {
-        const list = state.allLists.find(l => l.id === id);
-        const isOwnList = !list?._isPublicMirror;
-        if (isOwnList) {
-          const itemSnap = await getDocs(itemsCol(id));
-          const batch = writeBatch(db);
-          itemSnap.docs.forEach(d => batch.delete(d.ref));
-          batch.delete(doc(listsCol(), id));
-          await batch.commit();
-          // Also delete public mirror if it exists
-          if (publicListsCol) deleteDoc(doc(publicListsCol(), id)).catch(() => {});
-        } else {
-          // Public list owned by another user — delete from publicLists only
-          await deleteDoc(doc(publicListsCol(), id));
-        }
+        // Delete items subcollection first, then the list doc
+        const itemSnap = await getDocs(itemsCol(id));
+        const batch = writeBatch(db);
+        itemSnap.docs.forEach(d => batch.delete(d.ref));
+        batch.delete(doc(listsCol(), id));
+        await batch.commit();
         if (state.currentListId === id) {
           if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
           state.currentListId = null;
@@ -75,16 +67,7 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
         window.showToast('Store deleted', 'success');
 
       } else if (type === 'template') {
-        const tpl = state.allTemplates.find(t => t.id === id);
-        const isOwnTpl = !tpl?._isPublicMirror;
-        if (isOwnTpl) {
-          await deleteDoc(doc(templatesCol(), id));
-          // Also delete public mirror if it exists
-          if (publicTemplatesCol) deleteDoc(doc(publicTemplatesCol(), id)).catch(() => {});
-        } else {
-          // Public template owned by another user — delete from publicTemplates only
-          await deleteDoc(doc(publicTemplatesCol(), id));
-        }
+        await deleteDoc(doc(templatesCol(), id));
         window.showToast('Template deleted', 'success');
       }
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
