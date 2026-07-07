@@ -11,7 +11,7 @@ import { state }                                        from './state.js';
 import { backfillGlobalCatsStores }                     from './seed.js';
 import { openModal, closeModal, showToast, openEmojiPicker,
          buildCategoryOptions, setHashListId, getHashListId,
-         setUserUI }                                    from './ui.js';
+         setUserUI, populateStorePills }                from './ui.js';
 import { syncThemeUI, toggleTheme }                     from './theme.js';
 import { navigateTo }                                   from './nav.js';
 import { loadAboutCommits }                             from './about.js';
@@ -19,8 +19,7 @@ import { renderLists, openList, updateListCounts }      from './lists.js';
 import { renderItems, openAddItemModal, openEditItemModal,
          toggleItem, saveItem, deleteItem,
          getSelectedStores, populateItemStoreCheckboxes } from './items.js';
-import { renderCategories, renderStores,
-         populateStorePills }                           from './categories.js';
+import { renderCategories, renderStores }               from './categories.js';
 import { initConfirm, confirmDelete }                   from './confirm.js';
 import { initExportImport }                             from './export-import.js';
 import { renderTemplates, initTemplates,
@@ -415,7 +414,7 @@ onAuthStateChanged(auth, async (user) => {
   // ── Categories ──────────────────────────────────────────────────────────────
   onSnapshot(query(catsCol(), orderBy('name')), snap => {
     state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderCategories({
+    renderCategories({\
       updateCategory,
       confirmDelete,
       openEmojiPicker,
