@@ -5,7 +5,7 @@ import {
   onSnapshot, getDocs, writeBatch, serverTimestamp,
   query, orderBy, where
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
-import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
+import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
 import { backfillGlobalCatsStores }                     from './seed.js';
@@ -396,7 +396,7 @@ function initAuth() {
   const logoutBtn = document.getElementById('logout-btn');
   const themeBtn  = document.getElementById('theme-toggle-btn');
 
-  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithPopup(auth, provider));
+  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithRedirect(auth, provider));
   if (logoutBtn) logoutBtn.addEventListener('click',  () => signOut(auth));
   if (themeBtn)  themeBtn.addEventListener('click',   () => toggleTheme());
 }
@@ -405,11 +405,24 @@ function initAuth() {
 // Main bootstrap
 // ---------------------------------------------------------------------------
 onAuthStateChanged(auth, async (user) => {
+  // Process any pending redirect result before checking user state.
+  // This ensures the session is established after a Google redirect sign-in.
+  if (!user) {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result?.user) {
+        // onAuthStateChanged will re-fire with the user — nothing else to do here
+        return;
+      }
+    } catch (e) {
+      if (e?.code !== 'auth/no-current-user') console.error('Redirect sign-in error:', e);
+    }
+    syncThemeUI();
+    return;
+  }
+
   state.currentUser = user;
   syncThemeUI();
-
-  if (!user) return;
-
   setUserUI(user);
 
   // ── Categories ──────────────────────────────────────────────────────────────
