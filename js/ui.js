@@ -97,6 +97,18 @@ export function setUserUI(user) {
   if (emailEl) emailEl.textContent = user.email || '\u2014';
 }
 
+// ── Store Pills (checkbox list for list/template modals) ─────────────────────
+export function populateStorePills(containerId, stores = []) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = stores.map(s =>
+    `<label class="store-checkbox-label">
+      <input type="checkbox" value="${s.name}">
+      ${s.emoji ? s.emoji + ' ' : ''}${s.name}
+    </label>`
+  ).join('');
+}
+
 // ── Emoji Picker ──────────────────────────────────────────────────────────────
 // Each entry: { e: emoji character, k: space-separated search keywords }
 const EMOJI_LIST = [
