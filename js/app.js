@@ -414,7 +414,7 @@ onAuthStateChanged(auth, async (user) => {
   // ── Categories ──────────────────────────────────────────────────────────────
   onSnapshot(query(catsCol(), orderBy('name')), snap => {
     state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderCategories({\
+    renderCategories({
       updateCategory,
       confirmDelete,
       openEmojiPicker,
