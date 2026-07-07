@@ -31,7 +31,13 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
     const chips   = preview.map(item => {
       const name          = typeof item === 'string' ? item : (item.name || '');
       const categoryEmoji = typeof item === 'object' && item.categoryEmoji ? item.categoryEmoji + '\u00a0' : '';
-      return `<span class="template-item-chip">${categoryEmoji}${escHtml(name)}</span>`;
+      const qtyStr        = (typeof item === 'object' && item.qty)
+        ? `<span style="color:var(--color-text-muted);font-size:var(--text-xs);margin-right:2px;">${escHtml(item.qty)}${item.unit ? '\u00a0' + escHtml(item.unit) : ''}</span>`
+        : '';
+      const notesIcon     = (typeof item === 'object' && item.notes)
+        ? ` <i data-lucide="file-text" style="width:10px;height:10px;opacity:0.5;vertical-align:middle;" title="${escHtml(item.notes)}"></i>`
+        : '';
+      return `<span class="template-item-chip">${categoryEmoji}${qtyStr}${escHtml(name)}${notesIcon}</span>`;
     }).join('');
     const moreChip   = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
     const chipsBlock = preview.length > 0
@@ -143,7 +149,7 @@ export function openList(listId, { navigateTo, setHashListId, onSnapshot, itemsC
 
   const emoji = list?.emoji || '';
   if (emojiInput) emojiInput.value = emoji;
-  if (emojiBtn)   emojiBtn.textContent = emoji || '🛒';
+  if (emojiBtn)   emojiBtn.textContent = emoji || '\uD83D\uDED2';
 
   // Disable editing controls for non-owners
   [nameInput, descInput].forEach(el => {
@@ -255,7 +261,13 @@ export function updateListCounts(listId, { listsCol, updateDoc, doc }) {
   const checked = state.allItems.filter(i => i.checked).length;
   const previewItems = state.allItems.slice(0, 5).map(i => {
     const cat = state.allCategories.find(c => c.name === (i.category || ''));
-    return { name: i.name || '', categoryEmoji: cat?.emoji || '' };
+    return {
+      name:          i.name          || '',
+      categoryEmoji: cat?.emoji      || '',
+      qty:           i.qty           || '',
+      unit:          i.unit          || '',
+      notes:         i.notes         || ''
+    };
   });
   updateDoc(doc(listsCol(), listId), { itemCount: total, checkedCount: checked, previewItems }).catch(() => {});
 }
