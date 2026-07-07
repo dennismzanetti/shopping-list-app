@@ -17,7 +17,13 @@ export function navigateTo(viewName, opts = {}) {
 
 export function initNav(opts = {}) {
   document.querySelectorAll('[data-view]').forEach(tab => {
-    tab.addEventListener('click', () => navigateTo(tab.dataset.view, opts));
+    tab.addEventListener('click', async () => {
+      // If a before-navigate hook is registered, call it first (e.g. auto-save template editor)
+      if (opts.onBeforeNavigate) {
+        await opts.onBeforeNavigate(tab.dataset.view);
+      }
+      navigateTo(tab.dataset.view, opts);
+    });
   });
 
   const hamburger = document.getElementById('mobile-menu-btn');
