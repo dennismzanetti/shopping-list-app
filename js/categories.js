@@ -7,12 +7,13 @@ import { escHtml, createIcons } from './utils.js';
 export function renderCategories(allCategories, onDelete, onUpdate) {
   const grid = document.getElementById('categories-grid');
   if (!grid) return;
-  if (allCategories.length === 0) {
+  const cats = Array.isArray(allCategories) ? allCategories : [];
+  if (cats.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="tag"></i></div><h3>No categories</h3><p>Add a category to organize your items.</p></div>`;
     createIcons(); return;
   }
 
-  grid.innerHTML = allCategories.map(cat => `
+  grid.innerHTML = cats.map(cat => `
     <div class="card" data-cat-id="${cat.id}">
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);">
         <button type="button" class="cat-display cat-display-clickable" data-open-cat="${cat.id}"
@@ -38,7 +39,7 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
       </div>
     </div>`).join('');
 
-  allCategories.forEach(cat => {
+  cats.forEach(cat => {
     const card       = grid.querySelector(`[data-cat-id="${cat.id}"]`);
     if (!card) return;
     const displayBtn = card.querySelector('[data-open-cat]');
@@ -118,11 +119,12 @@ export function renderCategories(allCategories, onDelete, onUpdate) {
 export function renderStores(allStores, onDelete, onUpdate) {
   const grid = document.getElementById('stores-grid');
   if (!grid) return;
-  if (allStores.length === 0) {
+  const stores = Array.isArray(allStores) ? allStores : [];
+  if (stores.length === 0) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon"><i data-lucide="store"></i></div><h3>No stores</h3><p>Add your favorite grocery stores.</p></div>`;
     createIcons(); return;
   }
-  grid.innerHTML = allStores.map(store => `
+  grid.innerHTML = stores.map(store => `
     <div class="card" data-store-id="${store.id}">
       <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);">
         <button type="button" class="store-display store-display-clickable" data-open-store="${store.id}"
@@ -148,7 +150,7 @@ export function renderStores(allStores, onDelete, onUpdate) {
       </div>
     </div>`).join('');
 
-  allStores.forEach(store => {
+  stores.forEach(store => {
     const card      = grid.querySelector(`[data-store-id="${store.id}"]`);
     if (!card) return;
     const displayBtn = card.querySelector('[data-open-store]');
@@ -223,29 +225,3 @@ export function renderStores(allStores, onDelete, onUpdate) {
 
   createIcons();
 }
-
-/**
- * Render store pills (checkbox labels) into a container.
- * @param {string} containerId - ID of the .store-checkboxes div
- * @param {Array}  allStores   - array of { id, name, emoji } objects
- * @param {Array}  [selected]  - array of store names that should be pre-checked
- */
-export function populateStorePills(containerId, allStores, selected = []) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  if (!allStores || allStores.length === 0) {
-    container.innerHTML = '<span style="font-size:var(--text-xs);color:var(--color-text-faint);">No stores added yet</span>';
-    return;
-  }
-  container.innerHTML = allStores.map(s => {
-    const label = (s.emoji ? s.emoji + '\u00a0' : '') + escHtml(s.name);
-    const checked = selected.includes(s.name) ? 'checked' : '';
-    return `<label class="store-checkbox-label">
-      <input type="checkbox" value="${escHtml(s.name)}" ${checked}>
-      ${label}
-    </label>`;
-  }).join('');
-}
-
-// Keep old name as alias so any other callers don't break
-export const populateStoreSelect = populateStorePills;
