@@ -1,6 +1,6 @@
 // js/lists.js
 import { state } from './state.js';
-import { escHtml, createIcons } from './utils.js';
+import { escHtml, createIcons, toArray } from './utils.js';
 
 // -- Lists --------------------------------------------------------------------
 export function renderLists(onOpen, onDelete, onVisibilityChange) {
@@ -44,6 +44,12 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
       ? `<div class="template-card-items">${chips}${moreChip}</div>`
       : '';
 
+    // Store pills
+    const listStores = toArray(list.stores);
+    const storePills = listStores.length
+      ? `<div class="template-card-stores">${listStores.map(s => `<span class="item-store-chip">${escHtml(s)}</span>`).join('')}</div>`
+      : '';
+
     // Visibility badge (same pattern as template cards)
     const visBadge = isPublic
       ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Public</span>`
@@ -76,6 +82,7 @@ export function renderLists(onOpen, onDelete, onVisibilityChange) {
         ${deleteBtn}
       </div>
       ${chipsBlock}
+      ${storePills}
       <div class="progress-bar" style="margin-top:var(--space-3);"><div class="progress-fill" style="width:${pct}%"></div></div>
       <div class="template-card-footer" style="justify-content:space-between;">
         ${footerLeft}
