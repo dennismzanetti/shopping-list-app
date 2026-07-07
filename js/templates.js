@@ -545,7 +545,7 @@ export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
 }
 window.closeTplItemModal = () => window.closeModal('modal-tpl-item');
 
-export function saveTplItem({ buildCategoryOptions } = {}) {
+export async function saveTplItem({ buildCategoryOptions, updateDoc, doc, templatesCol } = {}) {
   const name = document.getElementById('tpl-item-name').value.trim();
   if (!name) { window.showToast('Item name is required', 'error'); return; }
   const item = {
@@ -564,6 +564,16 @@ export function saveTplItem({ buildCategoryOptions } = {}) {
   }
   window.closeModal('modal-tpl-item');
   renderTplEditorItems({ buildCategoryOptions });
+
+  // Auto-save to Firestore immediately when editing an existing template
+  if (state.editingTemplateId && updateDoc && doc && templatesCol) {
+    try {
+      await updateDoc(doc(templatesCol(), state.editingTemplateId), { items: state.tplEditorItems });
+      window.showToast('Item saved!', 'success');
+    } catch (e) {
+      window.showToast('Error saving item: ' + e.message, 'error');
+    }
+  }
 }
 
 // -- initTemplates - wires all template UI listeners -------------------------
@@ -586,10 +596,10 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc
   );
 
   document.getElementById('tpl-item-save-btn').addEventListener('click', () =>
-    saveTplItem({ buildCategoryOptions })
+    saveTplItem({ buildCategoryOptions, updateDoc, doc, templatesCol })
   );
   document.getElementById('tpl-item-name').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveTplItem({ buildCategoryOptions });
+    if (e.key === 'Enter') saveTplItem({ buildCategoryOptions, updateDoc, doc, templatesCol });
   });
 
   document.getElementById('tpl-save-btn').addEventListener('click', async () => {
