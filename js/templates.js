@@ -266,6 +266,10 @@ export function renderTemplates(onEdit, onDelete) {
     const visBadge = isPublic
       ? `<span class="badge-shared"><i data-lucide="users" style="width:11px;height:11px;"></i> Public</span>`
       : `<span class="badge-shared" style="background:var(--color-surface-offset);color:var(--color-text-muted);"><i data-lucide="lock" style="width:11px;height:11px;"></i> Private</span>`;
+    const tplStores = toArray(t.stores);
+    const storePills = tplStores.length
+      ? `<div class="template-card-stores">${tplStores.map(s => `<span class="item-store-chip">${escHtml(s)}</span>`).join('')}</div>`
+      : '';
     return `<div class="template-card" data-tpl-id="${t.id}" title="Edit template">
       <div class="template-card-header">
         <div class="template-card-emoji">${t.emoji || '\uD83D\uDCCB'}</div>
@@ -276,6 +280,7 @@ export function renderTemplates(onEdit, onDelete) {
         <button class="icon-btn" data-delete-tpl="${t.id}" aria-label="Delete template" style="color:var(--color-error);margin-left:auto;flex-shrink:0;"><i data-lucide="trash-2"></i></button>
       </div>
       ${items.length > 0 ? `<div class="template-card-items">${chips}${moreChip}</div>` : ''}
+      ${storePills}
       <div class="template-card-footer" style="justify-content:space-between;">
         <span class="template-item-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
         ${visBadge}
