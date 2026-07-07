@@ -415,10 +415,11 @@ getRedirectResult(auth).catch(err => {
 // ---------------------------------------------------------------------------
 onAuthStateChanged(auth, async (user) => {
   state.currentUser = user;
-  setUserUI(user);
   syncThemeUI();
 
   if (!user) return;
+
+  setUserUI(user);
 
   // ── Categories ──────────────────────────────────────────────────────────────
   onSnapshot(query(catsCol(), orderBy('name')), snap => {
