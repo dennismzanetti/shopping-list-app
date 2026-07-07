@@ -181,7 +181,7 @@ function initNewListModal() {
     if (nameInput)  nameInput.value  = '';
     if (descInput)  descInput.value  = '';
     if (emojiInput) emojiInput.value = '';
-    if (emojiBtn)   emojiBtn.textContent = '\uD83D\uDED2';
+    if (emojiBtn)   emojiBtn.textContent = '🛒';
     setVisToggleValue('new-list-visibility', 'private');
     document.querySelectorAll('#new-list-store input[type=checkbox]').forEach(cb => cb.checked = false);
     const labels = document.querySelectorAll('#new-list-store .store-checkbox-label');
@@ -226,4 +226,292 @@ function initNewListModal() {
           ownerId: uid(),
           ownerName: state.currentUser?.displayName || state.currentUser?.email || '',
           createdAt: serverTimestamp(),
-          itemCount
+          itemCount: 0,
+          checkedCount: 0
+        };
+        const ref = await addDoc(listsCol(), listData);
+        closeModal('modal-new-list');
+        openList(ref.id, openListOpts());
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    });
+  }
+
+  if (nameInput) {
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') createBtn?.click(); });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Item modal buttons
+// ---------------------------------------------------------------------------
+function initItemModal() {
+  const addBtn  = document.getElementById('add-item-quick-btn');
+  const addBottomBtn = document.getElementById('add-item-bottom-btn');
+  const saveBtn = document.getElementById('save-item-btn');
+  const delBtn  = document.getElementById('delete-item-btn');
+
+  if (addBtn)       addBtn.addEventListener('click',       () => openAddItemModal(buildCategoryOptions));
+  if (addBottomBtn) addBottomBtn.addEventListener('click', () => openAddItemModal(buildCategoryOptions));
+  if (saveBtn)      saveBtn.addEventListener('click',      () => saveItem({
+    itemsCol,
+    getSelectedStores,
+    templatesCol: tplsCol,
+    tplUpdateDoc: updateDoc,
+    tplDoc: doc
+  }));
+  if (delBtn)       delBtn.addEventListener('click',       () => deleteItem({ itemsCol }));
+
+  const cancelBtn = document.getElementById('item-modal-cancel');
+  const closeBtn  = document.getElementById('item-modal-close');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal('modal-add-item'));
+  if (closeBtn)  closeBtn.addEventListener('click',  () => closeModal('modal-add-item'));
+
+  const nameInput = document.getElementById('item-name-full');
+  if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn?.click(); });
+}
+
+// ---------------------------------------------------------------------------
+// Categories & Stores modals
+// ---------------------------------------------------------------------------
+function initCatStoreModals() {
+  // ── Categories ─────────────────────────────────────────────────────────────────
+  const newCatBtn  = document.getElementById('new-category-btn');
+  const saveCatBtn = document.getElementById('save-category-btn');
+  const cancelCatBtn = document.getElementById('category-modal-cancel');
+  const closeCatBtn  = document.getElementById('category-modal-close');
+  const catNameIn  = document.getElementById('new-category-name');
+  const catEmojiIn = document.getElementById('new-category-emoji');
+  const catEmojiPickerBtn = document.getElementById('category-emoji-picker-btn');
+
+  if (newCatBtn) newCatBtn.addEventListener('click', () => {
+    if (catNameIn)  catNameIn.value  = '';
+    if (catEmojiIn) catEmojiIn.value = '';
+    if (catEmojiPickerBtn) catEmojiPickerBtn.innerHTML = '<i data-lucide="smile"></i> Pick';
+    openModal('modal-new-category');
+    setTimeout(() => { catNameIn?.focus(); createIcons(); }, 50);
+  });
+  if (cancelCatBtn) cancelCatBtn.addEventListener('click', () => closeModal('modal-new-category'));
+  if (closeCatBtn)  closeCatBtn.addEventListener('click',  () => closeModal('modal-new-category'));
+
+  if (catEmojiPickerBtn) {
+    catEmojiPickerBtn.addEventListener('click', () =>
+      openEmojiPicker('new-category-emoji', 'category-emoji-picker-btn')
+    );
+  }
+
+  if (saveCatBtn) saveCatBtn.addEventListener('click', async () => {
+    const name = catNameIn?.value.trim();
+    if (!name) { showToast('Category name is required', 'error'); return; }
+    const exists = state.allCategories.some(c => c.name.toLowerCase() === name.toLowerCase());
+    if (exists) { showToast('Category already exists', 'error'); return; }
+    try {
+      await addDoc(catsCol(), { name, emoji: catEmojiIn?.value.trim() || '', createdAt: serverTimestamp() });
+      closeModal('modal-new-category');
+      showToast('Category added', 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  if (catNameIn) catNameIn.addEventListener('keydown', e => { if (e.key === 'Enter') saveCatBtn?.click(); });
+
+  // ── Stores ────────────────────────────────────────────────────────────────────
+  const newStoreBtn      = document.getElementById('new-store-btn');
+  const saveStoreBtn     = document.getElementById('save-store-btn');
+  const cancelStoreBtn   = document.getElementById('store-modal-cancel');
+  const closeStoreBtn    = document.getElementById('store-modal-close');
+  const storeNameIn      = document.getElementById('new-store-name');
+  const storeEmojiIn     = document.getElementById('store-emoji-input');
+  const storeEmojiPickerBtn = document.getElementById('store-emoji-picker-btn');
+
+  if (newStoreBtn) newStoreBtn.addEventListener('click', () => {
+    if (storeNameIn)  storeNameIn.value  = '';
+    if (storeEmojiIn) storeEmojiIn.value = '';
+    if (storeEmojiPickerBtn) storeEmojiPickerBtn.innerHTML = '<i data-lucide="smile"></i> Pick';
+    openModal('modal-new-store');
+    setTimeout(() => { storeNameIn?.focus(); createIcons(); }, 50);
+  });
+  if (cancelStoreBtn) cancelStoreBtn.addEventListener('click', () => closeModal('modal-new-store'));
+  if (closeStoreBtn)  closeStoreBtn.addEventListener('click',  () => closeModal('modal-new-store'));
+
+  if (storeEmojiPickerBtn) {
+    storeEmojiPickerBtn.addEventListener('click', () =>
+      openEmojiPicker('store-emoji-input', 'store-emoji-picker-btn')
+    );
+  }
+
+  if (saveStoreBtn) saveStoreBtn.addEventListener('click', async () => {
+    const name = storeNameIn?.value.trim();
+    if (!name) { showToast('Store name is required', 'error'); return; }
+    const exists = state.allStores.some(s => s.name.toLowerCase() === name.toLowerCase());
+    if (exists) { showToast('Store already exists', 'error'); return; }
+    const emoji = storeEmojiIn?.value.trim() || '';
+    try {
+      await addDoc(storesCol(), { name, emoji, createdAt: serverTimestamp() });
+      closeModal('modal-new-store');
+      showToast('Store added', 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+  if (storeNameIn) storeNameIn.addEventListener('keydown', e => { if (e.key === 'Enter') saveStoreBtn?.click(); });
+}
+
+// ---------------------------------------------------------------------------
+// Back button + delete + visibility toggle on list detail view
+// ---------------------------------------------------------------------------
+function initListDetailNav() {
+  const backBtn   = document.getElementById('back-to-lists');
+  const deleteBtn = document.getElementById('detail-delete-btn');
+  const printBtn  = document.getElementById('print-list-btn');
+  const visToggle = document.getElementById('detail-visibility-toggle');
+
+  if (backBtn) backBtn.addEventListener('click', () => {
+    if (state.unsubItems) { state.unsubItems(); state.unsubItems = null; }
+    state.currentListId = null;
+    setHashListId(null);
+    navigateTo('lists');
+    document.querySelectorAll('[data-view]').forEach(n =>
+      n.classList.toggle('active', n.dataset.view === 'lists')
+    );
+  });
+
+  if (deleteBtn) deleteBtn.addEventListener('click', () => {
+    if (!state.currentListId) return;
+    confirmDelete('list', state.currentListId);
+  });
+
+  if (printBtn) printBtn.addEventListener('click', () => printList());
+
+  if (visToggle) {
+    visToggle.addEventListener('change', async () => {
+      if (!state.currentListId) return;
+      const val = visToggle.value;
+      try {
+        await updateDoc(doc(db, 'lists', state.currentListId), { visibility: val });
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Auth UI
+// ---------------------------------------------------------------------------
+function initAuth() {
+  const loginBtn  = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const themeBtn  = document.getElementById('theme-toggle-btn');
+
+  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithPopup(auth, provider));
+  if (logoutBtn) logoutBtn.addEventListener('click',  () => signOut(auth));
+  if (themeBtn)  themeBtn.addEventListener('click',   () => toggleTheme());
+}
+
+// ---------------------------------------------------------------------------
+// Main bootstrap
+// ---------------------------------------------------------------------------
+onAuthStateChanged(auth, async (user) => {
+  state.currentUser = user;
+  setUserUI(user);
+  syncThemeUI();
+
+  if (!user) return;
+
+  // ── Categories ──────────────────────────────────────────────────────────────
+  onSnapshot(query(catsCol(), orderBy('name')), snap => {
+    state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCategories({
+      updateCategory,
+      confirmDelete,
+      openEmojiPicker,
+      createIcons
+    });
+    doRenderItems();
+  });
+
+  // ── Stores ──────────────────────────────────────────────────────────────────
+  onSnapshot(query(storesCol(), orderBy('name')), snap => {
+    state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStores({
+      updateStore,
+      confirmDelete,
+      openEmojiPicker,
+      createIcons
+    });
+    doRenderLists();
+    populateItemStoreCheckboxes();
+    initStoreDetail({
+      db, doc, updateDoc, deleteDoc, onSnapshot,
+      itemsCol, listsCol, tplsCol,
+      navigateTo, setHashListId, confirmDelete,
+      openList, openListOpts,
+      showToast, createIcons
+    });
+  });
+
+  // ── Lists ───────────────────────────────────────────────────────────────────
+  onSnapshot(
+    query(listsCol(), where('ownerId', '==', user.uid), orderBy('createdAt', 'desc')),
+    snap => {
+      state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      doRenderLists();
+      // Re-open list if hash present
+      const hashId = getHashListId();
+      if (hashId && state.currentListId !== hashId) {
+        openList(hashId, openListOpts());
+      }
+    }
+  );
+
+  // ── Templates ───────────────────────────────────────────────────────────────
+  onSnapshot(
+    query(tplsCol(), where('ownerId', '==', user.uid), orderBy('createdAt', 'desc')),
+    snap => {
+      state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTemplates(confirmDelete);
+      const count = state.allTemplates.length;
+      ['badge-templates', 'header-badge-templates'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = count;
+      });
+    }
+  );
+
+  // ── Init UI modules ─────────────────────────────────────────────────────────
+  initNavigation();
+  initNewListModal();
+  initItemModal();
+  initCatStoreModals();
+  initListDetailNav();
+  initConfirm({
+    db, doc, deleteDoc, updateDoc,
+    collection, getDocs, writeBatch,
+    listsCol, itemsCol, catsCol, storesCol, tplsCol,
+    navigateTo, showToast,
+    doRenderLists, doRenderItems
+  });
+  initExportImport({ db, collection, addDoc, getDocs, serverTimestamp, uid, showToast });
+  initTemplates({
+    db, doc, addDoc, updateDoc, deleteDoc,
+    collection, onSnapshot, getDocs, serverTimestamp, query, orderBy, where,
+    tplsCol, listsCol, itemsCol, catsCol, storesCol,
+    state, navigateTo, setHashListId,
+    openModal, closeModal, showToast, openEmojiPicker,
+    buildCategoryOptions, populateStorePills,
+    openList, openListOpts,
+    confirmDelete, createIcons,
+    initVisToggle, setVisToggleValue, getVisToggleValue
+  });
+  initCategoryDetail({
+    db, doc, updateDoc, deleteDoc, onSnapshot,
+    itemsCol, listsCol, tplsCol,
+    navigateTo, confirmDelete,
+    showToast, createIcons
+  });
+
+  // Navigate to hash-indicated list on load
+  const hashId = getHashListId();
+  if (hashId) {
+    openList(hashId, openListOpts());
+  }
+
+  createIcons();
+});
+
+// Init auth buttons immediately (before login)
+initAuth();
