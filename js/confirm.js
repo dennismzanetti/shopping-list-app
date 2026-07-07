@@ -3,18 +3,20 @@ import { getAndClearPendingImport, performImport } from './export-import.js';
 import { navigateTo } from './nav.js';
 
 const TITLES = {
-  list:     'Delete List?',
-  item:     'Delete Item?',
-  category: 'Delete Category?',
-  store:    'Delete Store?',
-  template: 'Delete Template?'
+  list:            'Delete List?',
+  item:            'Delete Item?',
+  category:        'Delete Category?',
+  store:           'Delete Store?',
+  template:        'Delete Template?',
+  'template-item': 'Remove Item?'
 };
 const MESSAGES = {
-  list:     'This will permanently delete the list and all its items.',
-  item:     'This item will be permanently deleted.',
-  category: 'This category will be removed.',
-  store:    'This store will be removed.',
-  template: 'This template will be permanently deleted.'
+  list:            'This will permanently delete the list and all its items.',
+  item:            'This item will be permanently deleted.',
+  category:        'This category will be removed.',
+  store:           'This store will be removed.',
+  template:        'This template will be permanently deleted.',
+  'template-item': 'This item will be removed from the template.'
 };
 
 export function confirmDelete(type, id) {
@@ -69,6 +71,12 @@ export function initConfirm({ db, listsCol, itemsCol, categoriesCol, storesCol, 
       } else if (type === 'template') {
         await deleteDoc(doc(templatesCol(), id));
         window.showToast('Template deleted', 'success');
+
+      } else if (type === 'template-item') {
+        const { renderTplEditorItems, buildCategoryOptions } = state.pendingTemplateItemMeta || {};
+        state.tplEditorItems.splice(parseInt(id), 1);
+        if (renderTplEditorItems) renderTplEditorItems({ buildCategoryOptions });
+        window.showToast('Item removed', 'success');
       }
     } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
   });

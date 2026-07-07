@@ -512,8 +512,8 @@ function _renderTplItemList(buildCategoryOptions) {
   container.querySelectorAll('[data-tpl-item-remove]').forEach(btn =>
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      state.tplEditorItems.splice(parseInt(btn.dataset.tplItemRemove), 1);
-      renderTplEditorItems({ buildCategoryOptions });
+      state.pendingTemplateItemMeta = { renderTplEditorItems, buildCategoryOptions };
+      confirmDelete('template-item', btn.dataset.tplItemRemove);
     })
   );
   container.querySelectorAll('[data-tpl-item-idx]').forEach(row =>
