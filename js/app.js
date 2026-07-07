@@ -392,7 +392,7 @@ function initListDetailNav() {
 // Auth UI
 // ---------------------------------------------------------------------------
 function initAuth() {
-  const loginBtn  = document.getElementById('login-btn');
+  const loginBtn  = document.getElementById('google-signin-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const themeBtn  = document.getElementById('theme-toggle-btn');
 
