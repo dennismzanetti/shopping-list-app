@@ -5,7 +5,7 @@ import {
   onSnapshot, getDocs, writeBatch, serverTimestamp,
   query, orderBy, where
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
-import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
 import { backfillGlobalCatsStores }                     from './seed.js';
@@ -396,19 +396,10 @@ function initAuth() {
   const logoutBtn = document.getElementById('logout-btn');
   const themeBtn  = document.getElementById('theme-toggle-btn');
 
-  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithRedirect(auth, provider));
+  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithPopup(auth, provider));
   if (logoutBtn) logoutBtn.addEventListener('click',  () => signOut(auth));
   if (themeBtn)  themeBtn.addEventListener('click',   () => toggleTheme());
 }
-
-// ---------------------------------------------------------------------------
-// Handle redirect result on page load
-// ---------------------------------------------------------------------------
-getRedirectResult(auth).catch(err => {
-  if (err?.code && err.code !== 'auth/no-current-user') {
-    console.error('Redirect sign-in error:', err);
-  }
-});
 
 // ---------------------------------------------------------------------------
 // Main bootstrap
