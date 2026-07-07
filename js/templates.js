@@ -576,6 +576,64 @@ export async function saveTplItem({ buildCategoryOptions, updateDoc, doc, templa
   }
 }
 
+// -- Auto-save template (called when navigating away from editor) --------------
+// Returns true if a save was performed, false if skipped.
+export async function autoSaveTemplate({ addDoc, updateDoc, setDoc, deleteDoc, doc, templatesCol, publicTemplatesCol, serverTimestamp, getCurrentUid } = {}) {
+  // Only run when the template editor is the active view
+  const editorView = document.getElementById('view-template-editor');
+  if (!editorView || !editorView.classList.contains('active')) return false;
+
+  const name = document.getElementById('tpl-name')?.value.trim();
+  // Nothing to save if no name and no items
+  if (!name && state.tplEditorItems.length === 0) return false;
+  // Require a name; if missing, prompt and abort navigation
+  if (!name) {
+    window.showToast('Template name is required to save', 'error');
+    document.getElementById('tpl-name')?.focus();
+    return false;
+  }
+
+  const visibility = getVisibilityValue();
+  const data = {
+    name,
+    emoji:     document.getElementById('tpl-emoji')?.value.trim() || '\uD83D\uDED2',
+    desc:      document.getElementById('tpl-desc')?.value.trim() || '',
+    stores:    getTplSelectedStores(),
+    items:     state.tplEditorItems,
+    visibility,
+    ownerId:   getCurrentUid ? getCurrentUid() : (state.currentUser?.uid || ''),
+    ownerName: state.currentUser?.displayName || state.currentUser?.email || '',
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    let tplId = state.editingTemplateId;
+    if (tplId) {
+      await updateDoc(doc(templatesCol(), tplId), data);
+      if (visibility === 'public' && publicTemplatesCol) {
+        setDoc(doc(publicTemplatesCol(), tplId), { ...data, _mirrorId: tplId })
+          .catch(e2 => console.error('publicTemplates mirror write failed:', e2));
+      } else if (visibility === 'private' && publicTemplatesCol) {
+        deleteDoc(doc(publicTemplatesCol(), tplId)).catch(() => {});
+      }
+    } else {
+      data.createdAt = serverTimestamp();
+      const ref = await addDoc(templatesCol(), data);
+      tplId = ref.id;
+      state.editingTemplateId = tplId;
+      if (visibility === 'public' && publicTemplatesCol) {
+        setDoc(doc(publicTemplatesCol(), tplId), { ...data, _mirrorId: tplId })
+          .catch(e2 => console.error('publicTemplates mirror write failed:', e2));
+      }
+    }
+    window.showToast(`\u201c${name}\u201d saved!`, 'success');
+    return true;
+  } catch (e) {
+    window.showToast('Error saving template: ' + e.message, 'error');
+    return false;
+  }
+}
+
 // -- initTemplates - wires all template UI listeners -------------------------
 export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc, updateDoc, deleteDoc, doc, serverTimestamp, buildCategoryOptions, confirmDelete,
                                  listsCol, itemsCol, writeBatch, db, getCurrentUid }) {
@@ -587,9 +645,10 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc
     openTemplateEditor(null, { buildCategoryOptions })
   );
 
-  document.getElementById('back-to-templates').addEventListener('click', () =>
-    navigateTo('templates')
-  );
+  document.getElementById('back-to-templates').addEventListener('click', async () => {
+    await autoSaveTemplate({ addDoc, updateDoc, setDoc, deleteDoc, doc, templatesCol, publicTemplatesCol, serverTimestamp, getCurrentUid });
+    navigateTo('templates');
+  });
 
   document.getElementById('tpl-add-item-btn').addEventListener('click', () =>
     openTplItemModal(-1, { buildCategoryOptions })
@@ -633,6 +692,7 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc
         data.createdAt = serverTimestamp();
         const ref = await addDoc(templatesCol(), data);
         tplId = ref.id;
+        state.editingTemplateId = tplId;
         if (visibility === 'public' && publicTemplatesCol) {
           setDoc(doc(publicTemplatesCol(), tplId), { ...data, _mirrorId: tplId })
             .catch(e2 => console.error('publicTemplates mirror write failed:', e2));
@@ -662,4 +722,8 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc
     navigateTo('templates');
     confirmDelete('template', state.editingTemplateId, () => {});
   });
+
+  // Expose the auto-save function so app.js can wire it into the nav hook
+  state._autoSaveTemplate = () =>
+    autoSaveTemplate({ addDoc, updateDoc, setDoc, deleteDoc, doc, templatesCol, publicTemplatesCol, serverTimestamp, getCurrentUid });
 }
