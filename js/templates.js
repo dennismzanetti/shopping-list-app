@@ -532,6 +532,7 @@ export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
   state.tplItemEditingIdx = idx;
   const it = idx >= 0 ? state.tplEditorItems[idx] : null;
   document.getElementById('tpl-item-modal-title').textContent = it ? 'Edit Item' : 'Add Item';
+  document.getElementById('tpl-item-save-btn').textContent    = it ? 'Save Item' : 'Add Item';
   document.getElementById('tpl-item-name').value              = it ? it.name  : '';
   document.getElementById('tpl-item-qty').value               = it ? it.qty   : '';
   document.getElementById('tpl-item-unit').value              = it ? it.unit  : '';
