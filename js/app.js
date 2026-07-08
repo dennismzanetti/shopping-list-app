@@ -462,9 +462,12 @@ onAuthStateChanged(auth, async (user) => {
   // available on the Firestore connection, causing permission-denied errors.
   await user.getIdToken();
 
-  // Firestore listeners
+  const currentUid = user.uid;
+
+  // Firestore listeners — queries are scoped to the current user's ownerId so
+  // they match the security rules exactly and avoid permission-denied errors.
   onSnapshot(
-    query(listsCol(), orderBy('createdAt', 'desc')),
+    query(listsCol(), where('ownerId', '==', currentUid), orderBy('createdAt', 'desc')),
     snap => {
       state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       doRenderLists();
@@ -492,7 +495,7 @@ onAuthStateChanged(auth, async (user) => {
   );
 
   onSnapshot(
-    query(tplsCol(), orderBy('createdAt', 'desc')),
+    query(tplsCol(), where('ownerId', '==', currentUid), orderBy('createdAt', 'desc')),
     snap => {
       state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderTemplates(state.allTemplates, confirmDelete, openTemplateEditor);
