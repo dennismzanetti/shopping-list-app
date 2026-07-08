@@ -478,21 +478,21 @@ onAuthStateChanged(auth, async (user) => {
     }
   );
 
-  onSnapshot(
-    query(catsCol(), orderBy('createdAt', 'asc')),
-    snap => {
-      state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderCategories(updateCategory, confirmDelete);
-    }
-  );
+  // Categories & stores: no orderBy to avoid silently excluding docs that
+  // pre-date the createdAt field. Sort client-side instead.
+  onSnapshot(catsCol(), snap => {
+    state.allCategories = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
+    renderCategories(updateCategory, confirmDelete);
+  });
 
-  onSnapshot(
-    query(storesCol(), orderBy('createdAt', 'asc')),
-    snap => {
-      state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderStores(updateStore, confirmDelete);
-    }
-  );
+  onSnapshot(storesCol(), snap => {
+    state.allStores = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
+    renderStores(updateStore, confirmDelete);
+  });
 
   onSnapshot(
     query(tplsCol(), where('ownerId', '==', currentUid), orderBy('createdAt', 'desc')),
