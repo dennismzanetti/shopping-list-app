@@ -464,41 +464,91 @@ onAuthStateChanged(auth, async (user) => {
 
   const currentUid = user.uid;
 
-  // Firestore listeners — queries are scoped to the current user's ownerId so
-  // they match the security rules exactly and avoid permission-denied errors.
+  // ---------------------------------------------------------------------------
+  // Lists: own lists + public lists from other users, merged and deduplicated.
+  // Two separate queries are required because Firestore does not support OR
+  // across different fields in a single query.
+  // ---------------------------------------------------------------------------
+  let ownLists    = [];
+  let publicLists = [];
+
+  const mergeLists = () => {
+    // Deduplicate by id — own docs take precedence over public copies
+    const map = new Map();
+    publicLists.forEach(l => map.set(l.id, l));
+    ownLists.forEach(l => map.set(l.id, l));
+    state.allLists = Array.from(map.values())
+      .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+    doRenderLists();
+    const hashId = getHashListId();
+    if (hashId && !state.currentListId) {
+      openList(hashId, openListOpts());
+    }
+  };
+
   onSnapshot(
     query(listsCol(), where('ownerId', '==', currentUid), orderBy('createdAt', 'desc')),
     snap => {
-      state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      doRenderLists();
-      const hashId = getHashListId();
-      if (hashId && !state.currentListId) {
-        openList(hashId, openListOpts());
-      }
+      ownLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mergeLists();
     }
   );
 
-  // Categories & stores: no orderBy to avoid silently excluding docs that
-  // pre-date the createdAt field. Sort client-side instead.
+  onSnapshot(
+    query(listsCol(), where('visibility', '==', 'public'), where('ownerId', '!=', currentUid), orderBy('ownerId'), orderBy('createdAt', 'desc')),
+    snap => {
+      publicLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mergeLists();
+    }
+  );
+
+  // Categories & stores: global collections, no per-user scoping.
+  // No orderBy to avoid silently excluding docs that pre-date the createdAt
+  // field. Sort client-side instead.
   onSnapshot(catsCol(), snap => {
     state.allCategories = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
-    renderCategories(updateCategory, confirmDelete);
+    // FIX: pass state.allCategories as the first argument (data array)
+    renderCategories(state.allCategories, updateCategory, confirmDelete);
   });
 
   onSnapshot(storesCol(), snap => {
     state.allStores = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
-    renderStores(updateStore, confirmDelete);
+    // FIX: pass state.allStores as the first argument (data array)
+    renderStores(state.allStores, updateStore, confirmDelete);
   });
+
+  // ---------------------------------------------------------------------------
+  // Templates: own templates + public templates from other users, merged.
+  // ---------------------------------------------------------------------------
+  let ownTemplates    = [];
+  let publicTemplates = [];
+
+  const mergeTemplates = () => {
+    const map = new Map();
+    publicTemplates.forEach(t => map.set(t.id, t));
+    ownTemplates.forEach(t => map.set(t.id, t));
+    state.allTemplates = Array.from(map.values())
+      .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+    renderTemplates(state.allTemplates, confirmDelete, openTemplateEditor);
+  };
 
   onSnapshot(
     query(tplsCol(), where('ownerId', '==', currentUid), orderBy('createdAt', 'desc')),
     snap => {
-      state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderTemplates(state.allTemplates, confirmDelete, openTemplateEditor);
+      ownTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mergeTemplates();
+    }
+  );
+
+  onSnapshot(
+    query(tplsCol(), where('visibility', '==', 'public'), where('ownerId', '!=', currentUid), orderBy('ownerId'), orderBy('createdAt', 'desc')),
+    snap => {
+      publicTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mergeTemplates();
     }
   );
 
