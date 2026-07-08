@@ -15,11 +15,36 @@
   <link rel="stylesheet" href="css/items.css">
   <link rel="stylesheet" href="css/views.css">
   <link rel="stylesheet" href="css/mobile.css">
+  <style>
+    #app-loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg, #f7f6f2);
+      z-index: 9999;
+    }
+    #app-loading .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--color-border, #d4d1ca);
+      border-top-color: var(--color-primary, #01696f);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
-<!-- Auth Screen -->
-<div id="auth-screen" class="auth-screen">
+<!-- Full-page loading screen: shown until Firebase resolves auth state -->
+<div id="app-loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- Auth Screen (hidden until Firebase confirms no session) -->
+<div id="auth-screen" class="auth-screen" style="display:none;">
   <div class="auth-card">
     <div class="auth-logo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">

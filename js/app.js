@@ -409,6 +409,12 @@ function initAuth() {
 let appInitialized = false;
 
 onAuthStateChanged(auth, async (user) => {
+  // Always hide the full-page loading spinner on the first auth state resolution.
+  // This prevents the sign-in screen from flashing before Firebase has had a
+  // chance to restore a persisted session.
+  const loadingEl = document.getElementById('app-loading');
+  if (loadingEl) loadingEl.style.display = 'none';
+
   if (!user) {
     // Reset the flag on sign-out so a subsequent sign-in re-initializes cleanly
     appInitialized = false;
