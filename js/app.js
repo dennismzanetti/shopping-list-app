@@ -5,7 +5,7 @@ import {
   onSnapshot, getDocs, writeBatch, serverTimestamp,
   query, orderBy, where
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
-import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js';
 
 import { state }                                        from './state.js';
 import { backfillGlobalCatsStores }                     from './seed.js';
@@ -396,7 +396,7 @@ function initAuth() {
   const logoutBtn = document.getElementById('logout-btn');
   const themeBtn  = document.getElementById('theme-toggle-btn');
 
-  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithRedirect(auth, provider));
+  if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithPopup(auth, provider));
   if (logoutBtn) logoutBtn.addEventListener('click',  () => signOut(auth));
   if (themeBtn)  themeBtn.addEventListener('click',   () => toggleTheme());
 }
@@ -405,126 +405,83 @@ function initAuth() {
 // Main bootstrap
 // ---------------------------------------------------------------------------
 onAuthStateChanged(auth, async (user) => {
-  // Process any pending redirect result before checking user state.
-  // This ensures the session is established after a Google redirect sign-in.
   if (!user) {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result?.user) {
-        // onAuthStateChanged will re-fire with the user — nothing else to do here
-        return;
-      }
-    } catch (e) {
-      if (e?.code !== 'auth/no-current-user') console.error('Redirect sign-in error:', e);
-    }
     syncThemeUI();
+    setUserUI(null);
+    document.getElementById('app-loading')?.classList.add('hidden');
+    document.getElementById('login-screen')?.classList.remove('hidden');
+    document.getElementById('app-shell')?.classList.add('hidden');
     return;
   }
 
   state.currentUser = user;
-  syncThemeUI();
   setUserUI(user);
+  document.getElementById('app-loading')?.classList.add('hidden');
+  document.getElementById('login-screen')?.classList.add('hidden');
+  document.getElementById('app-shell')?.classList.remove('hidden');
+  syncThemeUI();
 
-  // ── Categories ──────────────────────────────────────────────────────────────
-  onSnapshot(query(catsCol(), orderBy('name')), snap => {
-    state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderCategories({
-      updateCategory,
-      confirmDelete,
-      openEmojiPicker,
-      createIcons
-    });
-    doRenderItems();
-  });
-
-  // ── Stores ──────────────────────────────────────────────────────────────────
-  onSnapshot(query(storesCol(), orderBy('name')), snap => {
-    state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderStores({
-      updateStore,
-      confirmDelete,
-      openEmojiPicker,
-      createIcons
-    });
-    doRenderLists();
-    populateItemStoreCheckboxes();
-    initStoreDetail({
-      db, doc, updateDoc, deleteDoc, onSnapshot,
-      itemsCol, listsCol, tplsCol,
-      navigateTo, setHashListId, confirmDelete,
-      openList, openListOpts,
-      showToast, createIcons
-    });
-  });
-
-  // ── Lists ───────────────────────────────────────────────────────────────────
-  onSnapshot(
-    query(listsCol(), where('ownerId', '==', user.uid), orderBy('createdAt', 'desc')),
-    snap => {
-      state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      doRenderLists();
-      // Re-open list if hash present
-      const hashId = getHashListId();
-      if (hashId && state.currentListId !== hashId) {
-        openList(hashId, openListOpts());
-      }
-    }
-  );
-
-  // ── Templates ───────────────────────────────────────────────────────────────
-  onSnapshot(
-    query(tplsCol(), where('ownerId', '==', user.uid), orderBy('createdAt', 'desc')),
-    snap => {
-      state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderTemplates(confirmDelete);
-      const count = state.allTemplates.length;
-      ['badge-templates', 'header-badge-templates'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = count;
-      });
-    }
-  );
-
-  // ── Init UI modules ─────────────────────────────────────────────────────────
   initNavigation();
   initNewListModal();
   initItemModal();
   initCatStoreModals();
   initListDetailNav();
+  initAuth();
   initConfirm({
-    db, doc, deleteDoc, updateDoc,
-    collection, getDocs, writeBatch,
+    db, doc, deleteDoc, collection, writeBatch,
     listsCol, itemsCol, catsCol, storesCol, tplsCol,
-    navigateTo, showToast,
-    doRenderLists, doRenderItems
+    navigateTo, setHashListId, showToast,
+    renderLists: doRenderLists,
   });
-  initExportImport({ db, collection, addDoc, getDocs, serverTimestamp, uid, showToast });
+  initExportImport({ db, collection, addDoc, getDocs, serverTimestamp, showToast, query, orderBy });
   initTemplates({
-    db, doc, addDoc, updateDoc, deleteDoc,
-    collection, onSnapshot, getDocs, serverTimestamp, query, orderBy, where,
-    tplsCol, listsCol, itemsCol, catsCol, storesCol,
-    state, navigateTo, setHashListId,
-    openModal, closeModal, showToast, openEmojiPicker,
-    buildCategoryOptions, populateStorePills,
-    openList, openListOpts,
-    confirmDelete, createIcons,
-    initVisToggle, setVisToggleValue, getVisToggleValue
+    tplsCol, addDoc, updateDoc, deleteDoc, doc,
+    showToast, openModal, closeModal, navigateTo,
+    buildCategoryOptions, openEmojiPicker, createIcons,
+    state, confirmDelete,
   });
-  initCategoryDetail({
-    db, doc, updateDoc, deleteDoc, onSnapshot,
-    itemsCol, listsCol, tplsCol,
-    navigateTo, confirmDelete,
-    showToast, createIcons
-  });
+  initStoreDetail({ db, doc, updateDoc, deleteDoc, collection, onSnapshot, query, orderBy, showToast, navigateTo, confirmDelete, createIcons, openEmojiPicker, state });
+  initCategoryDetail({ db, doc, updateDoc, deleteDoc, collection, onSnapshot, query, orderBy, showToast, navigateTo, confirmDelete, createIcons, openEmojiPicker, state });
 
-  // Navigate to hash-indicated list on load
-  const hashId = getHashListId();
-  if (hashId) {
-    openList(hashId, openListOpts());
-  }
+  // Firestore listeners
+  onSnapshot(
+    query(listsCol(), orderBy('createdAt', 'desc')),
+    snap => {
+      state.allLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      doRenderLists();
+      const hashId = getHashListId();
+      if (hashId && !state.currentListId) {
+        openList(hashId, openListOpts());
+      }
+    }
+  );
 
-  createIcons();
+  onSnapshot(
+    query(catsCol(), orderBy('createdAt', 'asc')),
+    snap => {
+      state.allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCategories(updateCategory, confirmDelete);
+    }
+  );
+
+  onSnapshot(
+    query(storesCol(), orderBy('createdAt', 'asc')),
+    snap => {
+      state.allStores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStores(updateStore, confirmDelete);
+    }
+  );
+
+  onSnapshot(
+    query(tplsCol(), orderBy('createdAt', 'desc')),
+    snap => {
+      state.allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTemplates(state.allTemplates, confirmDelete, openTemplateEditor);
+    }
+  );
+
+  navigateTo('lists');
+  document.querySelectorAll('[data-view]').forEach(n =>
+    n.classList.toggle('active', n.dataset.view === 'lists')
+  );
 });
-
-// Init auth buttons immediately (before login)
-initAuth();
