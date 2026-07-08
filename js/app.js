@@ -404,8 +404,14 @@ function initAuth() {
 // ---------------------------------------------------------------------------
 // Main bootstrap
 // ---------------------------------------------------------------------------
+// Guard flag: ensures all init* functions and Firestore listeners are only
+// registered once, even if onAuthStateChanged fires multiple times.
+let appInitialized = false;
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    // Reset the flag on sign-out so a subsequent sign-in re-initializes cleanly
+    appInitialized = false;
     syncThemeUI();
     setUserUI(null);
     document.getElementById('auth-screen')?.style.removeProperty('display');
@@ -418,6 +424,10 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById('auth-screen')?.style.setProperty('display', 'none');
   document.getElementById('app')?.style.removeProperty('display');
   syncThemeUI();
+
+  // Only run initialization once per session to prevent duplicate listeners
+  if (appInitialized) return;
+  appInitialized = true;
 
   initNavigation();
   initNewListModal();
