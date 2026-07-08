@@ -393,8 +393,8 @@ function initListDetailNav() {
 // ---------------------------------------------------------------------------
 function initAuth() {
   const loginBtn  = document.getElementById('google-signin-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const themeBtn  = document.getElementById('theme-toggle-btn');
+  const logoutBtn = document.getElementById('signout-btn');
+  const themeBtn  = document.getElementById('theme-toggle');
 
   if (loginBtn)  loginBtn.addEventListener('click',  () => signInWithPopup(auth, provider));
   if (logoutBtn) logoutBtn.addEventListener('click',  () => signOut(auth));
@@ -408,17 +408,15 @@ onAuthStateChanged(auth, async (user) => {
   if (!user) {
     syncThemeUI();
     setUserUI(null);
-    document.getElementById('app-loading')?.classList.add('hidden');
-    document.getElementById('login-screen')?.classList.remove('hidden');
-    document.getElementById('app-shell')?.classList.add('hidden');
+    document.getElementById('auth-screen')?.style.removeProperty('display');
+    document.getElementById('app')?.style.setProperty('display', 'none');
     return;
   }
 
   state.currentUser = user;
   setUserUI(user);
-  document.getElementById('app-loading')?.classList.add('hidden');
-  document.getElementById('login-screen')?.classList.add('hidden');
-  document.getElementById('app-shell')?.classList.remove('hidden');
+  document.getElementById('auth-screen')?.style.setProperty('display', 'none');
+  document.getElementById('app')?.style.removeProperty('display');
   syncThemeUI();
 
   initNavigation();
