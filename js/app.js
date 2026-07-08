@@ -443,6 +443,11 @@ onAuthStateChanged(auth, async (user) => {
   initStoreDetail({ db, doc, updateDoc, deleteDoc, collection, onSnapshot, query, orderBy, showToast, navigateTo, confirmDelete, createIcons, openEmojiPicker, state });
   initCategoryDetail({ db, doc, updateDoc, deleteDoc, collection, onSnapshot, query, orderBy, showToast, navigateTo, confirmDelete, createIcons, openEmojiPicker, state });
 
+  // Force token propagation to Firestore before registering any snapshot listeners.
+  // Without this, onAuthStateChanged can fire before the Firebase Auth token is
+  // available on the Firestore connection, causing permission-denied errors.
+  await user.getIdToken();
+
   // Firestore listeners
   onSnapshot(
     query(listsCol(), orderBy('createdAt', 'desc')),
