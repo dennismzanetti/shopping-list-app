@@ -56,36 +56,13 @@ function _renderListFilterToolbar(onToggle, onEdit, onDelete) {
   wrap.innerHTML = buildFilterToolbarHTML('list', state.allCategories, state.allStores, listFilterState);
   createIcons();
 
+  // Always do a full toolbar re-render on any filter change so the Clear button
+  // is always wired through initFilterToolbar's onClear (fixes SNAP clear bug).
   _listFilterTeardown = initFilterToolbar('list', (newState) => {
     Object.assign(listFilterState, newState);
+    _renderListFilterToolbar(onToggle, onEdit, onDelete);
     _renderItemList(onToggle, onEdit, onDelete);
-    // update clear button presence without full toolbar re-render
-    _refreshClearBtn('list', listFilterState, () => _renderListFilterToolbar(onToggle, onEdit, onDelete));
   }, listFilterState);
-}
-
-function _refreshClearBtn(prefix, filterState, rerender) {
-  const toolbar = document.getElementById(`${prefix}-filter-toolbar`);
-  if (!toolbar) return;
-  const hasFilter = filterState.search || filterState.category || filterState.store || filterState.snap || filterState.sort !== 'added';
-  const existing  = document.getElementById(`${prefix}-filter-clear`);
-  if (hasFilter && !existing) {
-    // append clear button
-    const btn = document.createElement('button');
-    btn.className = 'item-filter-clear';
-    btn.id = `${prefix}-filter-clear`;
-    btn.setAttribute('aria-label', 'Clear filters');
-    btn.title = 'Clear all filters';
-    btn.innerHTML = '<i data-lucide="x"></i> Clear';
-    btn.addEventListener('click', () => {
-      filterState.search = ''; filterState.category = ''; filterState.store = ''; filterState.snap = false; filterState.sort = 'added';
-      rerender();
-    });
-    toolbar.appendChild(btn);
-    createIcons();
-  } else if (!hasFilter && existing) {
-    existing.remove();
-  }
 }
 
 function _renderItemList(onToggle, onEdit, onDelete) {
@@ -155,6 +132,8 @@ export function openAddItemModal(buildCategoryOptions) {
   document.getElementById('item-qty').value   = '';
   document.getElementById('item-unit').value  = '';
   document.getElementById('item-notes').value = '';
+  const snapCbItem = document.getElementById('item-snap-eligible');
+  if (snapCbItem) snapCbItem.checked = false;
   const catSel = document.getElementById('item-category');
   if (catSel) catSel.innerHTML = buildCategoryOptions('');
   populateItemStoreCheckboxes();
