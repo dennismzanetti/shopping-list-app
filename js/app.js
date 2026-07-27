@@ -533,7 +533,10 @@ onAuthStateChanged(auth, async (user) => {
     ownTemplates.forEach(t => map.set(t.id, t));
     state.allTemplates = Array.from(map.values())
       .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
-    renderTemplates(state.allTemplates, confirmDelete, openTemplateEditor);
+    renderTemplates(
+      (tplId) => openTemplateEditor(tplId, { buildCategoryOptions }),
+      (type, id) => confirmDelete(type, id)
+    );
   };
 
   onSnapshot(
