@@ -449,7 +449,9 @@ onAuthStateChanged(auth, async (user) => {
   });
   initExportImport({ db, collection, addDoc, getDocs, serverTimestamp, showToast, query, orderBy });
   initTemplates({
-    tplsCol, addDoc, updateDoc, deleteDoc, doc,
+    tplsCol, addDoc, setDoc, updateDoc, deleteDoc, doc,
+    serverTimestamp, getCurrentUid: uid,
+    listsCol, itemsCol, writeBatch, db,
     showToast, openModal, closeModal, navigateTo,
     buildCategoryOptions, openEmojiPicker, createIcons,
     state, confirmDelete,
