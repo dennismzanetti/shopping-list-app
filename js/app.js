@@ -18,7 +18,8 @@ import { loadAboutCommits }                             from './about.js';
 import { renderLists, openList, updateListCounts }      from './lists.js';
 import { renderItems, openAddItemModal, openEditItemModal,
          toggleItem, saveItem, deleteItem,
-         getSelectedStores, populateItemStoreCheckboxes } from './items.js';
+         getSelectedStores, populateItemStoreCheckboxes,
+         openCopyToTemplateModal, executeCopyToTemplate } from './items.js';
 import { renderCategories, renderStores }               from './categories.js';
 import { initConfirm, confirmDelete }                   from './confirm.js';
 import { initExportImport }                             from './export-import.js';
@@ -248,6 +249,7 @@ function initItemModal() {
   const addBottomBtn = document.getElementById('add-item-bottom-btn');
   const saveBtn = document.getElementById('save-item-btn');
   const delBtn  = document.getElementById('delete-item-btn');
+  const copyTplBtn = document.getElementById('copy-to-template-btn');
 
   if (addBtn)       addBtn.addEventListener('click',       () => openAddItemModal(buildCategoryOptions));
   if (addBottomBtn) addBottomBtn.addEventListener('click', () => openAddItemModal(buildCategoryOptions));
@@ -259,6 +261,7 @@ function initItemModal() {
     tplDoc: doc
   }));
   if (delBtn)       delBtn.addEventListener('click',       () => deleteItem({ itemsCol }));
+  if (copyTplBtn)   copyTplBtn.addEventListener('click',   () => openCopyToTemplateModal(state.editingItemId));
 
   const cancelBtn = document.getElementById('item-modal-cancel');
   const closeBtn  = document.getElementById('item-modal-close');
@@ -267,6 +270,16 @@ function initItemModal() {
 
   const nameInput = document.getElementById('item-name-full');
   if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn?.click(); });
+
+  // Copy to Template confirm
+  const copyTplConfirmBtn = document.getElementById('copy-to-tpl-confirm-btn');
+  if (copyTplConfirmBtn) {
+    copyTplConfirmBtn.addEventListener('click', () => executeCopyToTemplate({
+      tplsCol,
+      updateDoc,
+      doc
+    }));
+  }
 }
 
 // ---------------------------------------------------------------------------

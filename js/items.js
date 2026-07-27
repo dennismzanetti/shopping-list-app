@@ -128,6 +128,7 @@ export function openAddItemModal(buildCategoryOptions) {
   document.querySelector('#modal-add-item .modal-title').textContent = 'Add Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="plus"></i> Add Item';
   document.getElementById('delete-item-btn').style.display = 'none';
+  document.getElementById('copy-to-template-btn').style.display = 'none';
   document.getElementById('item-name-full').value = '';
   document.getElementById('item-qty').value   = '';
   document.getElementById('item-unit').value  = '';
@@ -148,6 +149,7 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   document.querySelector('#modal-add-item .modal-title').textContent = 'Edit Item';
   document.getElementById('save-item-btn').innerHTML = '<i data-lucide="save"></i> Save Changes';
   document.getElementById('delete-item-btn').style.display = 'inline-flex';
+  document.getElementById('copy-to-template-btn').style.display = 'inline-flex';
   document.getElementById('item-name-full').value = item.name  || '';
   document.getElementById('item-qty').value        = item.qty   || '';
   document.getElementById('item-unit').value       = item.unit  || '';
@@ -159,6 +161,69 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   populateItemStoreCheckboxes(toArray(item.stores));
   window.openModal('modal-add-item');
   setTimeout(() => document.getElementById('item-name-full').focus(), 50);
+}
+
+// -- Copy to Template ---------------------------------------------------------
+export function openCopyToTemplateModal(itemId) {
+  const item = state.allItems.find(i => i.id === itemId);
+  if (!item) return;
+
+  const templates = state.allTemplates || [];
+  if (templates.length === 0) {
+    window.showToast('No templates found. Create a template first.', 'error');
+    return;
+  }
+
+  const summary = document.getElementById('copy-to-tpl-summary');
+  if (summary) summary.textContent = `Copy "${item.name}" to a template as a new template item.`;
+
+  const sel = document.getElementById('copy-to-tpl-select');
+  if (sel) {
+    sel.innerHTML = templates.map(t =>
+      `<option value="${escHtml(t.id)}">${escHtml(t.name || 'Untitled')}</option>`
+    ).join('');
+  }
+
+  // Store itemId for the confirm handler
+  window._copyToTplItemId = itemId;
+
+  window.closeModal('modal-add-item');
+  window.openModal('modal-copy-to-template');
+}
+
+export async function executeCopyToTemplate({ tplsCol, updateDoc: tplUpdateDoc, doc: tplDoc }) {
+  const itemId = window._copyToTplItemId;
+  const tplId  = document.getElementById('copy-to-tpl-select')?.value;
+  if (!itemId || !tplId) return;
+
+  const item = state.allItems.find(i => i.id === itemId);
+  if (!item) { window.showToast('Item not found', 'error'); return; }
+
+  const template = (state.allTemplates || []).find(t => t.id === tplId);
+  if (!template) { window.showToast('Template not found', 'error'); return; }
+
+  const newTplItem = {
+    name:         item.name     || '',
+    qty:          item.qty      || '',
+    unit:         item.unit     || '',
+    category:     item.category || '',
+    stores:       toArray(item.stores),
+    tags:         [],
+    notes:        item.notes    || '',
+    snapEligible: !!item.snapEligible,
+  };
+
+  const existingItems = Array.isArray(template.items) ? [...template.items] : [];
+  existingItems.push(newTplItem);
+
+  try {
+    await tplUpdateDoc(tplDoc(tplsCol(), tplId), { items: existingItems });
+    window.closeModal('modal-copy-to-template');
+    window._copyToTplItemId = null;
+    window.showToast(`"${item.name}" copied to "${template.name || 'template'}"`, 'success');
+  } catch (e) {
+    window.showToast('Error: ' + e.message, 'error');
+  }
 }
 
 // -- Toggle Item --------------------------------------------------------------

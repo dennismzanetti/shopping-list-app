@@ -607,6 +607,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="delete-item-btn" style="display:none;margin-right:auto;"><i data-lucide="trash-2"></i> Delete</button>
+      <button class="btn btn-secondary btn-sm" id="copy-to-template-btn" style="display:none;"><i data-lucide="layout-template"></i> Copy to Template</button>
       <button class="btn btn-ghost" id="item-modal-cancel">Cancel</button>
       <button class="btn btn-primary" id="save-item-btn"><i data-lucide="plus"></i> Add Item</button>
     </div>
@@ -709,6 +710,27 @@
       <button class="btn btn-ghost" onclick="window.closeModal('modal-tpl-move')">Cancel</button>
       <button class="btn btn-secondary" id="tpl-move-copy-btn"><i data-lucide="copy"></i> Copy</button>
       <button class="btn btn-primary" id="tpl-move-move-btn"><i data-lucide="arrow-right-left"></i> Move</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Copy List Item to Template -->
+<div class="modal-overlay" id="modal-copy-to-template">
+  <div class="modal" style="max-width:400px;" role="dialog" aria-modal="true" aria-labelledby="copy-to-tpl-modal-title">
+    <div class="modal-header">
+      <span class="modal-title" id="copy-to-tpl-modal-title">Copy to Template</span>
+      <button class="icon-btn" onclick="window.closeModal('modal-copy-to-template')" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4);">
+      <p id="copy-to-tpl-summary" style="font-size:var(--text-sm);color:var(--color-text-muted);margin:0;"></p>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="copy-to-tpl-select">Destination template</label>
+        <select class="form-select" id="copy-to-tpl-select"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window.closeModal('modal-copy-to-template')">Cancel</button>
+      <button class="btn btn-primary" id="copy-to-tpl-confirm-btn"><i data-lucide="layout-template"></i> Copy to Template</button>
     </div>
   </div>
 </div>
