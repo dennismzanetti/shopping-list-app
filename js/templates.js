@@ -304,7 +304,8 @@ export function renderTemplates(onEdit, onDelete) {
 }
 
 // -- Filter state for template editor -----------------------------------------
-const tplFilterState = { search: '', category: '', store: '', sort: 'added' };
+// snap: false must be included so initFilterToolbar correctly syncs SNAP toggle state
+const tplFilterState = { search: '', category: '', store: '', snap: false, sort: 'added' };
 let _tplFilterTeardown = null;
 
 // -- Editor -------------------------------------------------------------------
@@ -329,7 +330,7 @@ export function openTemplateEditor(tplId, { buildCategoryOptions }) {
   });
 
   // reset filters when opening a new/different template
-  tplFilterState.search = ''; tplFilterState.category = ''; tplFilterState.store = ''; tplFilterState.sort = 'added';
+  tplFilterState.search = ''; tplFilterState.category = ''; tplFilterState.store = ''; tplFilterState.snap = false; tplFilterState.sort = 'added';
 
   state.tplEditorItems = tpl ? (tpl.items || []).map(normaliseItem) : [];
   renderTplEditorItems({ buildCategoryOptions });
@@ -361,35 +362,13 @@ function _renderTplFilterToolbar(buildCategoryOptions) {
   if (_tplFilterTeardown) { _tplFilterTeardown(); _tplFilterTeardown = null; }
   wrap.innerHTML = buildFilterToolbarHTML('tpl', state.allCategories, state.allStores, tplFilterState);
   createIcons();
+  // Always do a full toolbar re-render on any filter change so the Clear button
+  // is always wired through initFilterToolbar's onClear (fixes SNAP clear bug).
   _tplFilterTeardown = initFilterToolbar('tpl', (newState) => {
     Object.assign(tplFilterState, newState);
+    _renderTplFilterToolbar(buildCategoryOptions);
     _renderTplItemList(buildCategoryOptions);
-    _refreshTplClearBtn(buildCategoryOptions);
   }, tplFilterState);
-}
-
-function _refreshTplClearBtn(buildCategoryOptions) {
-  const toolbar = document.getElementById('tpl-filter-toolbar');
-  if (!toolbar) return;
-  const hasFilter = tplFilterState.search || tplFilterState.category || tplFilterState.store || tplFilterState.sort !== 'added';
-  const existing  = document.getElementById('tpl-filter-clear');
-  if (hasFilter && !existing) {
-    const btn = document.createElement('button');
-    btn.className = 'item-filter-clear';
-    btn.id = 'tpl-filter-clear';
-    btn.setAttribute('aria-label', 'Clear filters');
-    btn.title = 'Clear all filters';
-    btn.innerHTML = '<i data-lucide="x"></i> Clear';
-    btn.addEventListener('click', () => {
-      tplFilterState.search = ''; tplFilterState.category = ''; tplFilterState.store = ''; tplFilterState.sort = 'added';
-      _renderTplFilterToolbar(buildCategoryOptions);
-      _renderTplItemList(buildCategoryOptions);
-    });
-    toolbar.appendChild(btn);
-    createIcons();
-  } else if (!hasFilter && existing) {
-    existing.remove();
-  }
 }
 
 function _renderTplItemList(buildCategoryOptions) {
@@ -690,7 +669,6 @@ export function initTemplates({ templatesCol, publicTemplatesCol, addDoc, setDoc
       let tplId = state.editingTemplateId;
       if (tplId) {
         await updateDoc(doc(templatesCol(), tplId), data);
-        // Sync public mirror — setDoc upserts with the correct explicit ID
         if (visibility === 'public' && publicTemplatesCol) {
           setDoc(doc(publicTemplatesCol(), tplId), { ...data, _mirrorId: tplId })
             .catch(e2 => console.error('publicTemplates mirror write failed:', e2));
