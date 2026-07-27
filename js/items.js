@@ -120,7 +120,8 @@ function _renderItemList(onToggle, onEdit, onDelete) {
     const storeChips = toArray(item.stores).map(s => `<span class="item-store-chip"><i data-lucide="store" style="width:10px;height:10px;"></i>${escHtml(s)}</span>`).join('');
     const tagChips   = toArray(item.tags).map(t => `<span class="item-tag-chip">${escHtml(t)}</span>`).join('');
     const notes      = item.notes ? `<span style="color:var(--color-text-faint);font-size:var(--text-xs);">${escHtml(item.notes)}</span>` : '';
-    const meta       = [qty, cat, storeChips, tagChips, notes].filter(Boolean).join('');
+    const snapBadge  = item.snapEligible ? `<span class="snap-badge"><i data-lucide="leaf" style="width:10px;height:10px;"></i>SNAP</span>` : '';
+    const meta       = [qty, cat, storeChips, tagChips, snapBadge, notes].filter(Boolean).join('');
     return `<div class="item-row${item.checked ? ' checked' : ''}" data-item-id="${item.id}">
       <div class="item-checkbox${item.checked ? ' checked' : ''}" data-toggle="${item.id}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -154,6 +155,7 @@ export function openAddItemModal(buildCategoryOptions) {
   document.getElementById('item-qty').value   = '';
   document.getElementById('item-unit').value  = '';
   document.getElementById('item-notes').value = '';
+  document.getElementById('item-snap-eligible').checked = false;
   const catSel = document.getElementById('item-category');
   if (catSel) catSel.innerHTML = buildCategoryOptions('');
   populateItemStoreCheckboxes();
@@ -172,6 +174,7 @@ export function openEditItemModal(itemId, buildCategoryOptions) {
   document.getElementById('item-qty').value        = item.qty   || '';
   document.getElementById('item-unit').value       = item.unit  || '';
   document.getElementById('item-notes').value      = item.notes || '';
+  document.getElementById('item-snap-eligible').checked = item.snapEligible || false;
   const catSel = document.getElementById('item-category');
   if (catSel) catSel.innerHTML = buildCategoryOptions(item.category || '');
   populateItemStoreCheckboxes(toArray(item.stores));
@@ -218,11 +221,12 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores, templat
   if (!state.currentListId) { window.showToast('No list selected', 'error'); return; }
   const data = {
     name,
-    qty:      document.getElementById('item-qty').value.trim(),
-    unit:     document.getElementById('item-unit').value.trim(),
-    category: document.getElementById('item-category').value,
-    stores:   getStores(),
-    notes:    document.getElementById('item-notes').value.trim()
+    qty:          document.getElementById('item-qty').value.trim(),
+    unit:         document.getElementById('item-unit').value.trim(),
+    category:     document.getElementById('item-category').value,
+    stores:       getStores(),
+    notes:        document.getElementById('item-notes').value.trim(),
+    snapEligible: document.getElementById('item-snap-eligible').checked
   };
   try {
     if (state.editingItemId) {
@@ -233,13 +237,14 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores, templat
       // Auto-save to active template if one is open in the editor
       if (state.editingTemplateId && templatesCol && tplUpdateDoc && tplDoc) {
         const tplItem = {
-          name:     data.name,
-          qty:      data.qty,
-          unit:     data.unit,
-          category: data.category,
-          stores:   data.stores,
-          tags:     [],
-          notes:    data.notes
+          name:         data.name,
+          qty:          data.qty,
+          unit:         data.unit,
+          category:     data.category,
+          stores:       data.stores,
+          tags:         [],
+          notes:        data.notes,
+          snapEligible: data.snapEligible
         };
         state.tplEditorItems.push(tplItem);
         try {
@@ -256,5 +261,6 @@ export async function saveItem({ itemsCol, getSelectedStores: getStores, templat
     window.closeModal('modal-add-item');
     state.editingItemId = null;
     ['item-name-full','item-qty','item-unit','item-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('item-snap-eligible').checked = false;
   } catch (e) { window.showToast('Error: ' + e.message, 'error'); }
 }

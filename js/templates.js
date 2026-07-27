@@ -6,15 +6,16 @@ import { applyItemFilters, buildFilterToolbarHTML, initFilterToolbar } from './i
 
 // -- Helpers ------------------------------------------------------------------
 export function normaliseItem(it) {
-  if (typeof it === 'string') return { name: it, qty: '', unit: '', category: '', stores: [], tags: [], notes: '' };
+  if (typeof it === 'string') return { name: it, qty: '', unit: '', category: '', stores: [], tags: [], notes: '', snapEligible: false };
   return {
-    name:     it.name     || '',
-    qty:      it.qty      || '',
-    unit:     it.unit     || '',
-    category: it.category || '',
-    stores:   toArray(it.stores),
-    tags:     toArray(it.tags),
-    notes:    it.notes    || ''
+    name:         it.name     || '',
+    qty:          it.qty      || '',
+    unit:         it.unit     || '',
+    category:     it.category || '',
+    stores:       toArray(it.stores),
+    tags:         toArray(it.tags),
+    notes:        it.notes    || '',
+    snapEligible: it.snapEligible || false
   };
 }
 
@@ -259,7 +260,10 @@ export function renderTemplates(onEdit, onDelete) {
       const notesIcon = it.notes
         ? ` <i data-lucide="file-text" style="width:10px;height:10px;opacity:0.5;vertical-align:middle;" title="${escHtml(it.notes)}"></i>`
         : '';
-      return `<span class="template-item-chip">${prefix}${qtyStr}${escHtml(it.name || it)}${notesIcon}</span>`;
+      const snapIcon = it.snapEligible
+        ? ` <i data-lucide="leaf" style="width:10px;height:10px;color:var(--color-success);opacity:0.8;vertical-align:middle;" title="SNAP Eligible"></i>`
+        : '';
+      return `<span class="template-item-chip">${prefix}${qtyStr}${escHtml(it.name || it)}${notesIcon}${snapIcon}</span>`;
     }).join('');
     const moreChip = more > 0 ? `<span class="template-item-chip">+${more} more</span>` : '';
     const isPublic = t.visibility === 'public';
@@ -443,8 +447,11 @@ function _renderTplItemList(buildCategoryOptions) {
       const qtyBadge = it.qty
         ? `<span class="item-qty-badge">${escHtml(it.qty)}${it.unit ? '\u00a0' + escHtml(it.unit) : ''}</span>`
         : '';
-      const meta = (qtyBadge || catBadge || storeChips)
-        ? `<div class="item-meta">${qtyBadge}${catBadge}${storeChips}</div>`
+      const snapBadge = it.snapEligible
+        ? `<span class="snap-badge"><i data-lucide="leaf" style="width:10px;height:10px;"></i>SNAP</span>`
+        : '';
+      const meta = (qtyBadge || catBadge || storeChips || snapBadge)
+        ? `<div class="item-meta">${qtyBadge}${catBadge}${storeChips}${snapBadge}</div>`
         : '';
       const notesRow = it.notes
         ? `<div class="item-notes">${escHtml(it.notes)}</div>`
@@ -542,6 +549,7 @@ export function openTplItemModal(idx, { buildCategoryOptions } = {}) {
   document.getElementById('tpl-item-qty').value               = it ? it.qty   : '';
   document.getElementById('tpl-item-unit').value              = it ? it.unit  : '';
   document.getElementById('tpl-item-notes').value             = it ? it.notes : '';
+  document.getElementById('tpl-item-snap-eligible').checked   = it ? (it.snapEligible || false) : false;
   const tplCatSel = document.getElementById('tpl-item-category');
   if (tplCatSel && buildCategoryOptions) tplCatSel.innerHTML = buildCategoryOptions(it ? it.category : '');
   populateTplItemStoreCheckboxes(it ? toArray(it.stores) : []);
@@ -555,12 +563,13 @@ export async function saveTplItem({ buildCategoryOptions, updateDoc, doc, templa
   if (!name) { window.showToast('Item name is required', 'error'); return; }
   const item = {
     name,
-    qty:      document.getElementById('tpl-item-qty').value.trim(),
-    unit:     document.getElementById('tpl-item-unit').value.trim(),
-    category: document.getElementById('tpl-item-category').value,
-    stores:   getTplItemSelectedStores(),
-    tags:     [],
-    notes:    document.getElementById('tpl-item-notes').value.trim()
+    qty:          document.getElementById('tpl-item-qty').value.trim(),
+    unit:         document.getElementById('tpl-item-unit').value.trim(),
+    category:     document.getElementById('tpl-item-category').value,
+    stores:       getTplItemSelectedStores(),
+    tags:         [],
+    notes:        document.getElementById('tpl-item-notes').value.trim(),
+    snapEligible: document.getElementById('tpl-item-snap-eligible').checked
   };
   if (state.tplItemEditingIdx >= 0) {
     state.tplEditorItems[state.tplItemEditingIdx] = item;
