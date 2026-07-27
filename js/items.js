@@ -6,7 +6,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
 // -- Filter state for list detail ---------------------------------------------
-const listFilterState = { search: '', category: '', store: '', sort: 'added' };
+const listFilterState = { search: '', category: '', store: '', snap: false, sort: 'added' };
 let _listFilterTeardown = null;
 
 // -- Item Store Checkboxes ----------------------------------------------------
@@ -67,7 +67,7 @@ function _renderListFilterToolbar(onToggle, onEdit, onDelete) {
 function _refreshClearBtn(prefix, filterState, rerender) {
   const toolbar = document.getElementById(`${prefix}-filter-toolbar`);
   if (!toolbar) return;
-  const hasFilter = filterState.search || filterState.category || filterState.store || filterState.sort !== 'added';
+  const hasFilter = filterState.search || filterState.category || filterState.store || filterState.snap || filterState.sort !== 'added';
   const existing  = document.getElementById(`${prefix}-filter-clear`);
   if (hasFilter && !existing) {
     // append clear button
@@ -78,7 +78,7 @@ function _refreshClearBtn(prefix, filterState, rerender) {
     btn.title = 'Clear all filters';
     btn.innerHTML = '<i data-lucide="x"></i> Clear';
     btn.addEventListener('click', () => {
-      filterState.search = ''; filterState.category = ''; filterState.store = ''; filterState.sort = 'added';
+      filterState.search = ''; filterState.category = ''; filterState.store = ''; filterState.snap = false; filterState.sort = 'added';
       rerender();
     });
     toolbar.appendChild(btn);
