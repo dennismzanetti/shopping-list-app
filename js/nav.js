@@ -15,30 +15,36 @@ export function navigateTo(viewName, opts = {}) {
   createIcons();
 }
 
-export function initNav(opts = {}) {
-  document.querySelectorAll('[data-view]').forEach(tab => {
-    tab.addEventListener('click', async () => {
-      // If a before-navigate hook is registered, call it first (e.g. auto-save template editor)
-      if (opts.onBeforeNavigate) {
-        await opts.onBeforeNavigate(tab.dataset.view);
-      }
-      navigateTo(tab.dataset.view, opts);
-    });
-  });
+let _navInitialized = false;
 
-  const hamburger = document.getElementById('mobile-menu-btn');
-  const sidebar   = document.getElementById('sidebar');
-  const backdrop  = document.getElementById('sidebar-backdrop');
-  if (hamburger && sidebar) {
-    hamburger.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      if (backdrop) backdrop.classList.toggle('open');
+export function initNav(opts = {}) {
+  if (!_navInitialized) {
+    _navInitialized = true;
+
+    document.querySelectorAll('[data-view]').forEach(tab => {
+      tab.addEventListener('click', async () => {
+        // If a before-navigate hook is registered, call it first (e.g. auto-save template editor)
+        if (opts.onBeforeNavigate) {
+          await opts.onBeforeNavigate(tab.dataset.view);
+        }
+        navigateTo(tab.dataset.view, opts);
+      });
     });
-  }
-  if (backdrop) {
-    backdrop.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      backdrop.classList.remove('open');
-    });
+
+    const hamburger = document.getElementById('mobile-menu-btn');
+    const sidebar   = document.getElementById('sidebar');
+    const backdrop  = document.getElementById('sidebar-backdrop');
+    if (hamburger && sidebar) {
+      hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        if (backdrop) backdrop.classList.toggle('open');
+      });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('open');
+      });
+    }
   }
 }
